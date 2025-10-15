@@ -1,5 +1,10 @@
 # Techonologies:
 * DBT - for transformation logic inside the data warehouse itself
+* Snowflake/Motherduck - for data warehousing. I'll use motherduck for testing sql code since snowflake only has a trial of 30 days
+* Praw - for extracting reddit data. No need for kakfa here now since data scraping will only happen on a daily basis and will not likely imply a high throughput process like a per second need to scrape data because of the volume of data being posted per second kind of like meta's messenger or any kind of application that receives transactions on a per second basis
+* AWS S3/azure data lake - for storing the raw scraped data as parquet in a single staging layer, as idea will be to load this raw parquets as data into the data warehouse and once this raw data is loaded as a table in a data warehouse then we can then do our dbt transformations sequentially
+* Apache Airflow - to orchestrate the transformations by dbt sequentially
+* Terraform - to setup data lake storage and possibly the data warehouse chosen
 
 # Insights:
 * Ok so now I understand spark and dbt. Akala ko dati talaga that they were just tools meant for the smae task of data transformation and then its loading to a datawarehouse. It was partly true and I understnad now that why spark is used in the transformation step in ETL specifically is because it can leverage its distributed computation capabilities for this step until it is loaded to a cloud data warehouse, and then as for DBT this is a transformation tool yes, but how it works is mainly through an ELT paradigm where data instead of being transformed after extraction is loaded directly into a data warehouse and the data warehouses distributed computing capabilities is what is exactly leveraged by DBT since dbt basically takes the SQL jinja scripts you made and runs this SQL specific to the cloud data warehouses dialect of SQL in a sequential manner liek how a transformation step would occur in an ETL paradigm
@@ -146,6 +151,8 @@ dbt_data_analysis:
 ```
 
 because it will raise an error when we run dbt seed --target dev_cloud or dbt build --target dev_cloud such as `:Failed to attach 'dbt_data_analysis_db': no database/share named 'dbt_data_analysis_db' found"` so we need to make sure we create this database in our chosen data warehouse first. But can we do it or set it up programmatically is the question. We could set it up via terraform
+
+* to set token use `set motherduck_token=<the secret we generated in motherduck (ote this must be unquoted)>` in windows (this would be different for linux). To see if temporary secret has been set run `echo %motherduck_token%`
 
 # Articles, Videos, Papers:
 

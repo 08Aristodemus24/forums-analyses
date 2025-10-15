@@ -1,0 +1,5 @@
+{"timestamp":"2025-10-12T14:36:51.463728","level":"info","event":"DAG bundles loaded: dags-folder","logger":"airflow.dag_processing.bundles.manager.DagBundlesManager"}
+{"timestamp":"2025-10-12T14:36:51.464885","level":"info","event":"Filling up the DagBag from /opt/airflow/dags/extract_pipeline.py","logger":"airflow.models.dagbag.DagBag"}
+{"timestamp":"2025-10-12T14:36:52.073859","level":"info","event":"Tmp dir root location: /tmp","logger":"airflow.task.hooks.airflow.providers.standard.hooks.subprocess.SubprocessHook"}
+{"timestamp":"2025-10-12T14:36:52.075641","level":"info","event":"Running command: ['/usr/bin/bash', '-c', 'python /opt/airflow/dags/operators/fetch_reddit_data.py']","logger":"airflow.task.hooks.airflow.providers.standard.hooks.subprocess.SubprocessHook"}
+{"timestamp":"2025-10-12T14:36:52.089848","level":"info","event":"Output:","logger":"airflow.task.hooks.airflow.providers.standard.hooks.subprocess.SubprocessHook"}
