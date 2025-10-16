@@ -27,6 +27,6 @@ down:
 sh-broker:
 	docker exec -it broker bash
 sh-airflow:
-	docker exec -it subreddit-analyses-airflow-apiserver-1 bash
+	docker exec -it dbt-data-analysis-airflow-apiserver-1 bash
 
 restart: down up

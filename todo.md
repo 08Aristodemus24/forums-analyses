@@ -7,4 +7,4 @@
 
 # setting up reddit api data extractor 
 * create the records for each post, comment, and reply from each comment and reply in a post
-* dump to kafka producer so that it can be later consumed by a kafka consumer 
+* dump to aws s3 as data lake storage for later ingestion by dbt to data warehouse

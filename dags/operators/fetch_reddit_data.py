@@ -3,6 +3,8 @@ import requests
 import os
 import praw 
 import json
+import pyarrow as pa
+import pyarrow.parquet as pq
 
 from praw.models.comment_forest import CommentForest, MoreComments
 
@@ -10,7 +12,7 @@ from uuid import uuid4
 from pathlib import Path
 from dotenv import load_dotenv
 
-from kafka import KafkaProducer
+# from kafka import KafkaProducer
 
 def get_all_comments(comment_list):
     comments_data = []
@@ -48,18 +50,16 @@ def get_all_replies(replies, kwargs):
 
             datum = kwargs.copy()
             datum.update({"comment": reply.body})
-            print(f"reply level: {datum.keys()}")
-
-            msg = json.dumps(datum).encode("utf-8") 
-            producer.send("subreddit-topic", value=msg)
+            # print(f"reply level: {datum}")
+            reply_data.append(datum)
 
     return reply_data
 
 
 if __name__ == "__main__":
-    # # load env variables
-    # env_dir = Path('./').resolve()
-    # load_dotenv(os.path.join(env_dir, '.env'))
+    # load env variables
+    env_dir = Path('../../').resolve()
+    load_dotenv(os.path.join(env_dir, '.env'))
 
     # http://localhost:65010/reddit_callback
     # https://www.reddit.com/api/v1/authorize?client_id=CLIENT_ID&response_type=TYPE&state=RANDOM_STRING&redirect_uri=URI&duration=DURATION&scope=SCOPE_STRING
@@ -92,20 +92,20 @@ if __name__ == "__main__":
         user_agent=user_agent,
     )
 
-    subreddit = reddit.subreddit("Philippines")
+    subreddit = reddit.subreddit("KpopDemonhunters")
 
-    # instantiate kafka producer object
-    producer = KafkaProducer(
-        bootstrap_servers="broker:9092",
-        # setting this to 120 seconds 1.2m milliseconds is if it 
-        # is taking more than 60 sec to update metadata with the Kafka broker
-        # 1200000
-        max_block_ms=1200000,
-        api_version=(0, 11, 2),
-        # auto_create_topics_enable_true=True,
-    )
-
-    for submission in subreddit.hot():
+    # # instantiate kafka producer object
+    # producer = KafkaProducer(
+    #     bootstrap_servers="broker:9092",
+    #     # setting this to 120 seconds 1.2m milliseconds is if it 
+    #     # is taking more than 60 sec to update metadata with the Kafka broker
+    #     # 1200000
+    #     max_block_ms=1200000,
+    #     api_version=(0, 11, 2),
+    #     # auto_create_topics_enable_true=True,
+    # )
+    data = []
+    for submission in subreddit.hot(limit=5):
         # print(submission.__dict__)
 
         # this is a static variable that we will need to append 
@@ -123,22 +123,21 @@ if __name__ == "__main__":
             if hasattr(comment, "body"):
                 datum_copy = datum.copy()
                 datum_copy.update({"comment": comment.body})
-                print(f"comment level: {datum_copy.keys()}")
-
-                # send data to kafka broker for later ingestion
-                # /consumption
-                msg = json.dumps(datum_copy).encode("utf-8") 
-                producer.send("subreddit-topic", value=msg)
+                # print(f"comment level: {datum_copy}")
+                data.append(datum_copy)
                 
                 # recursively get all replies of a comment
-                get_all_replies(comment.replies, datum)
+                reply_data = get_all_replies(comment.replies, datum)
+                # print(reply_data)
+                data.extend(reply_data)
+
+    # convert the list of dictionaries/records to pyarrow table
+    reddit_posts_table = pa.Table.from_pylist(data)
+
+    # write pyarrow table as parquet in s3 bucket
+    # https://arrow.apache.org/docs/python/generated/pyarrow.fs.S3FileSystem.html
     
-
-        # {title: <title>, score: <score>, id: <id>, url: <url>, comment: <comment or reply>}
-
-    # flush() is a blocking operation. It will pause the 
-    # execution of the calling thread until all previously 
-    # sent records have completed their journey, meaning 
-    # they have been successfully acknowledged by the Kafka
-    # brokers
-    producer.flush()
+    # what we want here is to check if an existing parquet with reddit
+    # data already exists in s3, if there is none create a parquet with 
+    # object id indicating its the first, and if there is already create
+    # a parquet with the object id with the highest or max number 
