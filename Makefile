@@ -13,7 +13,7 @@ do-sleep:
 # that will setup our airflow connections in the container from our 
 # local machine  
 setup-conn:
-	docker exec chronic-disease-analyses-airflow-apiserver-1 python /opt/airflow/include/scripts/setup_conn.py
+	docker exec subreddit-analyses-analyses-airflow-apiserver-1 python /opt/airflow/include/scripts/setup_conn.py
 
 up: start-containers do-sleep 
 # setup-conn
@@ -27,6 +27,6 @@ down:
 sh-broker:
 	docker exec -it broker bash
 sh-airflow:
-	docker exec -it dbt-data-analysis-airflow-apiserver-1 bash
+	docker exec -it subreddit-analyses-airflow-apiserver-1 bash
 
 restart: down up
