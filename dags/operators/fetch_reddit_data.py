@@ -3,14 +3,18 @@ import requests
 import os
 import praw 
 import json
+import io
+import boto3
 import pyarrow as pa
 import pyarrow.parquet as pq
 
+from pyarrow.fs import S3FileSystem
 from praw.models.comment_forest import CommentForest, MoreComments
 
 from uuid import uuid4
 from pathlib import Path
 from dotenv import load_dotenv
+from argparse import ArgumentParser
 
 # from kafka import KafkaProducer
 
@@ -32,6 +36,27 @@ def get_all_comments(comment_list):
                 "replies": get_all_comments(comment.replies) if comment.replies else []
             })
     return comments_data
+
+def write_parq_df_to_bucket(aws_creds: dict, df: pa.Table, bucket_name: str, object_name: str, folder_name: str):
+    """
+    writes a pyarrow dataframe to an s3 bucket in parquet
+    format
+    """
+
+    try:
+        # 2. Initialize S3FileSystem
+        # You can pass AWS credentials or let it infer from environment variables/config files
+        fs = S3FileSystem(**aws_creds)
+
+        # 3. Specify the S3 bucket and object key (path within the bucket)
+        table_path = os.path.join(bucket_name, folder_name, object_name).replace("\\", "/")
+
+        # 4. Write the PyArrow Table to S3
+        # Use pq.write_table with the S3FileSystem and the desired path
+        pq.write_table(df, table_path, filesystem=fs)
+
+    except Exception as e:
+        print(f"Error `{e}` has occured")
 
 def get_all_replies(replies, kwargs):
     reply_data = []
@@ -57,6 +82,17 @@ def get_all_replies(replies, kwargs):
 
 
 if __name__ == "__main__":
+    # parse arguments
+    parser = ArgumentParser()
+    parser.add_argument("--bucket_name", type=str, default="subreddit-analyses-bucket", help="represents the name of provisioned bucket in s3")
+    parser.add_argument("--object_name", type=str, default="raw_reddit_data.parquet", help="represents the name of provisioned object/filename in s3")
+    parser.add_argument("--folder_name", type=str, default="", help="represents the name of folder containing the object/filename in s3 bucket")
+    args = parser.parse_args()
+
+    bucket_name = args.bucket_name
+    object_name = args.object_name
+    folder_name = args.folder_name
+
     # load env variables
     env_dir = Path('../../').resolve()
     load_dotenv(os.path.join(env_dir, '.env'))
@@ -78,17 +114,24 @@ if __name__ == "__main__":
     # equivalent python code to this curl request is the ff.
     
     # load env variables
-    client_id = os.environ.get('REDDIT_CLIENT_ID') 
-    client_secret = os.environ.get('REDDIT_CLIENT_SECRET')
-    username = os.environ.get('REDDIT_USERNAME')
-    password = os.environ.get('REDDIT_PASSWORD')
-    user_agent = f"desktop:com.sr-analyses-pipeline:0.1 (by u/{username})"
+    aws_creds = {
+        "access_key": os.environ["AWS_ACCESS_KEY_ID"],
+        "secret_key": os.environ["AWS_SECRET_ACCESS_KEY"],
+        "region": os.environ["AWS_REGION_NAME"],
+    }
+
+    REDDIT_CLIENT_ID = os.environ.get('REDDIT_CLIENT_ID') 
+    REDDIT_CLIENT_SECRET = os.environ.get('REDDIT_CLIENT_SECRET')
+    REDDIT_USERNAME = os.environ.get('REDDIT_USERNAME')
+    REDDIT_PASSWORD = os.environ.get('REDDIT_PASSWORD')
+    
+    user_agent = f"desktop:com.sr-analyses-pipeline:0.1 (by u/{REDDIT_USERNAME})"
 
     reddit = praw.Reddit(
-        client_id=client_id,
-        client_secret=client_secret,
-        username=username,
-        password=password,
+        client_id=REDDIT_CLIENT_ID,
+        client_secret=REDDIT_CLIENT_SECRET,
+        username=REDDIT_USERNAME,
+        password=REDDIT_PASSWORD,
         user_agent=user_agent,
     )
 
@@ -105,7 +148,7 @@ if __name__ == "__main__":
     #     # auto_create_topics_enable_true=True,
     # )
     data = []
-    for submission in subreddit.hot(limit=5):
+    for submission in subreddit.hot(limit=1):
         # print(submission.__dict__)
 
         # this is a static variable that we will need to append 
@@ -133,6 +176,9 @@ if __name__ == "__main__":
 
     # convert the list of dictionaries/records to pyarrow table
     reddit_posts_table = pa.Table.from_pylist(data)
+    print(reddit_posts_table.shape)
+
+    write_parq_df_to_bucket(aws_creds, reddit_posts_table, bucket_name, object_name, folder_name)
 
     # write pyarrow table as parquet in s3 bucket
     # https://arrow.apache.org/docs/python/generated/pyarrow.fs.S3FileSystem.html

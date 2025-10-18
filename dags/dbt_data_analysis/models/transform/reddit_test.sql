@@ -1,0 +1,1 @@
+SELECT * FROM {{ source('external_source', 'raw_reddit_data') }}

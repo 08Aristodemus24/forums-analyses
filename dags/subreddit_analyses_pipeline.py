@@ -44,5 +44,7 @@ with DAG(
     
     fetch_reddit_data = BashOperator(
         task_id="extract_signals",
-        bash_command=f"python {AIRFLOW_HOME}/operators/fetch_reddit_data.py"
+        bash_command=f"python {AIRFLOW_HOME}/operators/fetch_reddit_data.py \
+            --bucket_name subreddit-analyses-bucket \
+            --object-name raw_reddit_data.parquet"
     )

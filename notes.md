@@ -154,6 +154,11 @@ because it will raise an error when we run dbt seed --target dev_cloud or dbt bu
 
 * to set token use `set motherduck_token=<the secret we generated in motherduck (ote this must be unquoted)>` in windows (this would be different for linux). To see if temporary secret has been set run `echo %motherduck_token%`
 
+if your using s3 as the data source then it would be better to run instead
+```
+SET motherduck_token=<md token> & SET S3_ACCESS_KEY_ID=<key> & SET S3_SECRET_ACCESS_KEY=<key> & SET S3_REGION=<key>
+```
+
 * 
 ```
 # load env variables

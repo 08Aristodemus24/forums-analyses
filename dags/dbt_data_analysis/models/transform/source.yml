@@ -1,0 +1,6 @@
+sources:
+  - name: external_source
+    tables:
+      - name: raw_reddit_data
+        meta: 
+          external_location: "read_parquet({'s3://subreddit-analyses-bucket/raw_reddit_data.parquet'})"
