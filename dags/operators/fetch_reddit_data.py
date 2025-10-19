@@ -16,7 +16,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 from argparse import ArgumentParser
 
-# from kafka import KafkaProducer
 
 def get_all_comments(comment_list):
     comments_data = []
@@ -39,8 +38,11 @@ def get_all_comments(comment_list):
 
 def write_parq_df_to_bucket(aws_creds: dict, df: pa.Table, bucket_name: str, object_name: str, folder_name: str):
     """
-    writes a pyarrow dataframe to an s3 bucket in parquet
-    format
+    writes a pyarrow dataframe to an s3 bucket in parquet format. 
+    What we want here is to check if an existing parquet with reddit
+    data already exists in s3, if there is none create a parquet 
+    with object id indicating its the first, and if there is already 
+    create a parquet with the object id with the highest or max number 
     """
 
     try:
@@ -137,16 +139,6 @@ if __name__ == "__main__":
 
     subreddit = reddit.subreddit("KpopDemonhunters")
 
-    # # instantiate kafka producer object
-    # producer = KafkaProducer(
-    #     bootstrap_servers="broker:9092",
-    #     # setting this to 120 seconds 1.2m milliseconds is if it 
-    #     # is taking more than 60 sec to update metadata with the Kafka broker
-    #     # 1200000
-    #     max_block_ms=1200000,
-    #     api_version=(0, 11, 2),
-    #     # auto_create_topics_enable_true=True,
-    # )
     data = []
     for submission in subreddit.hot(limit=1):
         # print(submission.__dict__)
@@ -183,7 +175,4 @@ if __name__ == "__main__":
     # write pyarrow table as parquet in s3 bucket
     # https://arrow.apache.org/docs/python/generated/pyarrow.fs.S3FileSystem.html
     
-    # what we want here is to check if an existing parquet with reddit
-    # data already exists in s3, if there is none create a parquet with 
-    # object id indicating its the first, and if there is already create
-    # a parquet with the object id with the highest or max number 
+   

@@ -702,5 +702,39 @@ a reply object has the following data:
 
 * to setup aws infrastructure using terraform with we need to first configure our aws credentials terraform will need to authenticate to our aws account to setup our infrastructure. But first we need to create a IAM role/user, so we need to go to our account and create one there and assign a policy to it directly dpeending on what service we want this IAM role/user to have access to and ultimately what terraform has access to since it uses this IAM role/user credential. So we create a user and create its access key and copy its access key id and secret access key. Next assuming we have aws cli insstalled we run aws configure and there we will be prompted to enter our aws access key id and aws secret access key which we copied earlier when we created our access keys for our IAM user. Then we just enter the region to which we want and we're all set. If we run terraform init, terraform fmt, terraform apply, then we will have this resource/service set up in our account easily, depending what services we only allowed our IAM user to setup, e.g. if we only created a credential to setup an s3 bucket then terraform will only be allowed to create this service and nothing more
 
+* no  need for explicit create table if using dbt because of martelization, no more repeating yourself or manual creating of files with DML, or DDL statements
+* merge into in sql compares source table and target table, with materialize = 'incremental' dbt automatically compares the two older and newer tables and merges all old records to old records and adds new records to the new table
+
+incremental 
+default value of incremental can depend on platform
+if snowflake default incremental strategy is merge into
+synapse may be different
+big query may be different
+
+https://docs.getdbt.com/docs/build/incremental-models-overview
+
+incremental only detects new records but doesn't count columns of old rows that change. This requires an UPDATE instaed of INSERT
+
+mas costly ang UPDATE kasi it looks at each record row by row
+pag 
+
+* inside the warehouse dbt still follows the ETL processes
+* important part in dbt cloud over dbt core is that  abstracted na ang profiles.yaml in dbt cloud
+
+* learn materialization concepts like view, slowly changing dimensions, macros, 
+
+durable key for slowy changing dimensions type 4,
+
+* kimball
+- flat/one big table
+- 
+
+inmon
+- snowflake (umaabot na ng 3rd normal form kasi your break down dimension tables into even smaller)
+- wala na talaga duplicates kahit ang keys, that means even walang fact tables na potentially may duplicate keys
+basically inmon and kimball are two schools of thought in modelling data in a data warehouse
+
+* how dbt runs these models sequentially is because fo the ref() and source() functions
+
 # Articles, Videos, Papers:
 
