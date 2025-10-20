@@ -9,3 +9,9 @@
 /infra/*.backup
 /infra/.terraform/
 /.env
+
+# do not commit private keys
+*.p8
+*.pem
+*.ppk
+*.pub
