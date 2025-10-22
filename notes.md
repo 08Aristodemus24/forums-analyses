@@ -736,5 +736,39 @@ basically inmon and kimball are two schools of thought in modelling data in a da
 
 * how dbt runs these models sequentially is because fo the ref() and source() functions
 
+
+* How we can connect to snowflake using dbt:
+to avoid any `invalid JWT error` and `listing databases in snowflake` errors using dbt we need to make sure to input hte right credentials in our profiles.yaml in our dbt project
+```
+forums_analyses:
+  outputs:
+    dev:
+      type: snowflake
+      account: <The 'account identifier' displayed in our account details in our snowflake UI e.g. '***SURP-LN34***'>
+      user: <the 'login name' displayed in our account details in our snowflake UI e.g. A************0>
+      role: <the 'role' displayed in our account details in our snowflake UI e.g. ACCOUNTADMIN>
+
+      private_key_path: <path/to/our/private key/filename.p8>
+      private_key_passphrase: <password when we created our private key>
+      
+      warehouse: <name of our compute warehouse e.g. COMPUTE_WH>
+      database: <name of our database (case sensitive) e.g. SUBREDDIT_ANALYSES_DB>
+      schema: <name of our schema under the database (case sensitive) e.g. SUBREDDIT_ANALYSES_BRONZE>
+      threads: 4
+  target: dev
+```
+1. Assuming openssl is installed in our machine we need to run `openssl genrsa 2048 | openssl pkcs8 -topk8 -v2 des3 -inform PEM -out rsa_key.p8` which generates a private key (can be unencrypted if we add `-nocrypt` flag)
+2. then we run `openssl rsa -in rsa_key.p8 -pubout -out rsa_key.pub` which generates a public key version of the private key we created
+3. we then now grant privilege to our snowflake user to assign it a public key by running this sql command in snowflake through perhaps a file: `GRANT MODIFY PROGRAMMATIC AUTHENTICATION METHODS ON USER <login name> TO ROLE <role>;`
+4. And then now run:
+```
+ALTER USER <login name> 
+SET RSA_PUBLIC_KEY='<the string generated for our public key>'
+```
+
+note that `"jdbc:snowflake://<account identifier/id which is made up of <organization name>-<account name>>.snowflakecomputing.com/?user=<login name>&warehouse=<warehouse name>&db=<database name which is case sensitive>&schema=<database name which is case sensitive>&authenticator=externalbrowser"` is the JDBC connector we use to connect to snowflake if through something like a python script
+
+
+
 # Articles, Videos, Papers:
 
