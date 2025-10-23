@@ -13,7 +13,7 @@ do-sleep:
 # that will setup our airflow connections in the container from our 
 # local machine  
 setup-conn:
-	docker exec forums-analyses-2-airflow-apiserver-1 python /opt/airflow/include/scripts/setup_conn.py
+	docker exec forums-analyses-2_b772f4-api-server-1 python /opt/airflow/include/scripts/setup_conn.py
 
 up: start-containers do-sleep 
 # setup-conn
@@ -24,9 +24,7 @@ down:
 # there are 4 containers we can basically access
 # the (kafka) broker, schema-registry, control-center, 
 # and the zookeeper
-sh-broker:
-	docker exec -it broker bash
 sh-airflow:
-	docker exec -it subreddit-analyses-airflow-apiserver-1 bash
+	docker exec -it forums-analyses-2_b772f4-api-server-1 bash
 
 restart: down up

@@ -1,3 +1,21 @@
+# airflow
+/logs/
+/config/
+/include/data/
+
+# terraform
+/infra/*.lock.hcl
+/infra/*.tfstate
+/infra/*.backup
+/infra/.terraform/
+/.env
+
+# do not commit private keys
+*.p8
+*.pem
+*.ppk
+*.pub
+
 
 target/
 dbt_packages/
