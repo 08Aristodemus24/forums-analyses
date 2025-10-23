@@ -13,7 +13,7 @@ do-sleep:
 # that will setup our airflow connections in the container from our 
 # local machine  
 setup-conn:
-	docker exec subreddit-analyses-analyses-airflow-apiserver-1 python /opt/airflow/include/scripts/setup_conn.py
+	docker exec forums-analyses-2-airflow-apiserver-1 python /opt/airflow/include/scripts/setup_conn.py
 
 up: start-containers do-sleep 
 # setup-conn

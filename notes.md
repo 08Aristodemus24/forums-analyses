@@ -768,7 +768,7 @@ SET RSA_PUBLIC_KEY='<the string generated for our public key>'
 
 note that `"jdbc:snowflake://<account identifier/id which is made up of <organization name>-<account name>>.snowflakecomputing.com/?user=<login name>&warehouse=<warehouse name>&db=<database name which is case sensitive>&schema=<database name which is case sensitive>&authenticator=externalbrowser"` is the JDBC connector we use to connect to snowflake if through something like a python script
 
-
+* we can actuall yrun dbt snowflake and airflow together without separately using an airflow container: https://www.astronomer.io/docs/astro/cli/install-cli
 
 # Articles, Videos, Papers:
 
