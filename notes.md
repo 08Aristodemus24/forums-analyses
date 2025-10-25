@@ -770,5 +770,64 @@ note that `"jdbc:snowflake://<account identifier/id which is made up of <organiz
 
 * we can actuall yrun dbt snowflake and airflow together without separately using an airflow container: https://www.astronomer.io/docs/astro/cli/install-cli
 
+* The annoying error of 
+```
+#9 116.2 error: Failed to fetch: `https://pip.astronomer.io/v2/astro-run-dag/`
+#9 116.2   Caused by: Request failed after 3 retries
+#9 116.2   Caused by: error sending request for url (https://pypi.org/simple/astro-run-dag/)
+#9 116.2   Caused by: operation timed out
+#9 ERROR: process "/bin/bash -o pipefail -e -u -x -c /usr/local/bin/install-python-dependencies" did not complete successfully: exit code: 2
+```
+or
+```
+115.0 error: Failed to fetch: `https://pip.astronomer.io/v2/python-dotenv/`
+115.0   Caused by: Request failed after 3 retries
+115.0   Caused by: error sending request for url (https://pypi.org/simple/python-dotenv/)
+115.0   Caused by: operation timed out
+```
+
+can potentially be solved by adding this to the `Dockerfile`: `pip install -r requirements.txt --trusted-host pypi.python.org` instead of only `pip install -r requirements.txt` as astronomer pulls the packages/dependenceis we need from different url like `pypi.org`: https://stackoverflow.com/questions/16370583/pip-issue-installing-almost-any-library
+
+ganun rin sa kabilang stream-data-analyses project
+```
+WARNING: Retrying (Retry(total=4, connect=None, read=None, redirect=None, status=None)) after connection broke
+ => => # n by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x76742e292450>: Failed to
+ => => #  establish a new connection: [Errno 101] Network is unreachable')': /simple/pip/
+```
+whicy I feel like is again a `error sending request for url (https://pypi.org/simple/<python package>/)`
+
+if all else fails what then?
+
+Well it could be erraticity of internet connection:
+```
+WARNING: Retrying (Retry(total=4, connect=None, read=None, redirect=None, status=None)) after connection broke
+
+ => => # n by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x7c3e97697b90>: Failed to
+
+[+] Building 0/1ish a new connection: [Errno 101] Network is unreachable')' 
+```
+Kasi ganto rin sa isa kong docker container project. Could this be a problem with our internet connection. Kasi Yes may wifi kami but at this time medyo erratic siya. I kind of have the feeling that the reason why these errors are appearing and why network is unreachable is because of this wifi
+
+You are almost certainly correct. The error message you provided—Failed to establish a new connection: [Errno 101] Network is unreachable—is the textbook indication of a failure in your local network connection or a major firewall block.
+
+Here's why your unstable Wi-Fi is the prime suspect and how it relates to your Docker builds:
+
+🎯 Diagnosis: Wi-Fi Intermittency
+The error chain you're seeing confirms a local network issue:
+
+`WARNING: Retrying (Retry(total=4, ...)): Pip/Docker is trying multiple times to reach the destination (PyPI/public internet), which is standard practice for intermittent issues.`
+
+Connection broke: The existing connection was suddenly terminated.
+
+Failed to establish a new connection: [Errno 101] Network is unreachable: This is a core network error code. It means that the computer (or the Docker container attempting to use the host's network) cannot find a route to the destination IP address. The request isn't even making it to the router reliably.
+
+When your Wi-Fi is "erratic":
+
+During a Docker build, the container attempts to download large packages sequentially.
+
+If your Wi-Fi drops out, even for a few seconds, the connection attempt is terminated immediately, leading to the "connection broke" and "Network is unreachable" errors.
+
+Since the build process needs many reliable connections to download hundreds of megabytes of packages, unstable Wi-Fi makes a successful build extremely difficult.
+
 # Articles, Videos, Papers:
 

@@ -11,4 +11,6 @@ COPY ./rsa_key.p8 ./
 COPY ./rsa_key.pub ./
 
 # install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# and pgrade pip to the latest version
+RUN pip install --trusted-host pypi.python.org --trusted-host pypi.org  --upgrade pip
+RUN pip install --no-cache-dir --trusted-host pypi.python.org --trusted-host pypi.org -r requirements.txt

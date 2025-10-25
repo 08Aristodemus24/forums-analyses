@@ -2,7 +2,7 @@
 # it doesn't leave containers running in the terminal so that
 # subsequent commands can run such as do-sleep and setup-conn
 start-containers:
-	docker compose build && docker compose up --detach
+	astro dev start
 
 # timeout for 30 seconds to make sure container
 do-sleep:
@@ -13,18 +13,19 @@ do-sleep:
 # that will setup our airflow connections in the container from our 
 # local machine  
 setup-conn:
-	docker exec forums-analyses-2_b772f4-api-server-1 python /opt/airflow/include/scripts/setup_conn.py
+	docker exec forums-analyses-api-server-1 python /opt/airflow/include/scripts/setup_conn.py
 
 up: start-containers do-sleep 
 # setup-conn
 
 down:
-	docker compose down
+	astro dev stop
 
 # there are 4 containers we can basically access
 # the (kafka) broker, schema-registry, control-center, 
 # and the zookeeper
 sh-airflow:
-	docker exec -it forums-analyses-2_b772f4-api-server-1 bash
+	docker exec -it forums-analyses-api-server-1 bash
 
-restart: down up
+restart:
+	astro dev restart
