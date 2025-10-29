@@ -1,7 +1,7 @@
 # Astro Runtime includes the following pre-installed providers packages: https://www.astronomer.io/docs/astro/runtime-image-architecture#provider-packages
-# apache-airflow-providers-amazon==9.8.0
-# apache-airflow-providers-common-compat==1.7.0
-# apache-airflow-providers-papermill==3.11.2
+apache-airflow-providers-amazon==9.8.0
+apache-airflow-providers-common-compat==1.7.0
+apache-airflow-providers-papermill==3.11.2
 apache-airflow-providers-snowflake==6.5.4
 astronomer-cosmos==1.10.2
 # beautifulsoup4==4.13.4
@@ -13,12 +13,10 @@ dbt-snowflake==1.10.2
 # dbt-synapse==1.8.4
 duckdb==1.2.2
 Flask==2.2.5
-# numpy==2.2.5
-# pandas==2.2.3
+numpy==2.2.5
+pandas==2.2.3
 praw==7.8.1
-# python-dateutil==2.9.0.post0
+python-dateutil==2.9.0.post0
 python-dotenv==1.1.0
 requests==2.32.3
 Werkzeug==2.3.7
-# xlrd==2.0.1
-astro-run-dag # This package is needed for the astro run command. It will be removed before a deploy

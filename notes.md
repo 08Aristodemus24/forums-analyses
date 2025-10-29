@@ -700,7 +700,7 @@ a reply object has the following data:
 }
 ```
 
-* to setup aws infrastructure using terraform with we need to first configure our aws credentials terraform will need to authenticate to our aws account to setup our infrastructure. But first we need to create a IAM role/user, so we need to go to our account and create one there and assign a policy to it directly dpeending on what service we want this IAM role/user to have access to and ultimately what terraform has access to since it uses this IAM role/user credential. So we create a user and create its access key and copy its access key id and secret access key. Next assuming we have aws cli insstalled we run aws configure and there we will be prompted to enter our aws access key id and aws secret access key which we copied earlier when we created our access keys for our IAM user. Then we just enter the region to which we want and we're all set. If we run terraform init, terraform fmt, terraform apply, then we will have this resource/service set up in our account easily, depending what services we only allowed our IAM user to setup, e.g. if we only created a credential to setup an s3 bucket then terraform will only be allowed to create this service and nothing more
+* to setup aws infrastructure using terraform with we need to first configure our aws credentia ls terraform will need to authenticate to our aws account to setup our infrastructure. But first we need to create a IAM role/user, so we need to go to our account and create one there and assign a policy to it directly dpeending on what service we want this IAM role/user to have access to and ultimately what terraform has access to since it uses this IAM role/user credential. So we create a user and create its access key and copy its access key id and secret access key. Next assuming we have aws cli installed we run `aws configure` and there we will be prompted to enter our aws access key id and aws secret access key which we copied earlier when we created our access keys for our IAM user. Then we just enter the region to which we want and we're all set. If we run terraform init, terraform fmt, terraform apply, then we will have this resource/service set up in our account easily, depending what services we only allowed our IAM user to setup, e.g. if we only created a credential to setup an s3 bucket then terraform will only be allowed to create this service and nothing more
 
 * no need for explicit create table if using dbt because of martelization, no more repeating yourself or manual creating of files with DML, or DDL statements
 * merge into in sql compares source table and target table, with materialize = 'incremental' dbt automatically compares the two older and newer tables and merges all old records to old records and adds new records to the new table
@@ -790,9 +790,7 @@ can potentially be solved by adding this to the `Dockerfile`: `pip install -r re
 
 ganun rin sa kabilang stream-data-analyses project
 ```
-WARNING: Retrying (Retry(total=4, connect=None, read=None, redirect=None, status=None)) after connection broke
- => => # n by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x76742e292450>: Failed to
- => => #  establish a new connection: [Errno 101] Network is unreachable')': /simple/pip/
+WARNING: Retrying (Retry(total=4, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x76742e292450>: Failed to establish a new connection: [Errno 101] Network is unreachable')': /simple/pip/
 ```
 whicy I feel like is again a `error sending request for url (https://pypi.org/simple/<python package>/)`
 
@@ -828,6 +826,163 @@ During a Docker build, the container attempts to download large packages sequent
 If your Wi-Fi drops out, even for a few seconds, the connection attempt is terminated immediately, leading to the "connection broke" and "Network is unreachable" errors.
 
 Since the build process needs many reliable connections to download hundreds of megabytes of packages, unstable Wi-Fi makes a successful build extremely difficult.
+
+**you could use `docker system prune --all --volumes`**
+
+**you could also try the ff. to see if the problem is the internet because if it isn't the problem lies with the pip docker is installing in the container or docker itself**
+```
+(base) C:\Users\LARRY\Documents\Scripts>ping <ip address of router>
+
+Pinging <ip address of router> with 32 bytes of data:
+Reply from <ip address of router>: bytes=32 time<1ms TTL=128
+Reply from <ip address of router>: bytes=32 time<1ms TTL=128
+Reply from <ip address of router>: bytes=32 time<1ms TTL=128
+Reply from <ip address of router>: bytes=32 time<1ms TTL=128
+
+Ping statistics for <ip address of router>:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+(base) C:\Users\LARRY\Documents\Scripts>ping google.com
+
+Pinging google.com [2404:6800:4017:803::200e] with 32 bytes of data:
+Reply from 2404:6800:4017:803::200e: time=7ms
+Reply from 2404:6800:4017:803::200e: time=6ms
+Reply from 2404:6800:4017:803::200e: time=6ms
+Reply from 2404:6800:4017:803::200e: time=8ms
+
+Ping statistics for 2404:6800:4017:803::200e:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 6ms, Maximum = 8ms, Average = 6ms
+
+(base) C:\Users\LARRY\Documents\Scripts>
+```
+
+**Others say it is beacuse of disabled firewall in windows so you cneed to enable it**
+
+THESE ARE YOUR EXACT PROBLEMS:`
+https://stackoverflow.com/questions/52815784/python-pip-raising-newconnectionerror-while-installing-libraries:
+https://stackoverflow.com/questions/67138344/python-pip-raising-newconnectionerror-while-installing-django-braces
+
+https://forums.docker.com/t/issue-with-installing-pip-packages-inside-a-docker-container-with-ubuntu/35107/2
+
+https://github.com/docker/for-win/issues/14667
+
+https://medium.com/@skakella/docker-build-pip-install-errors-f688229b090c
+https://stackoverflow.com/questions/27435479/pass-net-host-to-docker-build
+
+https://forums.docker.com/t/containers-pip-cant-access-local-pypi-server/132708/8
+
+all these problems were sovled when I uninstalled and reinstalled docker
+
+* when I run my dbt dag it seems to throw this error even when the creation of the models goes well, specifically when it gets to tests for the first model: 
+```
+/usr/local/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 2 leaked semaphore objects to clean up at shutdown source=task.stderr
+[2025-10-27 10:44:52] ERROR -   warnings.warn('resource_tracker: There appear to be %d ' source=task.stderr
+```
+
+```
+[2025-10-27 10:50:42] ERROR - Task failed with exception source=task loc=task_runner.py:994
+CosmosDbtRunError: dbt invocation completed with errors: not_null_my_first_dbt_model_id: Got 1 result, configured to fail if != 0
+File "/usr/local/lib/python3.12/site-packages/airflow/sdk/execution_time/task_runner.py", line 920 in run
+
+File "/usr/local/lib/python3.12/site-packages/airflow/sdk/execution_time/task_runner.py", line 1307 in _execute_task
+
+File "/usr/local/lib/python3.12/site-packages/airflow/sdk/bases/operator.py", line 416 in wrapper
+
+File "/usr/local/lib/python3.12/site-packages/cosmos/operators/local.py", line 1089 in execute
+
+File "/usr/local/lib/python3.12/site-packages/cosmos/operators/local.py", line 853 in build_and_run_cmd
+
+File "/usr/local/lib/python3.12/site-packages/cosmos/operators/local.py", line 650 in run_command
+
+File "/usr/local/lib/python3.12/site-packages/cosmos/operators/local.py", line 258 in handle_exception_dbt_runner
+
+File "/usr/local/lib/python3.12/site-packages/cosmos/dbt/runner.py", line 113 in handle_exception_if_needed
+
+[2025-10-27 10:50:42] ERROR - Top level error source=task loc=task_runner.py:1457
+AirflowRuntimeError: API_SERVER_ERROR: {'status_code': 404, 'message': 'Not Found', 'detail': {'detail': 'Not Found'}}
+File "/usr/local/lib/python3.12/site-packages/airflow/sdk/execution_time/task_runner.py", line 1452 in main
+
+File "/usr/local/lib/python3.12/site-packages/airflow/sdk/execution_time/task_runner.py", line 1397 in finalize
+
+File "/usr/local/lib/python3.12/site-packages/airflow/sdk/execution_time/comms.py", line 207 in send
+
+File "/usr/local/lib/python3.12/site-packages/airflow/sdk/execution_time/comms.py", line 271 in _get_response
+
+File "/usr/local/lib/python3.12/site-packages/airflow/sdk/execution_time/comms.py", line 258 in _from_frame
+
+[2025-10-27 10:50:42] ERROR - /usr/local/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 2 leaked semaphore objects to clean up at shutdown source=task.stderr
+[2025-10-27 10:50:42] ERROR -   warnings.warn('resource_tracker: There appear to be %d ' source=task.stderr
+```
+
+
+# DBT questions
+* source.yaml and source() function is how dbt automatically knows where to get the raw data for the staging layer, 
+
+* what are macros? Basically 
+
+* try defining your own macros, kahit simple macros, kasi tatanongin yan in interview e.g. problem is I want to select a column from a table pero pakita lahat, obviously that be select * from <table>
+
+pero gusto ko lang rename yung tatlo pero ayaw ko sulat lahat ng 57 or more na columns
+
+* pwede idefime kung saan data warehouse iloload yung natransform na tables, at different levels e.g. model level (using config), properties/schma.yaml, dbt_project.yaml, and a special one called profiles.yaml
+
+oh so profiles.yaml specialioiozed siya kasi for storing special information siya like credentials and yung mga <model name>.yaml pwede mo specify yung database na gusto mo and schema
+
+ganun rin sa dbt_project.yaml
+
+and sa 
+
+* default materialization strategy of dbt is view, 
+
+* set tag for defining variable to reinforce the DRY strategy e.g.
+
+at the project levevl vars naman ang which is defined in dbt_project.yaml
+
+* will this model run if it is outside the models.yaml file? hindi basta basta, kasi you will have to specify it specifically in the dbt_project.yaml file, you can change that folder as to where dbt should look to run your models
+
+the + prefix in the bt_profject.yaml says that it is a config flag
+
+e.g. at the `source` folder and `transformation` folder `marts` we can set different configurations
+
+models:
+  source:
+    +database: <value>
+    +materialization: <view>
+
+
+# Snowflake questions
+* What is an index in SQL in general?
+
+* Are you familiar in micro partition in snowflake?
+
+In traditional databases you can set an index
+
+so that when you query madali mapull ng query yung record
+
+1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+
+4, 6, 7, 1, 2, 3, 9, 10, 5, 8
+
+so pag ganto hindi ideal ang linear serach kasi if your finding the record with value 8 then it would take you a million scans before 
+
+so you'd basically want to use an index kind of like how we use table of contents in a book to in order to read only a part we are interested by locating its page using this table of contents and discard the rest of the pages 
+
+and in snowflake tehere is micro partition, 
+
+create partition per 100 seconds, may be done manually but in snowflake it automatically does this,
+
+* what is a cluster by
+in terms of optimization there is cluster by, groups records per partition
+
+if walang cluster by ijujumle niya yung micro partition
+
+cluster by specifies ano mapupunta sa micro partition, it basically organizes it
+
+
 
 # Articles, Videos, Papers:
 

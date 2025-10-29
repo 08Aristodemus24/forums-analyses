@@ -44,12 +44,12 @@ BASE_DIR = Path(AIRFLOW_HOME).resolve().parent
     params={"my_name": "dbt_snowflake_dag"},
 )
 def forums_analyses_dag():
-    fetch_reddit_data = BashOperator(
-        task_id="extract_signals",
-        bash_command=f"python {AIRFLOW_HOME}/operators/fetch_reddit_data.py \
-            --bucket_name subreddit-analyses-bucket \
-            --object-name raw_reddit_data.parquet"
-    )
+    # fetch_reddit_data = BashOperator(
+    #     task_id="extract_signals",
+    #     bash_command=f"python {AIRFLOW_HOME}/operators/fetch_reddit_data.py \
+    #         --bucket_name subreddit-analyses-bucket \
+    #         --object-name raw_reddit_data.parquet"
+    # )
 
     transform_data = DbtTaskGroup(
         group_id="transform_data",
@@ -62,6 +62,7 @@ def forums_analyses_dag():
         default_args={"retries": 2},
     )
 
-    fetch_reddit_data >> transform_data
+    # fetch_reddit_data
+    transform_data
 
 forums_analyses_dag()
