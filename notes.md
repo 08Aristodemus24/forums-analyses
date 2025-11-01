@@ -918,71 +918,63 @@ File "/usr/local/lib/python3.12/site-packages/airflow/sdk/execution_time/comms.p
 [2025-10-27 10:50:42] ERROR -   warnings.warn('resource_tracker: There appear to be %d ' source=task.stderr
 ```
 
+* Ah ok ok, so kaya pala kanina nagfafail yung dbt model na to during the test of checking if the id column is not null: 
+```
+{{ config(materialized='table') }}
 
-# DBT questions
-* source.yaml and source() function is how dbt automatically knows where to get the raw data for the staging layer, 
+WITH source_data AS (
+    SELECT 1 AS id
+    UNION ALL
+    SELECT NULL AS id
+)
 
-* what are macros? Basically 
+SELECT *
+FROM source_data
+WHERE id IS NOT NULL 
+```
 
-* try defining your own macros, kahit simple macros, kasi tatanongin yan in interview e.g. problem is I want to select a column from a table pero pakita lahat, obviously that be select * from <table>
+kasi even if nauncomment ko na yung `WHERE id IS NOT NULL` (where initially naka uncomment siya) and nirurun yung dbt test nag fafail lagi with the `11:45:36  1 of 4 FAIL 1 not_null_my_first_dbt_model_id ................................... [FAIL 1 in 3.10s]`, pero nung nirun ko muna yung `dbt build` that's when nung nag `dbt test` that it ran successfully finally. So basically if a model changes, you need to always run `dbt build` first then `dbt run` or `dbt test`
 
-pero gusto ko lang rename yung tatlo pero ayaw ko sulat lahat ng 57 or more na columns
+Naintindihan ko na ang problema mo! Ang inilarawan mong pag-uugali ay perpekto at inaasahan sa dBT.
 
-* pwede idefime kung saan data warehouse iloload yung natransform na tables, at different levels e.g. model level (using config), properties/schma.yaml, dbt_project.yaml, and a special one called profiles.yaml
+Ang pagkakaintindi mo ay tama: kailangan mo munang i-run ang model (dbt build or dbt run) bago mo i-test (dbt test) ito.
 
-oh so profiles.yaml specialioiozed siya kasi for storing special information siya like credentials and yung mga <model name>.yaml pwede mo specify yung database na gusto mo and schema
+🛑 Bakit Nag-Fail ang dbt test Una (At Bakit Ito Inaasahan)
+Ang dbt test ay hindi nagpapatakbo ng model. Ito ay nagpapatakbo lang ng SQL queries laban sa existing tables o views sa iyong data warehouse.
 
-ganun rin sa dbt_project.yaml
+Unang Pag-Test (Failure): Nang una mong ginawa ang dbt test, ang dBT ay tumingin sa iyong data warehouse para sa table na tinatawag na my_first_dbt_model.
 
-and sa 
+Kung ang table ay hindi pa na-create (dahil hindi mo pa na-run ang dbt run o dbt build), o
 
-* default materialization strategy of dbt is view, 
+Kung ang lumang bersyon ng table na may NULL values ay nandoon pa,
 
-* set tag for defining variable to reinforce the DRY strategy e.g.
+Resulta: Ang NOT NULL test ay nag-fail dahil ang data na nakita niya sa table ay may NULL value pa.
 
-at the project levevl vars naman ang which is defined in dbt_project.yaml
+Paggamit ng dbt build (Correction):
 
-* will this model run if it is outside the models.yaml file? hindi basta basta, kasi you will have to specify it specifically in the dbt_project.yaml file, you can change that folder as to where dbt should look to run your models
+Ang dbt build (o dbt run) ang gumagawa ng actual table sa iyong warehouse.
 
-the + prefix in the bt_profject.yaml says that it is a config flag
+Sa pagkakataong ito, pinatakbo nito ang iyong SQL:
 
-e.g. at the `source` folder and `transformation` folder `marts` we can set different configurations
+SQL
+SELECT *
+FROM source_data
+WHERE id IS NOT NULL -- This filters out the NULL row
+Resulta: Ang bagong table ay nilikha na WALANG NULL values sa id column.
 
-models:
-  source:
-    +database: <value>
-    +materialization: <view>
+Pangalawang Pag-Test (Success): Nang pinatakbo mo ulit ang dbt test, ang dBT ay tumingin na sa bago at tamang table.
 
+Nakita nito na ang id column ay walang NULL values.
 
-# Snowflake questions
-* What is an index in SQL in general?
+Resulta: Ang test ay nag-succeed.
 
-* Are you familiar in micro partition in snowflake?
+🔑 Tandaan ang Siklo ng dBT
+Para sa bawat development cycle, tandaan ang tamang order ng operations:
 
-In traditional databases you can set an index
+Develop SQL→dbt build (o run)→dbt test
+Ang dbt build ang nagtatayo ng data, at ang dbt test ang nagba-validate sa naitayong data.
 
-so that when you query madali mapull ng query yung record
-
-1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-
-4, 6, 7, 1, 2, 3, 9, 10, 5, 8
-
-so pag ganto hindi ideal ang linear serach kasi if your finding the record with value 8 then it would take you a million scans before 
-
-so you'd basically want to use an index kind of like how we use table of contents in a book to in order to read only a part we are interested by locating its page using this table of contents and discard the rest of the pages 
-
-and in snowflake tehere is micro partition, 
-
-create partition per 100 seconds, may be done manually but in snowflake it automatically does this,
-
-* what is a cluster by
-in terms of optimization there is cluster by, groups records per partition
-
-if walang cluster by ijujumle niya yung micro partition
-
-cluster by specifies ano mapupunta sa micro partition, it basically organizes it
-
-
+Nakuha mo na ang tamang workflow! Is there anything else about dbt or data warehousing concepts you'd like to clarify?
 
 # Articles, Videos, Papers:
 

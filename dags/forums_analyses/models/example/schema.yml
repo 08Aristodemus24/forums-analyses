@@ -8,7 +8,10 @@ models:
       - name: id
         description: "The primary key for this table"
         data_tests:
+          # this tests if the column in the table doesn't 
+          # contain any duplicates and are strictly unique values
           - unique
+          # this tests if the the column in table doesn't contain any nulls 
           - not_null
 
   - name: my_second_dbt_model
@@ -19,3 +22,5 @@ models:
         data_tests:
           - unique
           - not_null
+
+    
