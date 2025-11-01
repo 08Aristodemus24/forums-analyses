@@ -23,4 +23,12 @@ models:
           - unique
           - not_null
 
+    # we could basically rewrite the tests into this
+    # format also
+    # tests:
+    #   - unique:
+    #       columns: [id]
+    #   - not_null:
+    #       columns: [id]
+
     

@@ -7,6 +7,7 @@ import io
 import boto3
 import pyarrow as pa
 import pyarrow.parquet as pq
+import datetime
 
 from pyarrow.fs import S3FileSystem
 from praw.models.comment_forest import CommentForest, MoreComments
@@ -74,10 +75,18 @@ def get_all_replies(replies, kwargs):
             # print(f"reply body: {reply.body}")
             # print(f"reply parent id: {reply.parent_id}")
             # print(f"reply replies: {get_all_replies(reply.replies) if reply.replies else []}")
-
+            reply_dict = reply.__dict__
             datum = kwargs.copy()
-            datum.update({"comment": reply.body})
-            # print(f"reply level: {datum}")
+            datum.update({
+                "ups": reply_dict.get("ups"),
+                "downs": reply_dict.get("downs"),
+                "created": datetime.datetime.fromtimestamp(reply_dict.get("created")),
+                "edited": datetime.datetime.fromtimestamp(reply_dict.get("edited")),
+                "author_name": reply_dict.get("author").name if reply_dict.get("author") else "[deleted]",
+                "parent_id": reply_dict.get("parent_id"),
+                "comment": reply_dict.get("body")
+            })
+            print(f"reply level: {datum}")
             reply_data.append(datum)
 
     return reply_data
@@ -117,9 +126,9 @@ if __name__ == "__main__":
     
     # load env variables
     aws_creds = {
-        "access_key": os.environ["AWS_ACCESS_KEY_ID"],
-        "secret_key": os.environ["AWS_SECRET_ACCESS_KEY"],
-        "region": os.environ["AWS_REGION_NAME"],
+        "access_key": os.environ.get("AWS_ACCESS_KEY_ID"),
+        "secret_key": os.environ.get("AWS_SECRET_ACCESS_KEY"),
+        "region": os.environ.get("AWS_REGION_NAME"),
     }
 
     REDDIT_CLIENT_ID = os.environ.get('REDDIT_CLIENT_ID') 
@@ -145,11 +154,13 @@ if __name__ == "__main__":
 
         # this is a static variable that we will need to append 
         # new comments/replies but also need to be unchanged/immuted
+        submission_dict = submission.__dict__
         datum = {
-            "title": submission.title,
-            "score": submission.score,
-            "id": submission.id,
-            "url": submission.url
+            "title": submission_dict.get("title"),
+            "score": submission_dict.get("score"),
+            "id": submission_dict.get("id"),
+            "url": submission_dict.get("url"),
+            "name": submission_dict.get("name") if submission_dict.get("name") else "[deleted]"
         }
         # print(datum)
 
@@ -157,8 +168,16 @@ if __name__ == "__main__":
         for i, comment in enumerate(submission.comments):
             if hasattr(comment, "body"):
                 datum_copy = datum.copy()
-                datum_copy.update({"comment": comment.body})
-                # print(f"comment level: {datum_copy}")
+                datum_copy.update({
+                    "ups": submission_dict.get("ups"),
+                    "downs": submission_dict.get("downs"),
+                    "created": datetime.datetime.fromtimestamp(submission_dict.get("created")),
+                    "edited": datetime.datetime.fromtimestamp(submission_dict.get("edited")),
+                    "author_name": submission_dict.get("author").name if submission_dict.get("author") else "[deleted]",
+                    "parent_id": submission_dict.get("parent_id"),
+                    "comment": comment.body,
+                })
+                print(f"comment level: {datum_copy}")
                 data.append(datum_copy)
                 
                 # recursively get all replies of a comment

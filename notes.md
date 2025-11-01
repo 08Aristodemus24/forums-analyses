@@ -977,4 +977,5 @@ Ang dbt build ang nagtatayo ng data, at ang dbt test ang nagba-validate sa naita
 Nakuha mo na ang tamang workflow! Is there anything else about dbt or data warehousing concepts you'd like to clarify?
 
 # Articles, Videos, Papers:
-
+* loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
+* creating iam policy, s3 bucket, external stage automatically using terraform: https://medium.com/@nakaken0629/how-to-create-an-external-stage-for-amazon-s3-on-snowflake-by-terraform-34c67c78a22a
