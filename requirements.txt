@@ -11,6 +11,7 @@ boto3==1.39.11
 # dbt-redshift==1.9.5
 dbt-snowflake==1.10.2
 # dbt-synapse==1.8.4
+deltalake==1.2.1
 duckdb==1.2.2
 Flask==2.2.5
 numpy==2.2.5

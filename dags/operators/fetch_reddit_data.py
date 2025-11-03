@@ -8,36 +8,39 @@ import boto3
 import pyarrow as pa
 import pyarrow.parquet as pq
 import datetime
+import logging
 
 from pyarrow.fs import S3FileSystem
 from praw.models.comment_forest import CommentForest, MoreComments
+from deltalake import DeltaTable, write_deltalake
 
 from uuid import uuid4
 from pathlib import Path
 from dotenv import load_dotenv
 from argparse import ArgumentParser
 
+def setup_logging():
+    logger = logging.getLogger('SGX_Downloader')
+    logger.setLevel(logging.DEBUG) # Catch everything at the logger level
 
-def get_all_comments(comment_list):
-    comments_data = []
-    for comment in comment_list:
-        if isinstance(comment, MoreComments):
-            # Replace MoreComments with actual comments
-            # limit=0 expands all MoreComments instances, threshold=0 ensures all are replaced
-            comment.replace_more(limit=None, threshold=0) 
-            # Recursively call the function for the newly fetched comments
-            comments_data.extend(get_all_comments(comment.children))
-        else:
-            comments_data.append({
-                "id": comment.id,
-                "author": comment.author.name if comment.author else "[deleted]",
-                "body": comment.body,
-                "parent_id": comment.parent_id,
-                "replies": get_all_comments(comment.replies) if comment.replies else []
-            })
-    return comments_data
+    # 2. Console/Stream Handler (for user feedback)
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO) # Only show INFO, ERROR, CRITICAL
+    console_formatter = logging.Formatter('%(levelname)s: %(message)s')
+    console_handler.setFormatter(console_formatter)
+    logger.addHandler(console_handler)
 
-def write_parq_df_to_bucket(aws_creds: dict, df: pa.Table, bucket_name: str, object_name: str, folder_name: str):
+    return logger
+
+# setup logger
+global logger
+logger = setup_logging()
+logger.info("Script started.") # Will appear on console and file
+logger.debug("Attempting to connect with Selenium.") # Will only appear in the file'
+
+
+
+def write_parq_to_bucket(aws_creds: dict, df: pa.Table, bucket_name: str, object_name: str, folder_name: str):
     """
     writes a pyarrow dataframe to an s3 bucket in parquet format. 
     What we want here is to check if an existing parquet with reddit
@@ -52,14 +55,60 @@ def write_parq_df_to_bucket(aws_creds: dict, df: pa.Table, bucket_name: str, obj
         fs = S3FileSystem(**aws_creds)
 
         # 3. Specify the S3 bucket and object key (path within the bucket)
-        table_path = os.path.join(bucket_name, folder_name, object_name).replace("\\", "/")
+        parq_path = os.path.join(bucket_name, folder_name, object_name).replace("\\", "/")
+
 
         # 4. Write the PyArrow Table to S3
         # Use pq.write_table with the S3FileSystem and the desired path
-        pq.write_table(df, table_path, filesystem=fs)
+        pq.write_table(df, parq_path, filesystem=fs)
 
     except Exception as e:
-        print(f"Error `{e}` has occured")
+        logger.error(f"`{e}` has occured")
+
+def write_delta_to_bucket(aws_creds: dict, df: pa.Table, bucket_name: str, object_name: str, folder_name: str):
+    """
+    writes a pyarrow dataframe to an s3 bucket in delta format. 
+    What we want here is to check if an existing parquet with reddit
+    data already exists in s3, 
+    
+    As opposed to a scheme where if in s3 there is no current parquet
+    and then creating a parquet with object id indicating its the first, 
+    and if there is already create a parquet with the object id with 
+    the highest or max number, we use a delta lake format  
+    """
+
+    # 2. Check if the Delta table already exists
+    # The URI points to the S3 bucket and folder where the Delta table lives
+    delta_path = os.path.join("s3://", bucket_name, folder_name, object_name).replace("\\", "/")
+
+    try:
+        # Table exists, so APPEND the new data
+        logger.info(f"Delta table found at {delta_path}.") 
+        logger.info(f"Appending new rows...")
+        
+        write_deltalake(
+            delta_path, 
+            df,
+            # Use mode="append" to transactionally add new data 
+            mode="append",
+            storage_options=aws_creds 
+        )
+        
+    except Exception as e:
+        # this runs if no table exists in s3 bucket
+        logger.info(f"`{e}` occured during delta update")
+        logger.info(f"No Delta table found.")
+        logger.info(f"Creating new table with {df.num_rows} rows...")
+
+        # delta table is written in s3 bucket with given
+        # credentials and path
+        write_deltalake(
+            delta_path, 
+            df, 
+            # Use overwrite (or error) to create the initial table
+            mode="overwrite",
+            storage_options=aws_creds 
+        )
 
 def get_all_replies(replies, kwargs):
     reply_data = []
@@ -86,7 +135,7 @@ def get_all_replies(replies, kwargs):
                 "parent_id": reply_dict.get("parent_id"),
                 "comment": reply_dict.get("body")
             })
-            print(f"reply level: {datum}")
+            logger.info(f"reply level: {datum}")
             reply_data.append(datum)
 
     return reply_data
@@ -107,24 +156,8 @@ if __name__ == "__main__":
     # load env variables
     env_dir = Path('../../').resolve()
     load_dotenv(os.path.join(env_dir, '.env'))
-
-    # http://localhost:65010/reddit_callback
-    # https://www.reddit.com/api/v1/authorize?client_id=CLIENT_ID&response_type=TYPE&state=RANDOM_STRING&redirect_uri=URI&duration=DURATION&scope=SCOPE_STRING
     
-
-    # getting an access token to access the reddit api
-    # reddit@reddit-VirtualBox:~$ curl -X POST -d 'grant_type=password&username=reddit_bot&password=snoo' --user 'p-jcoLKBynTLew:gko_LXELoV07ZBNUXrvWZfzE3aI' https://www.reddit.com/api/v1/access_token
-    # {
-    #     "access_token": "J1qK1c18UUGJFAzz9xnH56584l4", 
-    #     "expires_in": 3600, 
-    #     "scope": "*", 
-    #     "token_type": "bearer"
-    # }
-    
-
-    # equivalent python code to this curl request is the ff.
-    
-    # load env variables
+    # get env variables
     aws_creds = {
         "access_key": os.environ.get("AWS_ACCESS_KEY_ID"),
         "secret_key": os.environ.get("AWS_SECRET_ACCESS_KEY"),
@@ -177,7 +210,7 @@ if __name__ == "__main__":
                     "parent_id": submission_dict.get("parent_id"),
                     "comment": comment.body,
                 })
-                print(f"comment level: {datum_copy}")
+                logger.info(f"comment level: {datum_copy}")
                 data.append(datum_copy)
                 
                 # recursively get all replies of a comment
@@ -189,7 +222,7 @@ if __name__ == "__main__":
     reddit_posts_table = pa.Table.from_pylist(data)
     print(reddit_posts_table.shape)
 
-    write_parq_df_to_bucket(aws_creds, reddit_posts_table, bucket_name, object_name, folder_name)
+    write_delta_to_bucket(aws_creds, reddit_posts_table, bucket_name, object_name, folder_name)
 
     # write pyarrow table as parquet in s3 bucket
     # https://arrow.apache.org/docs/python/generated/pyarrow.fs.S3FileSystem.html

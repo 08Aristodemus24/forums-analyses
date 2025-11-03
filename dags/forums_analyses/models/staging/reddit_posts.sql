@@ -1,4 +1,8 @@
-{{ config(materialized='incremental') }}
+{{ 
+    config(
+        materialized='incremental'
+    ) 
+}}
 
 WITH raw_reddit_posts AS (
     SELECT
@@ -13,7 +17,7 @@ WITH raw_reddit_posts AS (
         $1:edited::DATETIME AS editedAt,
         $1:author_name::VARCHAR AS authorName,
         $1:parent_id::VARCHAR AS parentId,
-        $1:comment::VARCHAR AS comment,
+        $1:comment::VARCHAR AS comment,x
         
         -- Get the last load time from the warehouse for incremental logic
         CURRENT_TIMESTAMP() AS dbt_load_timestamp

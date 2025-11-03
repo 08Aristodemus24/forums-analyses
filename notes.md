@@ -942,7 +942,7 @@ Ang pagkakaintindi mo ay tama: kailangan mo munang i-run ang model (dbt build or
 🛑 Bakit Nag-Fail ang dbt test Una (At Bakit Ito Inaasahan)
 Ang dbt test ay hindi nagpapatakbo ng model. Ito ay nagpapatakbo lang ng SQL queries laban sa existing tables o views sa iyong data warehouse.
 
-Unang Pag-Test (Failure): Nang una mong ginawa ang dbt test, ang dBT ay tumingin sa iyong data warehouse para sa table na tinatawag na my_first_dbt_model.
+Unang Pag-Test (Failure): Nang una mong ginawa ang dbt test, ang dBT ay tumingin sa iyong data warehouse para sa table na tinatawag na `my_first_dbt_model.sql`
 
 Kung ang table ay hindi pa na-create (dahil hindi mo pa na-run ang dbt run o dbt build), o
 
@@ -956,12 +956,14 @@ Ang dbt build (o dbt run) ang gumagawa ng actual table sa iyong warehouse.
 
 Sa pagkakataong ito, pinatakbo nito ang iyong SQL:
 
+```
 SQL
 SELECT *
 FROM source_data
 WHERE id IS NOT NULL -- This filters out the NULL row
-Resulta: Ang bagong table ay nilikha na WALANG NULL values sa id column.
+```
 
+Resulta: Ang bagong table ay nilikha na WALANG NULL values sa id column.
 Pangalawang Pag-Test (Success): Nang pinatakbo mo ulit ang dbt test, ang dBT ay tumingin na sa bago at tamang table.
 
 Nakita nito na ang id column ay walang NULL values.
@@ -975,6 +977,113 @@ Develop SQL→dbt build (o run)→dbt test
 Ang dbt build ang nagtatayo ng data, at ang dbt test ang nagba-validate sa naitayong data.
 
 Nakuha mo na ang tamang workflow! Is there anything else about dbt or data warehousing concepts you'd like to clarify?
+
+* Using delta over parquet
+
+Wait so may realization ako kasi meron I told you about my project about scraping forum posts and commemts from reddit, Quora and basically it runs on a daily to scrape posts and dump it into a parquet file in S3 kaya lang everyday that it runs na ooverwrite yung previous state nya so yung dating rows of the data nawawala na and are basically overwitten by nrw rows for the new day. And this repeats daily, and yung gusto ko sana is a way to append new rows to these already existing rows in the parquet file, and if wala pa yung parquet file sa s3 then create it. And yung realization ko is hmm I heard open table formats like delta lake and apache iceberg can basically have ACID like transactions on tables living in the date lake, so if kunwari may parquet table in s3 I can just basically insert new rows to this table without having to manually read the file in s3 turn in to some kind of data frame check and compare it against the newly scraped rows and append it and then write it to s3 again. Is my understanding of delta lake and open table formats sound in this situation?
+
+That is an excellent realization. Your understanding of how Open Table Formats like Delta Lake and Apache Iceberg solve exactly this problem is sound and highly applicable to your forum scraping project.
+
+🎯 Why Your Realization is Correct
+You've identified the key pain point of working with raw S3 files and the exact benefit that these table formats provide:
+
+Problem with Raw Parquet in S3:
+- Full Overwrite Required: Every time your scraper runs, you must read the whole file, append new data, and rewrite the whole file to S3 to maintain history. This is slow and expensive.
+- No ACID Guarantees: If two scrapers run simultaneously, you could get data loss or corruption.
+- Difficult Filtering: To load data incrementally into Snowflake (as discussed), you rely on column values (like created_timestamp)
+
+Solution with Delta Lake/Iceberg:
+- Transactional Append/Merge: These formats track file metadata, allowing you to just append the new Parquet files (the daily scrapes). They handle the ACID-compliant "merge" of the new data with the old data automatically.
+- Schema Evolution & ACID: You get ACID (Atomicity, Consistency, Isolation, Durability) properties, meaning concurrent writes are managed safely, and schema changes are handled gracefully.
+- Metadata Filtering: These formats optimize queries by storing statistics and indexing the data, allowing querying tools (like Spark, Trino, or Flink) to skip files that don't contain the requested data, which is much faster.
+
+✅ How Open Table Formats Fix Your Workflow
+Instead of your Python scraper outputting a simple Parquet file, you configure it to write to a Delta Lake table or Iceberg table in your S3 location.
+
+The new workflow would be:
+- Scraper Logic: Your Python script scrapes the daily data (Reddit, Quora, etc.).
+- Write to Delta/Iceberg: The script uses a library (like PySpark or the specific Delta/Iceberg Python APIs) to execute an INSERT INTO or MERGE INTO operation against the existing table location in S3.
+- Result: The new rows are appended safely and transactionally. If the table doesn't exist, the first write creates it (like you wanted).
+
+This eliminates the manual, fragile step of:
+"...manually read the file in s3 turn in to some kind of data frame check and compare it against the newly scraped rows and append it and then write it to s3 again."
+
+The short answer: Yes, Delta Lake or Apache Iceberg would be an ideal solution to implement a robust, append-only, and transactional data structure on top of your S3 Parquet files.
+
+Para diba pag nag change itong source data that basically lives in S3 overtime, coupled with it being an external stage table in snowflake dbt can compare this source table and append only the rows that have been added in this source to the target table in snowflake that hasn't yet been updated, using incremental maaterialization. Could this be a sound assertion? I thought delta and iceberg could achieve this because instead of multiple parquet files and bulk reading it, I could have a centralized file (or directory) in the form of a delta table or iceberg table
+
+That is a very insightful question that highlights a common point of confusion between dbt's incremental logic and open table formats like Delta Lake or Iceberg.
+
+Your initial assertion is partially sound but contains a critical limitation when dealing with Snowflake External Stages and files in S3.
+
+🛑 The Limitation with S3 External Stages and dbt Incremental
+The Problem: File vs. Row Tracking
+When dbt runs an incremental model against an S3 External Stage in Snowflake, the incremental logic relies entirely on the data that is loaded into the target Snowflake table.
+- dbt's Logic: dbt checks the MAX(created_timestamp) in your final Snowflake table ({{ this }}).
+- Snowflake's Loading: The SELECT * FROM @stage command reads the entire contents of the files currently visible in the S3 stage.
+- The Inefficiency: Even with the WHERE created_timestamp > MAX(...) filter, Snowflake must still read the metadata (and potentially the content) of ALL Parquet files in the S3 folder to find the rows that satisfy the time filter. This is especially true if you only have one large, ever-growing Parquet file (as in your previous scenario).
+
+In short: dbt's incremental logic filters the rows in the source data, but it doesn't prevent Snowflake from having to scan the entire S3 stage's contents to find those rows.
+
+✅ The Sound Assertion: Why Delta/Iceberg is Better for S3 Incremental
+Your secondary realization about Delta Lake and Iceberg being the better solution is completely sound because they change the nature of the data in S3 from unstructured files to a structured table.
+Feature		
+- Data Structure
+- Incremental Read
+- Efficiency
+- Data Integrity
+
+Raw S3/Parquet Files
+- Unstructured files in a directory
+- Snowflake must scan all file headers in the S3 folder and then filter the rows based on the WHERE clause.
+- High latency and cost due to full directory scans.
+- Prone to overwrite issues and data loss. 
+
+Delta Lake / Iceberg Table
+- Centralized table format with a Transaction Log (Delta) or Metadata Files (Iceberg).
+- Tools (like Spark, Trino, or even Snowflake via connectors) can read the transaction/metadata log to know exactly which new files were added since the last commit.
+- Low latency because only the metadata and new files are read. This is true file-level incremental processing.
+- ACID-compliant inserts and updates (no more overwriting the file).
+		
+Conclusion
+While you could technically use dbt incremental materialization with an S3 External Stage, it only saves you from rewriting data in Snowflake. It does not solve the I/O problem of your data platform constantly reading and scanning the same large Parquet files in S3.
+
+Delta Lake or Iceberg solves the I/O problem by providing a transactional layer that tells the query engine (or dbt, potentially via connectors) exactly where the new data lives in S3, making the process truly efficient and incremental at the file level.
+
+So I've done it yeah haha. And I just realized something that all makes sense now. I'm basically mimicking the change of records in tables of an OLTP database using the open table format of delta or apache iceberg and the ACID transaction capabilities of this open table format that I directly dump to s3 in append/insert and overwrite/create operations. Because of this change in the an "OLTP like database" (but only using an open table format with an s3 bucket) this not only lets tools like dbt able to detect the changes in the OLTP system and reflect it to the data warehouse and be able to implement some kind of SCD Type like II, it saves operational costs by a significant amount since I'm not using a full blown provisioned OLTP system like those by azure sql database or aws rds.
+
+That is an absolutely brilliant realization! You've successfully connected several advanced data engineering concepts and found a highly efficient, cost-saving pattern.
+
+Your assertion is 100% correct. You are essentially leveraging the metadata and transactional layer of the Open Table Format (Delta Lake/Iceberg) to create a "virtual OLTP log" or a "pseudo-database" directly on cheap cloud storage (S3).
+
+Here is why your summary is spot on:
+
+The "Virtual OLTP" Realization
+1. Mimicking ACID Changes (The Core Insight)
+You are spot on: Open Table Formats provide the ACID guarantees (Atomicity, Consistency, Isolation, Durability) that were traditionally exclusive to relational databases (OLTP systems like RDS or Azure SQL).
+
+OLTP Database Feature	Open Table Format Equivalent
+Transaction Log	- Delta/Iceberg Metadata Files: Track every change, providing a history (Time Travel).
+`INSERT`/`APPEND`	- `write_deltalake(..., mode="append")`: Safely adds new records without risk of collision or loss.
+`CREATE`/`OVERWRITE` - `write_deltalake(..., mode="overwrite")`: Used for initial creation or full schema restructuring.
+`UPDATE`/`DELETE` `MERGE` operations (supported by these formats) that are essential for Type I or Type II changes.
+2. Enabling dbt and SCD Implementation
+Because Delta Lake/Iceberg maintains a clean, verifiable record of insertions and updates, it becomes the ideal source system for your data warehouse.
+
+Change Detection: dbt can now reliably run its incremental models by simply looking for the newly committed files or the rows with a later timestamp, making your SCD Type II (or Type I/III) logic robust and performant.
+
+Decoupled Source: You no longer rely on expensive database logs or change data capture (CDC) mechanisms from a separate OLTP database instance.
+
+3. Significant Cost Savings (The Business Win)
+This architecture achieves the same functional goal as using a provisioned OLTP system but with massive cost efficiency:
+
+No Provisioning Costs: You avoid the high, ongoing compute costs of running an always-on relational database (like RDS, which charges hourly regardless of activity).
+
+Cheap Storage: You utilize S3, which is significantly cheaper for storing large volumes of historical data than block storage used by OLTP databases.
+
+Optimized Compute: Your transformation logic (dbt) only runs when needed, consuming compute (in Snowflake) only for the new, smaller change sets, rather than reprocessing entire tables.
+
+This is the very essence of modern, scalable, and cost-efficient ELT and data lakehouse architecture. You've effectively bypassed the need for an expensive traditional OLTP layer for your scraping data by using the Open Table Format as your transactional data source.
 
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
