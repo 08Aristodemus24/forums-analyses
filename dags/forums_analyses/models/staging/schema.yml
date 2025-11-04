@@ -4,7 +4,7 @@ models:
   - name: reddit_posts
     description: "raw reddit posts from s3"
     columns:
-      - name: id
+      - name: post_id
         description: "The primary key for this table"
         data_tests:
           # this tests if the the column in table doesn't contain any nulls 

@@ -12,6 +12,8 @@ import logging
 
 from pyarrow.fs import S3FileSystem
 from praw.models.comment_forest import CommentForest, MoreComments
+from praw.models.reddit.submission import Submission
+from praw.models.subreddits import Subreddit
 from deltalake import DeltaTable, write_deltalake
 
 from uuid import uuid4
@@ -83,7 +85,7 @@ def write_delta_to_bucket(aws_creds: dict, df: pa.Table, bucket_name: str, objec
 
     try:
         # Table exists, so APPEND the new data
-        logger.info(f"Delta table found at {delta_path}.") 
+        logger.info(f"Delta table found at {delta_path}") 
         logger.info(f"Appending new rows...")
         
         write_deltalake(
@@ -91,7 +93,9 @@ def write_delta_to_bucket(aws_creds: dict, df: pa.Table, bucket_name: str, objec
             df,
             # Use mode="append" to transactionally add new data 
             mode="append",
-            storage_options=aws_creds 
+            storage_options=aws_creds,
+            schema_mode="merge",
+            predicate="post_id = post_id"
         )
         
     except Exception as e:
@@ -132,6 +136,7 @@ def get_all_replies(replies, kwargs):
                 "created": datetime.datetime.fromtimestamp(reply_dict.get("created")),
                 "edited": datetime.datetime.fromtimestamp(reply_dict.get("edited")),
                 "author_name": reply_dict.get("author").name if reply_dict.get("author") else "[deleted]",
+                "author_fullname": reply_dict.get("author_fullname"),
                 "parent_id": reply_dict.get("parent_id"),
                 "comment": reply_dict.get("body")
             })
@@ -140,13 +145,67 @@ def get_all_replies(replies, kwargs):
 
     return reply_data
 
+def extract_posts_comments(subreddit: Subreddit, limit: int):
+    """
+    extracts all comments and replies from a given post
+    in a subreddit then structured into a pyarrow table
+    for later writing to s3 in a delta format
+    """
+
+    # collector for comments and replies
+    data = []
+    for submission in subreddit.hot(limit=args.limit):
+        # print(submission.__dict__)
+
+        # this is a static variable that we will need to append 
+        # new comments/replies but also need to be unchanged/immuted
+        submission_dict = submission.__dict__
+        datum = {
+            "post_title": submission_dict.get("title"),
+            "post_score": submission_dict.get("score"),
+            "post_id": submission_dict.get("id"),
+            "url": submission_dict.get("url"),
+            "name": submission_dict.get("name") if submission_dict.get("name") else "[deleted]"
+            
+        }
+        # print(datum)
+
+        # this is a list of comments
+        for i, comment in enumerate(submission.comments):
+            if hasattr(comment, "body"):
+                datum_copy = datum.copy()
+                datum_copy.update({
+                    "upvotes": submission_dict.get("ups"),
+                    "downvotes": submission_dict.get("downs"),
+                    "created_at": datetime.datetime.fromtimestamp(submission_dict.get("created")),
+                    "edited_at": datetime.datetime.fromtimestamp(submission_dict.get("edited")),
+                    "author_name": submission_dict.get("author").name if submission_dict.get("author") else "[deleted]",
+                    "author_fullname": submission_dict.get("author_fullname"),
+                    "parent_id": submission_dict.get("parent_id"),
+                    "comment": comment.body,
+                })
+                logger.info(f"comment level: {datum_copy}")
+                data.append(datum_copy)
+                
+                # recursively get all replies of a comment
+                reply_data = get_all_replies(comment.replies, datum)
+                # print(reply_data)
+                data.extend(reply_data)
+
+    # convert the list of dictionaries/records to pyarrow table
+    post_comments_table = pa.Table.from_pylist(data)
+    logger.info(f"post comments and replies table shape:{post_comments_table.shape}")
+
+    write_delta_to_bucket(aws_creds, post_comments_table, bucket_name, object_name, folder_name)
+
 
 if __name__ == "__main__":
     # parse arguments
     parser = ArgumentParser()
-    parser.add_argument("--bucket_name", type=str, default="subreddit-analyses-bucket", help="represents the name of provisioned bucket in s3")
-    parser.add_argument("--object_name", type=str, default="raw_reddit_data.parquet", help="represents the name of provisioned object/filename in s3")
+    parser.add_argument("--bucket_name", type=str, default="forums-analyses-bucket", help="represents the name of provisioned bucket in s3")
+    parser.add_argument("--object_name", type=str, default="raw_reddit_posts_comments", help="represents the name of provisioned object/filename in s3")
     parser.add_argument("--folder_name", type=str, default="", help="represents the name of folder containing the object/filename in s3 bucket")
+    parser.add_argument("--limit", type=int, default=1, help="represents the limit to the number of posts to scrape on reddit")
     args = parser.parse_args()
 
     bucket_name = args.bucket_name
@@ -181,48 +240,7 @@ if __name__ == "__main__":
 
     subreddit = reddit.subreddit("KpopDemonhunters")
 
-    data = []
-    for submission in subreddit.hot(limit=1):
-        # print(submission.__dict__)
-
-        # this is a static variable that we will need to append 
-        # new comments/replies but also need to be unchanged/immuted
-        submission_dict = submission.__dict__
-        datum = {
-            "title": submission_dict.get("title"),
-            "score": submission_dict.get("score"),
-            "id": submission_dict.get("id"),
-            "url": submission_dict.get("url"),
-            "name": submission_dict.get("name") if submission_dict.get("name") else "[deleted]"
-        }
-        # print(datum)
-
-        # this is a list of comments
-        for i, comment in enumerate(submission.comments):
-            if hasattr(comment, "body"):
-                datum_copy = datum.copy()
-                datum_copy.update({
-                    "ups": submission_dict.get("ups"),
-                    "downs": submission_dict.get("downs"),
-                    "created": datetime.datetime.fromtimestamp(submission_dict.get("created")),
-                    "edited": datetime.datetime.fromtimestamp(submission_dict.get("edited")),
-                    "author_name": submission_dict.get("author").name if submission_dict.get("author") else "[deleted]",
-                    "parent_id": submission_dict.get("parent_id"),
-                    "comment": comment.body,
-                })
-                logger.info(f"comment level: {datum_copy}")
-                data.append(datum_copy)
-                
-                # recursively get all replies of a comment
-                reply_data = get_all_replies(comment.replies, datum)
-                # print(reply_data)
-                data.extend(reply_data)
-
-    # convert the list of dictionaries/records to pyarrow table
-    reddit_posts_table = pa.Table.from_pylist(data)
-    print(reddit_posts_table.shape)
-
-    write_delta_to_bucket(aws_creds, reddit_posts_table, bucket_name, object_name, folder_name)
+    extract_posts_comments(subreddit, limit=args.limit)
 
     # write pyarrow table as parquet in s3 bucket
     # https://arrow.apache.org/docs/python/generated/pyarrow.fs.S3FileSystem.html

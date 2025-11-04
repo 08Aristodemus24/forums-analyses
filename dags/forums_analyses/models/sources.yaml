@@ -1,0 +1,7 @@
+sources:
+  - name: forums_data
+    database: FORUMS_ANALYSES_DB
+    schema: FORUMS_ANALYSES_BRONZE
+    tables:
+      - name: raw_reddit_posts_comments
+      - name: raw_reddit_posts

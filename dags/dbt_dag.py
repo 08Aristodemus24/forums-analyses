@@ -23,8 +23,8 @@ profile_config = ProfileConfig(
             "user": os.environ.get("SNOWFLAKE_LOGIN_NAME"),
             "role": os.environ.get("SNOWFLAKE_ROLE"),
             "warehouse": "COMPUTE_WH",
-            "database": "SUBREDDIT_ANALYSES_DB",
-            "schema": "SUBREDDIT_ANALYSES_BRONZE",
+            "database": "FORUMS_ANALYSES_DB",
+            "schema": "FORUMS_ANALYSES_BRONZE",
             "private_key_path": "/usr/local/airflow/rsa_key.p8",
             "private_key_passphrase": os.environ.get("PRIVATE_KEY_PASSPHRASE")
         },
@@ -44,12 +44,13 @@ BASE_DIR = Path(AIRFLOW_HOME).resolve().parent
     params={"my_name": "dbt_snowflake_dag"},
 )
 def forums_analyses_dag():
-    # fetch_reddit_data = BashOperator(
-    #     task_id="extract_signals",
-    #     bash_command=f"python {AIRFLOW_HOME}/operators/fetch_reddit_data.py \
-    #         --bucket_name subreddit-analyses-bucket \
-    #         --object-name raw_reddit_data.parquet"
-    # )
+    fetch_reddit_data = BashOperator(
+        task_id="fetch_reddit_data",
+        bash_command=f"python {AIRFLOW_HOME}/operators/fetch_reddit_data.py \
+            --bucket_name forums-analyses-bucket \
+            --object_name raw_reddit_data.parquet \
+            --limit 1"
+    )
 
     transform_data = DbtTaskGroup(
         group_id="transform_data",
@@ -62,7 +63,6 @@ def forums_analyses_dag():
         default_args={"retries": 2},
     )
 
-    # fetch_reddit_data
-    transform_data
+    fetch_reddit_data >> transform_data
 
 forums_analyses_dag()

@@ -1085,6 +1085,46 @@ Optimized Compute: Your transformation logic (dbt) only runs when needed, consum
 
 This is the very essence of modern, scalable, and cost-efficient ELT and data lakehouse architecture. You've effectively bypassed the need for an expensive traditional OLTP layer for your scraping data by using the Open Table Format as your transactional data source.
 
+* I need someway to automatically using terraform. This will include using snowflake and aws providers 
+- initially create an IAM role
+- initially create an IAM policy with permissions to get and list s3 buckets and objects
+- attach the policy to the created IAM role
+
+- create db
+- create schema
+
+- create `STORAGE INTEGRATION`
+- set the storage integration's `STORAGE_AWS_ROLE_ARN` to the value of the newly created IAM role
+- use the output of `DESCRIBE STORAGE INTEGRATION <name of storage integration>` such as `STORAGE_AWS_IAM_USER_ARN` and `STORAGE_AWS_EXTERNAL_ID` and copy it to IAM role trusted entities' principal `AWS` and `externalId` keys as values respectively
+- create `EXTERNAL VOLUME`
+- set the external volume's `STORAGE_AWS_ROLE_ARN` to the value of the newly created IAM role 
+- use the output of `DESCRIBE EXTERNAL VOLUME <name of external volume>` such as `STORAGE_AWS_IAM_USER_ARN` and `STORAGE_AWS_EXTERNAL_ID` and copy it to IAM role trusted entities' principal `AWS` and `externalId` keys as values respectively
+
+- create a `FILE FORMAT` with type parquet
+- create an external stage with `FILE_FORMAT` set to the created file format and the `STORAGE_INTEGRATION` to the name of the newly created storage integration
+
+- create a `CATALOG INTEGRATION`
+- create an `ICEBERG TABLE` with `CATALOG` set to the newly created catalog integration, the `EXTERNAL_VOLUME` to the newly created external volume, the `BASE_LOCATION` to the name of the delta folder in your s3 bucket 
+
+* Akala natin dati `CREATE ICEBERG TABLE` creates a duplicate of the same delta or iceber table in our data lake s3 when in reality this is what happens:
+
+Creating an Iceberg table in S3 does not inherently duplicate data in Snowflake. Snowflake's native integration with Apache Iceberg allows it to directly query and manage Iceberg tables stored in external cloud storage like S3 without needing to copy the data into Snowflake's internal storage format.
+
+Here's how it works:
+
+Data remains in S3: When you create an Iceberg table in S3 and then define it within Snowflake, the actual data files (e.g., Parquet files) remain in your S3 bucket.
+
+Snowflake manages metadata (for Managed Iceberg tables): If you create a "Managed Iceberg Table" in Snowflake, Snowflake manages the Iceberg table's metadata (schema, snapshots, etc.) while the data itself stays in S3. This allows Snowflake to leverage Iceberg's features like time travel and schema evolution.
+
+Snowflake reads data directly: When you query the Iceberg table in Snowflake, Snowflake's compute engine accesses and processes the data directly from S3, without first ingesting it or creating a separate copy within Snowflake.
+
+In essence, Snowflake acts as a powerful query engine and, for managed tables, a metadata manager for Iceberg tables, but it does not duplicate the underlying data stored in S3. This approach allows for a more open and interoperable data lake architecture, where the same data can be accessed and utilized by various tools and engines.
+
+
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
 * creating iam policy, s3 bucket, external stage automatically using terraform: https://medium.com/@nakaken0629/how-to-create-an-external-stage-for-amazon-s3-on-snowflake-by-terraform-34c67c78a22a
+* creating external volume, iam policy, iam role, catalog integration, iceberg table as opposed to creating storage integration, iam policy, iam role, external stage, and format in snowflake: 
+- https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-external-volume-s3 
+- 
+- https://docs.snowflake.com/en/sql-reference/sql/create-iceberg-table-delta
