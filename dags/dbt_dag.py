@@ -46,7 +46,7 @@ BASE_DIR = Path(AIRFLOW_HOME).resolve().parent
 def forums_analyses_dag():
     fetch_reddit_data = BashOperator(
         task_id="fetch_reddit_data",
-        bash_command=f"python {AIRFLOW_HOME}/operators/fetch_reddit_data.py \
+        bash_command=f"python {AIRFLOW_HOME}/operators/fetch_subreddit_posts_comments.py \
             --bucket_name forums-analyses-bucket \
             --object_name raw_reddit_data.parquet \
             --limit 1"

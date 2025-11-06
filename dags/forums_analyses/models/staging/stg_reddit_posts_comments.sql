@@ -2,7 +2,7 @@
     config(
         materialized='incremental',
         unique_key=['post_id', 'author_fullname']
-    ) 
+    )
 }}
 
 WITH reddit_posts_comments AS (

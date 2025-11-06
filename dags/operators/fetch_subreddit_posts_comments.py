@@ -67,7 +67,7 @@ def write_parq_to_bucket(aws_creds: dict, df: pa.Table, bucket_name: str, object
     except Exception as e:
         logger.error(f"`{e}` has occured")
 
-def write_delta_to_bucket(aws_creds: dict, df: pa.Table, bucket_name: str, object_name: str, folder_name: str):
+def write_delta_to_bucket(aws_creds: dict, df: pa.Table, bucket_name: str, object_name: str, folder_name: str, DELTA_PATH: str):
     """
     writes a pyarrow dataframe to an s3 bucket in delta format. 
     What we want here is to check if an existing parquet with reddit
@@ -81,15 +81,18 @@ def write_delta_to_bucket(aws_creds: dict, df: pa.Table, bucket_name: str, objec
 
     # 2. Check if the Delta table already exists
     # The URI points to the S3 bucket and folder where the Delta table lives
-    delta_path = os.path.join("s3://", bucket_name, folder_name, object_name).replace("\\", "/")
+    DELTA_DIR, _ = DELTA_PATH.rsplit("/", 1)
+    os.makedirs(DELTA_DIR, exist_ok=True)
+    if not alt_path:
+        DELTA_PATH = os.path.join("s3://", bucket_name, folder_name, object_name).replace("\\", "/")
 
     try:
         # Table exists, so APPEND the new data
-        logger.info(f"Delta table found at {delta_path}") 
+        logger.info(f"Delta table found at {DELTA_PATH}") 
         logger.info(f"Appending new rows...")
         
         write_deltalake(
-            delta_path, 
+            DELTA_PATH, 
             df,
             # Use mode="append" to transactionally add new data 
             mode="append",
@@ -107,7 +110,7 @@ def write_delta_to_bucket(aws_creds: dict, df: pa.Table, bucket_name: str, objec
         # delta table is written in s3 bucket with given
         # credentials and path
         write_deltalake(
-            delta_path, 
+            DELTA_PATH, 
             df, 
             # Use overwrite (or error) to create the initial table
             mode="overwrite",
@@ -145,7 +148,7 @@ def get_all_replies(replies, kwargs):
 
     return reply_data
 
-def extract_posts_comments(subreddit: Subreddit, limit: int):
+def extract_posts_comments(subreddit: Subreddit, limit: int, bucket_name, folder_name, object_name, alt_path):
     """
     extracts all comments and replies from a given post
     in a subreddit then structured into a pyarrow table
@@ -173,16 +176,17 @@ def extract_posts_comments(subreddit: Subreddit, limit: int):
         # this is a list of comments
         for i, comment in enumerate(submission.comments):
             if hasattr(comment, "body"):
+                comment_dict = comment.__dict__
                 datum_copy = datum.copy()
                 datum_copy.update({
-                    "upvotes": submission_dict.get("ups"),
-                    "downvotes": submission_dict.get("downs"),
-                    "created_at": datetime.datetime.fromtimestamp(submission_dict.get("created")),
-                    "edited_at": datetime.datetime.fromtimestamp(submission_dict.get("edited")),
-                    "author_name": submission_dict.get("author").name if submission_dict.get("author") else "[deleted]",
-                    "author_fullname": submission_dict.get("author_fullname"),
-                    "parent_id": submission_dict.get("parent_id"),
-                    "comment": comment.body,
+                    "upvotes": comment_dict.get("ups"),
+                    "downvotes": comment_dict.get("downs"),
+                    "created_at": datetime.datetime.fromtimestamp(comment_dict.get("created")),
+                    "edited_at": datetime.datetime.fromtimestamp(comment_dict.get("edited")),
+                    "author_name": comment_dict.get("author").name if comment_dict.get("author") else "[deleted]",
+                    "author_fullname": comment_dict.get("author_fullname"),
+                    "parent_id": comment_dict.get("parent_id"),
+                    "comment": comment_dict.get("body"),
                 })
                 logger.info(f"comment level: {datum_copy}")
                 data.append(datum_copy)
@@ -196,7 +200,7 @@ def extract_posts_comments(subreddit: Subreddit, limit: int):
     post_comments_table = pa.Table.from_pylist(data)
     logger.info(f"post comments and replies table shape:{post_comments_table.shape}")
 
-    write_delta_to_bucket(aws_creds, post_comments_table, bucket_name, object_name, folder_name)
+    write_delta_to_bucket(aws_creds, post_comments_table, bucket_name, object_name, folder_name, alt_path)
 
 
 if __name__ == "__main__":
@@ -206,11 +210,13 @@ if __name__ == "__main__":
     parser.add_argument("--object_name", type=str, default="raw_reddit_posts_comments", help="represents the name of provisioned object/filename in s3")
     parser.add_argument("--folder_name", type=str, default="", help="represents the name of folder containing the object/filename in s3 bucket")
     parser.add_argument("--limit", type=int, default=1, help="represents the limit to the number of posts to scrape on reddit")
+    parser.add_argument("--alt_path", type=str, default=None, help="represents the alternative path to the delta file if user decides not to write in s3")
     args = parser.parse_args()
 
     bucket_name = args.bucket_name
     object_name = args.object_name
     folder_name = args.folder_name
+    alt_path = args.alt_path
 
     # load env variables
     env_dir = Path('../../').resolve()
@@ -240,7 +246,14 @@ if __name__ == "__main__":
 
     subreddit = reddit.subreddit("KpopDemonhunters")
 
-    extract_posts_comments(subreddit, limit=args.limit)
+    extract_posts_comments(
+        subreddit, 
+        limit=args.limit, 
+        bucket_name=bucket_name, 
+        folder_name=folder_name, 
+        object_name=object_name, 
+        alt_path=alt_path
+    )
 
     # write pyarrow table as parquet in s3 bucket
     # https://arrow.apache.org/docs/python/generated/pyarrow.fs.S3FileSystem.html
