@@ -9,6 +9,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import datetime
 import logging
+import pprint
 
 from pyarrow.fs import S3FileSystem
 from praw.models.comment_forest import CommentForest, MoreComments
@@ -134,21 +135,23 @@ def get_all_replies(replies, kwargs):
             reply_dict = reply.__dict__
             datum = kwargs.copy()
             datum.update({
-                "post_title": reply_dict.get("title"),
-                "post_score": reply_dict.get("score"),
-                "post_id": reply_dict.get("id"),
-                "url": reply_dict.get("url"),
-                "name": reply_dict.get("name") if reply_dict.get("name") else "[deleted]",
-                "upvotes": reply_dict.get("ups"),
-                "downvotes": reply_dict.get("downs"),
-                "created_at": datetime.datetime.fromtimestamp(reply_dict.get("created")),
-                "edited_at": datetime.datetime.fromtimestamp(reply_dict.get("edited")),
-                "author_name": reply_dict.get("author").name if reply_dict.get("author") else "[deleted]",
-                "author_fullname": reply_dict.get("author_fullname"),
-                "parent_id": reply_dict.get("parent_id"),
-                "comment": reply_dict.get("body"),
+                "level": "reply",
+                # "reply_title": reply_dict.get("title"),
+                # "reply_score": reply_dict.get("score"),
+                "comment_id": reply_dict.get("id"),
+                # "reply_url": reply_dict.get("url"),
+                "comment_name": reply_dict.get("name") if reply_dict.get("name") else "[deleted]",
+                "comment_upvotes": reply_dict.get("ups"),
+                "comment_downvotes": reply_dict.get("downs"),
+                "comment_created_at": datetime.datetime.fromtimestamp(reply_dict.get("created")),
+                "comment_edited_at": datetime.datetime.fromtimestamp(reply_dict.get("edited")),
+                "comment_author_name": reply_dict.get("author").name if reply_dict.get("author") else "[deleted]",
+                "comment_author_fullname": reply_dict.get("author_fullname"),
+                "comment_parent_id": reply_dict.get("parent_id"),
+                "comment_body": reply_dict.get("body"),
             })
-            logger.info(f"reply level: {datum}")
+            # logger.info(f"reply level: {datum}")
+            pprint.pprint(datum)
             reply_data.append(datum)
 
     return reply_data
@@ -168,37 +171,40 @@ def extract_posts_comments(subreddit: Subreddit, limit: int, bucket_name, folder
         # this is a static variable that we will need to append 
         # new comments/replies but also need to be unchanged/immuted
         submission_dict = submission.__dict__
-        # datum = {
-        #     "post_title": submission_dict.get("title"),
-        #     "post_score": submission_dict.get("score"),
-        #     "post_id": submission_dict.get("id"),
-        #     "url": submission_dict.get("url"),
-        #     "name": submission_dict.get("name") if submission_dict.get("name") else "[deleted]"   
-        # }
+        datum = {
+            "post_title": submission_dict.get("title"),
+            "post_score": submission_dict.get("score"),
+            "post_id": submission_dict.get("id"),
+            "post_url": submission_dict.get("url"),
+            "post_name": submission_dict.get("name") if submission_dict.get("name") else "[deleted]",
+            "post_author_name": submission_dict.get("author").name if submission_dict.get("author") else "[deleted]",
+        }
         # print(datum)
 
         # this is a list of comments
-        for i, comment in enumerate(submission.comments):
+        for i, comment in enumerate(submission.comments[:1]):
             if hasattr(comment, "body"):
                 comment_dict = comment.__dict__
-                # datum_copy = datum.copy()
-                datum_copy = {}
+                datum_copy = datum.copy()
+                # datum_copy = {}
                 datum_copy.update({
-                    "post_title": comment_dict.get("title"),
-                    "post_score": comment_dict.get("score"),
-                    "post_id": comment_dict.get("id"),
-                    "url": comment_dict.get("url"),
-                    "name": comment_dict.get("name") if comment_dict.get("name") else "[deleted]",
-                    "upvotes": comment_dict.get("ups"),
-                    "downvotes": comment_dict.get("downs"),
-                    "created_at": datetime.datetime.fromtimestamp(comment_dict.get("created")),
-                    "edited_at": datetime.datetime.fromtimestamp(comment_dict.get("edited")),
-                    "author_name": comment_dict.get("author").name if comment_dict.get("author") else "[deleted]",
-                    "author_fullname": comment_dict.get("author_fullname"),
-                    "parent_id": comment_dict.get("parent_id"),
-                    "comment": comment_dict.get("body"),
+                    "level": "comment",
+                    # "comment_title": comment_dict.get("title"),
+                    # "comment_score": comment_dict.get("score"),
+                    "comment_id": comment_dict.get("id"),
+                    # "comment_url": comment_dict.get("url"),
+                    "comment_name": comment_dict.get("name") if comment_dict.get("name") else "[deleted]",
+                    "comment_upvotes": comment_dict.get("ups"),
+                    "comment_downvotes": comment_dict.get("downs"),
+                    "comment_created_at": datetime.datetime.fromtimestamp(comment_dict.get("created")),
+                    "comment_edited_at": datetime.datetime.fromtimestamp(comment_dict.get("edited")),
+                    "comment_author_name": comment_dict.get("author").name if comment_dict.get("author") else "[deleted]",
+                    "comment_author_fullname": comment_dict.get("author_fullname"),
+                    "comment_parent_id": comment_dict.get("parent_id"),
+                    "comment_body": comment_dict.get("body"),
                 })
-                logger.info(f"comment level: {datum_copy}")
+                # logger.info(f"comment level: {datum_copy}")
+                pprint.pprint(datum_copy)
                 data.append(datum_copy)
                 
                 # recursively get all replies of a comment
