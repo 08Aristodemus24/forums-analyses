@@ -134,14 +134,19 @@ def get_all_replies(replies, kwargs):
             reply_dict = reply.__dict__
             datum = kwargs.copy()
             datum.update({
-                "ups": reply_dict.get("ups"),
-                "downs": reply_dict.get("downs"),
-                "created": datetime.datetime.fromtimestamp(reply_dict.get("created")),
-                "edited": datetime.datetime.fromtimestamp(reply_dict.get("edited")),
+                "post_title": reply_dict.get("title"),
+                "post_score": reply_dict.get("score"),
+                "post_id": reply_dict.get("id"),
+                "url": reply_dict.get("url"),
+                "name": reply_dict.get("name") if reply_dict.get("name") else "[deleted]",
+                "upvotes": reply_dict.get("ups"),
+                "downvotes": reply_dict.get("downs"),
+                "created_at": datetime.datetime.fromtimestamp(reply_dict.get("created")),
+                "edited_at": datetime.datetime.fromtimestamp(reply_dict.get("edited")),
                 "author_name": reply_dict.get("author").name if reply_dict.get("author") else "[deleted]",
                 "author_fullname": reply_dict.get("author_fullname"),
                 "parent_id": reply_dict.get("parent_id"),
-                "comment": reply_dict.get("body")
+                "comment": reply_dict.get("body"),
             })
             logger.info(f"reply level: {datum}")
             reply_data.append(datum)
@@ -163,22 +168,27 @@ def extract_posts_comments(subreddit: Subreddit, limit: int, bucket_name, folder
         # this is a static variable that we will need to append 
         # new comments/replies but also need to be unchanged/immuted
         submission_dict = submission.__dict__
-        datum = {
-            "post_title": submission_dict.get("title"),
-            "post_score": submission_dict.get("score"),
-            "post_id": submission_dict.get("id"),
-            "url": submission_dict.get("url"),
-            "name": submission_dict.get("name") if submission_dict.get("name") else "[deleted]"
-            
-        }
+        # datum = {
+        #     "post_title": submission_dict.get("title"),
+        #     "post_score": submission_dict.get("score"),
+        #     "post_id": submission_dict.get("id"),
+        #     "url": submission_dict.get("url"),
+        #     "name": submission_dict.get("name") if submission_dict.get("name") else "[deleted]"   
+        # }
         # print(datum)
 
         # this is a list of comments
         for i, comment in enumerate(submission.comments):
             if hasattr(comment, "body"):
                 comment_dict = comment.__dict__
-                datum_copy = datum.copy()
+                # datum_copy = datum.copy()
+                datum_copy = {}
                 datum_copy.update({
+                    "post_title": comment_dict.get("title"),
+                    "post_score": comment_dict.get("score"),
+                    "post_id": comment_dict.get("id"),
+                    "url": comment_dict.get("url"),
+                    "name": comment_dict.get("name") if comment_dict.get("name") else "[deleted]",
                     "upvotes": comment_dict.get("ups"),
                     "downvotes": comment_dict.get("downs"),
                     "created_at": datetime.datetime.fromtimestamp(comment_dict.get("created")),
