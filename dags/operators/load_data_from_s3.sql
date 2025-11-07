@@ -26,4 +26,4 @@ CREATE OR REPLACE ICEBERG TABLE raw_reddit_posts_comments
     BASE_LOCATION = 'raw_reddit_posts_comments'
     AUTO_REFRESH = TRUE;
 
-SELECT * FROM RAW_REDDIT_POSTS_COMMENTS;
+SELECT * FROM raw_reddit_posts_comments;

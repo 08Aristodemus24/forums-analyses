@@ -14,4 +14,19 @@
 
 # setting up reddit_posts staging model
 * I will have to also include timestamp to when comment or post was made
-so that incremental model can 
+so that incremental model can f
+
+# IBM Interview Prep
+* need to know how to build macros
+
+* need to know how incremental models work: 
+- https://www.youtube.com/watch?v=-9RzZRkHay4&t=2s
+- https://www.youtube.com/watch?v=QDcUpHj_mWw&t=543s&pp=0gcJCQMKAYcqIYzv
+- https://www.youtube.com/watch?v=bjemdsZibdM&t=143s
+- https://www.youtube.com/watch?v=77qbJw8QzSE&t=67s
+- https://www.youtube.com/watch?v=MgSO6458c_4
+
+* need to know how to use dbt cloud and deploy to dbt cloud: 
+- https://www.youtube.com/watch?v=nHsWKHkc8No&t=272s
+
+* need to know how to 

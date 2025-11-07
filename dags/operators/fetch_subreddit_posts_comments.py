@@ -182,7 +182,7 @@ def extract_posts_comments(subreddit: Subreddit, limit: int, bucket_name, folder
         # print(datum)
 
         # this is a list of comments
-        for i, comment in enumerate(submission.comments[:1]):
+        for i, comment in enumerate(submission.comments):
             if hasattr(comment, "body"):
                 comment_dict = comment.__dict__
                 datum_copy = datum.copy()
