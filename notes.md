@@ -1121,6 +1121,149 @@ Snowflake reads data directly: When you query the Iceberg table in Snowflake, Sn
 In essence, Snowflake acts as a powerful query engine and, for managed tables, a metadata manager for Iceberg tables, but it does not duplicate the underlying data stored in S3. This approach allows for a more open and interoperable data lake architecture, where the same data can be accessed and utilized by various tools and engines.
 
 
+* what if I `use when_not_matched_insert()` instead and only pass `{"post_title": "<some title>", "comment_body": "<some comment>"}` what will this result in if only some columns are inserted in the delta lake table? What about other columns? Ano yun mga `NULL` lang ilalagay?
+
+That is a great technical detail to clarify! You're diving into the fine-grained control of the delta-rs merge operation.
+
+Here's the breakdown of what happens when you use `when_not_matched_insert()` and only specify a subset of columns:
+
+⚙️ Result of Partial Insert
+If you use `when_not_matched_insert()` and pass a dictionary containing only a few columns, the result is precisely what you fear: the columns you do not specify will be written as `NULL` in the new Delta Lake record.
+
+1. Specified Columns Get Values
+The columns explicitly included in your `when_not_matched_insert()` dictionary will receive the corresponding values from the incoming source data:
+```
+when_not_matched_insert = {
+    "post_title": "source.post_title",
+    "comment_body": "source.comment_body"
+}
+```
+In this case, a new record will be created, and the post_title and comment_body fields will be populated with the data from the new row you scraped.
+
+2. Unspecified Columns Get `NULL` (The Risk)
+All other columns in the target Delta table's schema that are not present in your `when_not_matched_insert` dictionary will be set to `NULL` for that newly inserted row.
+
+Why this is risky for your project:
+
+Your composite primary key relies on having accurate, non-null values for all key columns: `post_name`, `comment_parent_id`, and `comment_name`. If you only pass in the body/title fields, you risk setting other critical metadata fields (like the primary key components or timestamps) to `NULL`.
+
+If `comment_name` or `comment_parent_id` is set to `NULL`, that record won't be unique, potentially breaking future merges and integrity checks.
+
+✅ The Recommended Approach: `when_not_matched_insert_all`
+For the when_not_matched action, the best practice is almost always to insert the entire row from the source data, because if it's a new record, you want all its metadata (IDs, timestamps, scores) intact. You should us `when_not_matched_insert_all=True`
+
+This tells Delta Lake: "If a new record is found, insert all columns from the incoming source data into the new row." This ensures full data fidelity and preserves your composite primary key integrity.
+
+The complexity of selective updates should be reserved for the when_matched action, as you previously analyzed:
+
+when_matched_update: Use this to selectively update only mutable fields (bodies, scores, titles).
+
+`when_not_matched_insert_all`: Use this to ensure all required fields are present when a new record is created.
+
+* Hmm but my question is, since the source table composite keys attempts to match the composite keys in the existing delta lake table, would the updates be overwritten or only if the column values really change in the record?
+
+That is the most crucial detail for a Change Data Capture (CDC) or Slowly Changing Dimension (SCD) type of pipeline like yours: you want to avoid unnecessary writes when the content hasn't actually changed.
+
+Here is the precise answer and the code you need to implement conditional updates using the `DeltaTable.merge()` method from the Python delta-rs library.
+
+🔑 Conditional Update in Delta Lake
+When you use `DeltaTable.merge()`, the default behavior of when_matched_update (or `when_matched_update_all`) is to overwrite the specified columns in the target row if a match is found based on the merge predicate, regardless of whether the values are different.
+
+To ensure the update only happens if the column values have actually changed, you must add a second, specific predicate inside the `when_matched_update` action using a `WHERE` clause logic.
+
+1. The Merge Condition (Composite Key Match)
+This is the condition that determines which source rows match which target rows. It uses your composite key:
+
+# Primary Merge Predicate (The JOIN condition)
+merge_condition = (
+    "target.post_name = source.post_name AND "
+    "target.comment_parent_id = source.comment_parent_id AND "
+    "target.comment_name = source.comment_name"
+)
+2. The Conditional Update Predicate (The Change Check)
+This is the condition that determines if the UPDATE action should be executed for a matched row. You can use the IS DISTINCT FROM logic (or its components) in the predicate argument of the when_matched_update function.
+
+Since you only care about edits to post/comment bodies and titles, your condition should look for a change in any of those key fields:
+
+Python
+# Update Predicate (The CHANGE condition)
+# Only update the record IF the value of the comment_body OR post_title has changed.
+update_condition = (
+    "target.comment_body IS DISTINCT FROM source.comment_body OR "
+    "target.post_title IS DISTINCT FROM source.post_title OR "
+    "target.post_url IS DISTINCT FROM source.post_url"
+)
+3. The Full Implementation
+Combining these two conditions gives you the robust, efficient Upsert logic you need:
+
+Python
+from deltalake import DeltaTable
+import pyarrow as pa
+# Assume delta_table and source_data_pa are loaded
+
+# 1. Primary Merge Condition (Composite Key Match)
+merge_condition = (
+    "target.post_name = source.post_name AND "
+    "target.comment_parent_id = source.comment_parent_id AND "
+    "target.comment_name = source.comment_name"
+)
+
+# 2. Update Action - Only update the mutable fields
+update_action = {
+    # Only map the fields that are allowed to change
+    "post_title": "source.post_title",
+    "post_score": "source.post_score",
+    "comment_body": "source.comment_body",
+    # Crucially, update your load timestamp to track when the change happened
+    "dbt_updated_at": "current_timestamp()", 
+}
+
+# 3. Conditional Update Predicate (Checks if values actually changed)
+change_check = (
+    "target.comment_body IS DISTINCT FROM source.comment_body OR "
+    "target.post_title IS DISTINCT FROM source.post_title OR "
+    "target.post_score IS DISTINCT FROM source.post_score"
+    # You can extend this to all mutable fields
+)
+
+
+(
+    delta_table.merge(
+        source=source_data_pa.alias("source"),  # Alias needed for predicate
+        predicate=merge_condition,
+        target_alias="target"                   # Alias needed for predicate
+    )
+    .when_matched_update(
+        updates=update_action, 
+        predicate=change_check # <-- This is the key to prevent unnecessary overwrites!
+    )
+    .when_not_matched_insert_all()
+    .execute()
+)
+By adding the predicate=change_check to your when_matched_update, you tell Delta Lake: "Only rewrite this record if one of the monitored fields has a new value." This is the highest standard for transactional data pipelines and showcases your analytical mind and cost optimization focus.
+
+why we use `IS DISTINCT FROM` instead of `!=` or `<>` operators is because this operator provides a null-safe comparison for inequality, meaning it handles `NULL` values in a specific and predictable way, unlike the standard not equals operator.
+
+How `IS DISTINCT FROM` works:
+Returns `TRUE`: if the two arguments are different, including cases where one is `NULL` and the other is a non-NULL value.
+Returns `FALSE`: if the two arguments are the same, including cases where both are `NULL`.
+Never returns `UNKNOWN`, unlike `WHERE c1 <> c2` which would return `UNKNOWN` if `c1` or `c2` is `NULL`.
+
+```
+(tech-interview) C:\Users\Admins\Documents\Scripts\data-engineering-path\forums-analyses>sqlite3
+SQLite version 3.50.2 2025-06-28 14:00:48
+Enter ".help" for usage hints.
+Connected to a transient in-memory database.
+Use ".open FILENAME" to reopen on a persistent database.
+sqlite> .open test.db
+sqlite>
+sqlite> SELECT NULL IS DISTINCT FROM NULL AS both_null;
+0
+sqlite> SELECT NULL IS DISTINCT FROM NULL AS idf_both_null, NULL != NULL AS ne_both_null;
+0|
+```
+we can see that in the first example using `IS DISTINCT FROM` it can handle null values and basically returns `FALSE` or `0` since in that case `NULL` is not at all distinct from `NULL`, and in the second example using both the `IS DISTINCT FROM` and `!=` (NOT EQUAL TO) operators we see that the `!=` operator adds a column in our resulting view but this value cannot be seen or comprehended which is basically what an `UNKNOWN` value is. 
+
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
 * creating iam policy, s3 bucket, external stage automatically using terraform: https://medium.com/@nakaken0629/how-to-create-an-external-stage-for-amazon-s3-on-snowflake-by-terraform-34c67c78a22a

@@ -11,7 +11,8 @@
 
 
 # setting up infrastructure for IAM Policy, S3 Bucket, Snowflake External Stage
-
+- if snowflake trial epires create account again, and setup
+- credentials again in profiles.yaml of dbt and in .env since you run it also in airflow
 # setting up reddit_posts staging model
 * I will have to also include timestamp to when comment or post was made
 so that incremental model can f

@@ -220,11 +220,13 @@ def extract_posts_comments(subreddit: Subreddit, limit: int, bucket_name, folder
 
 
 if __name__ == "__main__":
+    # python fetch_subreddit_posts_comments.py 
     # parse arguments
     parser = ArgumentParser()
     parser.add_argument("--bucket_name", type=str, default="forums-analyses-bucket", help="represents the name of provisioned bucket in s3")
     parser.add_argument("--object_name", type=str, default="raw_reddit_posts_comments", help="represents the name of provisioned object/filename in s3")
     parser.add_argument("--folder_name", type=str, default="", help="represents the name of folder containing the object/filename in s3 bucket")
+    parser.add_argument("--subreddit_name", type=str, default="KpopDemonHunters", help="represents the subreddit to scrape posts comments in")
     parser.add_argument("--limit", type=int, default=1, help="represents the limit to the number of posts to scrape on reddit")
     parser.add_argument("--alt_path", type=str, default=None, help="represents the alternative path to the delta file if user decides not to write in s3")
     args = parser.parse_args()
@@ -232,6 +234,7 @@ if __name__ == "__main__":
     bucket_name = args.bucket_name
     object_name = args.object_name
     folder_name = args.folder_name
+    subreddit_name = args.subreddit_name
     alt_path = args.alt_path
 
     # load env variables
@@ -252,6 +255,7 @@ if __name__ == "__main__":
     
     user_agent = f"desktop:com.sr-analyses-pipeline:0.1 (by u/{REDDIT_USERNAME})"
 
+    # connect to reddit client
     reddit = praw.Reddit(
         client_id=REDDIT_CLIENT_ID,
         client_secret=REDDIT_CLIENT_SECRET,
@@ -260,7 +264,8 @@ if __name__ == "__main__":
         user_agent=user_agent,
     )
 
-    subreddit = reddit.subreddit("KpopDemonhunters")
+    # look for subreddit to search posts comments in
+    subreddit = reddit.subreddit(subreddit_name)
 
     extract_posts_comments(
         subreddit, 
