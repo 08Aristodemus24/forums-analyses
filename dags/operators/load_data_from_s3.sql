@@ -27,3 +27,17 @@ CREATE OR REPLACE ICEBERG TABLE raw_reddit_posts_comments
     AUTO_REFRESH = TRUE;
 
 SELECT * FROM raw_reddit_posts_comments;
+-- -- we can now just select from this table as 
+-- -- if it were an existing table in snowflake because
+-- -- mind you this table has not yet been created in our 
+-- -- database schema
+-- CREATE TABLE IF NOT EXISTS RawRedditData AS (
+--     SELECT
+--         $1:title::VARCHAR AS title,
+--         $1:score::INTEGER AS score,
+--         $1:id::VARCHAR AS id,
+--         $1:url::VARCHAR AS url,
+--         $1:comment::VARCHAR AS comment,
+--         -- Add more columns as needed
+--     FROM @sa_ext_stage_integration/raw_reddit_data.parquet
+-- );
