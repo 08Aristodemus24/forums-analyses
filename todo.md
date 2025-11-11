@@ -13,9 +13,9 @@
 # setting up infrastructure for IAM Policy, S3 Bucket, Snowflake External Stage
 - if snowflake trial epires create account again, and setup
 - credentials again in profiles.yaml of dbt and in .env since you run it also in airflow
+
 # setting up reddit_posts staging model
-* I will have to also include timestamp to when comment or post was made
-so that incremental model can f
+* I will have to also include timestamp to when comment or post was made so that incremental model can include a potentially edited post if a post has been edited and just so happened to be scraped again 
 
 # IBM Interview Prep
 * need to know how to build macros

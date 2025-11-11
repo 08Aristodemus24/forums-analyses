@@ -1264,6 +1264,13 @@ sqlite> SELECT NULL IS DISTINCT FROM NULL AS idf_both_null, NULL != NULL AS ne_b
 ```
 we can see that in the first example using `IS DISTINCT FROM` it can handle null values and basically returns `FALSE` or `0` since in that case `NULL` is not at all distinct from `NULL`, and in the second example using both the `IS DISTINCT FROM` and `!=` (NOT EQUAL TO) operators we see that the `!=` operator adds a column in our resulting view but this value cannot be seen or comprehended which is basically what an `UNKNOWN` value is. 
 
+* how to force add an already gitignored file 
+- git add - This is the standard command used to stage changes for the next commit.
+- -f or --force - This flag forces the git add command to include the specified file, even if it matches a pattern in the .gitignore file and would normally be ignored.
+- <path/to/file> - Replace this with the actual path to the file you want to add.
+
+final command would be `git add -f <path to file can be absolute or relative>` 
+
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
 * creating iam policy, s3 bucket, external stage automatically using terraform: https://medium.com/@nakaken0629/how-to-create-an-external-stage-for-amazon-s3-on-snowflake-by-terraform-34c67c78a22a
