@@ -35,7 +35,7 @@ def setup_logging():
 global logger
 logger = setup_logging()
 logger.info("Script started.") # Will appear on console and file
-logger.debug("Attempting to connect with Selenium.") # Will only appear in the file'
+logger.debug("Attempting to extract forum data.") # Will only appear in the file'
 
 
 
