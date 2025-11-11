@@ -3,6 +3,7 @@ import os
 from airflow.decorators import dag
 from airflow.configuration import conf
 from airflow.operators.bash import BashOperator
+from airflow.providers.snowflake.operators.snowflake import SnowflakeSqlApiOperator
 
 from cosmos import DbtDag, DbtTaskGroup, ProjectConfig, ProfileConfig, ExecutionConfig
 from cosmos.profiles import SnowflakeUserPasswordProfileMapping, SnowflakeEncryptedPrivateKeyFilePemProfileMapping
@@ -44,25 +45,47 @@ BASE_DIR = Path(AIRFLOW_HOME).resolve().parent
     params={"my_name": "dbt_snowflake_dag"},
 )
 def forums_analyses_dag():
-    fetch_reddit_data = BashOperator(
-        task_id="fetch_reddit_data",
-        bash_command=f"python {AIRFLOW_HOME}/operators/fetch_subreddit_posts_comments.py \
-            --bucket_name forums-analyses-bucket \
-            --object_name raw_reddit_data.parquet \
-            --limit 1"
+    # fetch_raw_reddit_posts_comments = BashOperator(
+    #     task_id="fetch_raw_reddit_posts_comments",
+    #     bash_command=f"python {AIRFLOW_HOME}/operators/fetch_reddit_data.py \
+    #         --bucket_name forums-analyses-bucket \
+    #         --object_name raw_reddit_posts_comments \
+    #         --kind comments \
+    #         --limit 100"
+    # )
+
+    # fetch_raw_reddit_posts = BashOperator(
+    #     task_id="fetch_raw_reddit_posts",
+    #     bash_command=f"python {AIRFLOW_HOME}/operators/fetch_reddit_data.py \
+    #         --bucket_name forums-analyses-bucket \
+    #         --object_name raw_reddit_posts \
+    #         --kind posts \
+    #         --limit 100"
+    # )
+
+    load_data_from_s3 = SnowflakeSqlApiOperator(
+        task_id="load_data_from_s3",
+        snowflake_conn_id="fa_snowflake_conn",
+        sql="/operators/load_data_from_s3.sql",
+        warehouse="COMPUTE_WH",
+        database="FORUMS_ANALYSES_DB",
+        schema="FORUMS_ANALYSES_BRONZE",
+        statement_count=12
     )
 
-    transform_data = DbtTaskGroup(
-        group_id="transform_data",
-        project_config=ProjectConfig(DBT_PROJECT_PATH),
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path=DBT_EXE_PATH),
-        operator_args={
-            "vars": '{"my_name": {{ params.my_name }} }',
-        },
-        default_args={"retries": 2},
-    )
+    # transform_data = DbtTaskGroup(
+    #     group_id="transform_data",
+    #     project_config=ProjectConfig(DBT_PROJECT_PATH),
+    #     profile_config=profile_config,
+    #     execution_config=ExecutionConfig(dbt_executable_path=DBT_EXE_PATH),
+    #     operator_args={
+    #         "vars": '{"my_name": {{ params.my_name }} }',
+    #     },
+    #     default_args={"retries": 2},
+    # )
 
-    fetch_reddit_data >> transform_data
+    # [fetch_raw_reddit_posts_comments, fetch_raw_reddit_posts] >> 
+    load_data_from_s3
+    # transform_data
 
 forums_analyses_dag()

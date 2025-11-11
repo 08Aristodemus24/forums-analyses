@@ -9,6 +9,14 @@ models:
     #     data_tests:
     #       # this tests if the the column in table doesn't contain any nulls 
     #       - not_null
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+            arguments: # available in v1.10.5 and higher. Older versions can set the <argument_name> as the top-level property.
+              combination_of_columns:
+                - post_id
+                - comment_id
+                - comment_parent_id
+
 
   - name: stg_reddit_posts
     description: "raw reddit posts from s3"

@@ -13,7 +13,7 @@ do-sleep:
 # that will setup our airflow connections in the container from our 
 # local machine  
 setup-conn:
-	docker exec forums-analyses-api-server-1 python /opt/airflow/include/scripts/setup_conn.py
+	docker exec forums-analyses_00fc64-api-server-1 python /usr/local/airflow/include/scripts/setup_conn.py
 
 up: start-containers do-sleep 
 # setup-conn
@@ -25,7 +25,7 @@ down:
 # the (kafka) broker, schema-registry, control-center, 
 # and the zookeeper
 sh-airflow:
-	docker exec -it forums-analyses-api-server-1 bash
+	docker exec -it forums-analyses_00fc64-api-server-1 bash
 
 restart:
 	astro dev restart
