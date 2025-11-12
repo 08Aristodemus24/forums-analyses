@@ -64,7 +64,7 @@ data "aws_iam_policy_document" "forums_analyses_bucket_access_policy" {
 }
 
 resource "aws_iam_policy" "forum_analyses_ext_int_policy" {
-  name        = "forums_analyses_ext_int_policy"
+  name        = "forums-analyses-ext-int-policy"
   description = "a policy that will be attached to an IAM role used for accessing snowflake"
   policy = jsonencode({
     Version = "2012-10-17",
@@ -95,17 +95,17 @@ data "aws_caller_identity" "current" {}
 
 # we create a role which we will
 resource "aws_iam_role" "forum_analyses_ext_int_role" {
-  name = "forums_analyses_ext_int_role"
+  name = "forums-analyses-ext-int-role"
 
   # this is actually the trusted entities section
   # of a role that we know we must initially fill values
   # with and later replace manually from the output of
   # the snowflake external volume and stage integrations
-  
   assume_role_policy = jsonencode({
     "Version" = "2012-10-17",
     "Statement" = [
       {
+        "Sid" = "",
         "Effect" = "Allow",
         "Principal" = {
           "AWS" = data.aws_caller_identity.current.id

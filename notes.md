@@ -1275,7 +1275,34 @@ final command would be `git add -f <path to file can be absolute or relative>`
 
 * when we have credentials to pass in our terraform files we always have to run `terraform apply --var-file=<name of file containing our credentials/secrets e.g. credentials.tfvars>` or `terraform apply --var-file=<name of file containing our credentials/secrets e.g. credentials.tfvars>`
 
-* now we may face `Error: creating IAM Policy (forum_analyses_ext_int_policy): operation error IAM: CreatePolicy, https response error StatusCode: 403, RequestID: b22be88c-ee2d-4763-86e5-fc686ec3d07b, api error AccessDenied: User: arn:aws:iam::612565766933:user/projects-terraform-infra-admin is not authorized to perform: iam:CreatePolicy on resource: policy forum_analyses_ext_int_policy because no identity-based policy allows the iam:CreatePolicy action` error this is because 
+* now we may face `Error: creating IAM Policy (forum_analyses_ext_int_policy): operation error IAM: CreatePolicy, https response error StatusCode: 403, RequestID: b22be88c-ee2d-4763-86e5-fc686ec3d07b, api error AccessDenied: User: arn:aws:iam::xxxx:user/projects-terraform-infra-admin is not authorized to perform: iam:CreatePolicy on resource: policy forum_analyses_ext_int_policy because no identity-based policy allows the iam:CreatePolicy action` error this is because 
+
+* ERRORs using terraform to manage snowflaek and aws infra:
+`SELECT SYSTEM$VERIFY_EXTERNAL_VOLUME('forums_analyses_ext_vol');` will not run successfully
+`SELECT SYSTEM$VERIFY_EXTERNAL_VOLUME('"forums_analyses_ext_vol"');` will run successfully
+
+```
+CREATE OR REPLACE ICEBERG TABLE raw_reddit_posts_comments
+    CATALOG = delta_catalog_integration
+    EXTERNAL_VOLUME = "forums_analyses_ext_vol"
+    BASE_LOCATION = 'raw_reddit_posts_comments'
+    AUTO_REFRESH = TRUE
+WARNING: `002003 (02000): SQL compilation error:
+External volume 'FORUMS_ANALYSES_EXT_VOL' does not exist or not authorized.` has occured.
+```
+
+even if `forums_analyses_ext_vol` already exists
+
+```
+LIST @sa_ext_stage_integration
+WARNING: `003167 (42601): Error assuming AWS_ROLE:
+User: arn:aws:iam::xxxx:user/xxxx-s is not authorized to perform: sts:AssumeRole on resource: arn:aws:iam::xxxx:role/forums-analyses-ext-int-role` has occured.
+```
+
+when I set write to true the allow_writes argument of external volume resource I was suddenly able to `LIST @sa_ext_stage_integration;` in snowflake and even in python using script 
+
+however the result of `SELECT SYSTEM$VERIFY_EXTERNAL_VOLUME('"forums_analyses_ext_vol"')` returned now:
+`"{""success"":false,""storageLocationSelectionResult"":""PASSED"",""storageLocationName"":""delta-ap-southeast-2"",""servicePrincipalProperties"":""STORAGE_AWS_IAM_USER_ARN: arn:aws:iam::xxxx:user/xxx-s; STORAGE_AWS_EXTERNAL_ID: YG61679_SFCRole=xxxx="",""location"":""s3://forums-analyses-bucket/"",""storageAccount"":null,""region"":""ap-southeast-2"",""writeResult"":""FAILED with exception message User: arn:aws:sts::<aws IAM role arn>:assumed-role/forums-analyses-ext-int-role/snowflake is not authorized to perform: s3:PutObject on resource: \""arn:aws:s3:::forums-analyses-bucket/verify_1762953386579_23029527\"" because no identity-based policy allows the s3:PutObject action (Status Code: 403; Error Code: AccessDenied)"",""readResult"":""SKIPPED"",""listResult"":""SKIPPED"",""deleteResult"":""SKIPPED"",""awsRoleArnValidationResult"":""PASSED"",""azureGetUserDelegationKeyResult"":""SKIPPED""}"`
 
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
