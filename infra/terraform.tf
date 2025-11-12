@@ -6,7 +6,7 @@ terraform {
     }
 
     snowflake = {
-      source = "snowflakedb/snowflake"
+      source  = "snowflakedb/snowflake"
       version = "2.10.1"
     }
   }

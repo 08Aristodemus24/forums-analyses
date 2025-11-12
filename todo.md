@@ -12,11 +12,20 @@
 # setting up ingestor of reddit data in s3 to snowflake
 - HTTPError: 422 Client Error: Unprocessable Entity for url still occurs in SnowflakeSqlApiOperator when attempting to run code that will ingest data from s3 into snowflake through catalog integration
 
-# setting up infrastructure for IAM Policy, S3 Bucket, Snowflake External Stage
-- if snowflake trial epires create account again, and setup
-- credentials again in profiles.yaml of dbt and in .env since you run it also in airflow
 - https://www.astronomer.io/docs/learn/connections/snowflake
 - https://www.astronomer.io/docs/learn/airflow-snowflake
+
+# setting up infrastructure for IAM Policy, S3 Bucket, Snowflake External Stage
+- if snowflake trial epires create account again, and setup credentials again in profiles.yaml of dbt and in .env since you run it also in airflow
+- this will mean setting up sequentially IAM role, IAM policy,  storage integrations again
+- https://medium.com/@nakaken0629/how-to-create-an-external-stage-for-amazon-s3-on-snowflake-by-terraform-34c67c78a22a
+
+reason why you may not be able to describe external volume created by terraform is because of privileges, since creating an external volume through the UI vs having terraform creating it perhaps may only grant certain permissions to it
+
+- https://snowstack.ai/blog/snowflake-terraform-complete-guide-zero-to-production
+- https://medium.com/snowflake/so-you-want-to-terraform-snowflake-a6d16ca3237e
+- https://stackoverflow.com/questions/66609641/setting-a-multi-line-value-in-terraform-variables
+
 
 # setting up reddit_posts staging model
 * <s>I will have to also include timestamp to when comment or post was made so that incremental model can include a potentially edited post if a post has been edited and just so happened to be scraped again </s>

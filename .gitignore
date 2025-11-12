@@ -9,6 +9,7 @@
 /infra/*.backup
 /infra/.terraform/
 /infra/variables.tf
+/infra/credentials.tfvars
 /.env
 
 # do not commit private keys

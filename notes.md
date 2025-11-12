@@ -1271,6 +1271,12 @@ we can see that in the first example using `IS DISTINCT FROM` it can handle null
 
 final command would be `git add -f <path to file can be absolute or relative>` 
 
+* to remove an already tracked git file in order to ignore ultimately, we will run `git rm --cached <path to file>` so that any changes that we make to this removed file will now be ignored during every git commit
+
+* when we have credentials to pass in our terraform files we always have to run `terraform apply --var-file=<name of file containing our credentials/secrets e.g. credentials.tfvars>` or `terraform apply --var-file=<name of file containing our credentials/secrets e.g. credentials.tfvars>`
+
+* now we may face `Error: creating IAM Policy (forum_analyses_ext_int_policy): operation error IAM: CreatePolicy, https response error StatusCode: 403, RequestID: b22be88c-ee2d-4763-86e5-fc686ec3d07b, api error AccessDenied: User: arn:aws:iam::612565766933:user/projects-terraform-infra-admin is not authorized to perform: iam:CreatePolicy on resource: policy forum_analyses_ext_int_policy because no identity-based policy allows the iam:CreatePolicy action` error this is because 
+
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
 * creating iam policy, s3 bucket, external stage automatically using terraform: https://medium.com/@nakaken0629/how-to-create-an-external-stage-for-amazon-s3-on-snowflake-by-terraform-34c67c78a22a

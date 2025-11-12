@@ -62,3 +62,95 @@ data "aws_iam_policy_document" "forums_analyses_bucket_access_policy" {
     ]
   }
 }
+
+resource "aws_iam_policy" "forum_analyses_ext_int_policy" {
+  name        = "forums_analyses_ext_int_policy"
+  description = "a policy that will be attached to an IAM role used for accessing snowflake"
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid    = "Statement1",
+        Effect = "Allow",
+        Action = [
+          "s3:GetObject",
+          "s3:ListBucket"
+        ],
+        "Resource" : [
+          "arn:aws:s3:::forums-analyses-bucket",
+          "arn:aws:s3:::forums-analyses-bucket/*"
+        ]
+      }
+    ]
+  })
+
+  # this ensures that the iam policy is ran strictly
+  # only after the bucket has been created
+  depends_on = [
+    aws_s3_bucket.forums_analyses_bucket
+  ]
+}
+
+data "aws_caller_identity" "current" {}
+
+# we create a role which we will
+resource "aws_iam_role" "forum_analyses_ext_int_role" {
+  name = "forums_analyses_ext_int_role"
+
+  # this is actually the trusted entities section
+  # of a role that we know we must initially fill values
+  # with and later replace manually from the output of
+  # the snowflake external volume and stage integrations
+  
+  assume_role_policy = jsonencode({
+    "Version" = "2012-10-17",
+    "Statement" = [
+      {
+        "Effect" = "Allow",
+        "Principal" = {
+          "AWS" = data.aws_caller_identity.current.id
+        },
+        "Action" = "sts:AssumeRole",
+        "Condition" = {
+          "StringEquals" = {
+            "sts:ExternalId" = [
+              "xxxxxxxx",
+            ]
+          }
+        }
+      }
+    ]
+  })
+
+  depends_on = [
+    aws_s3_bucket.forums_analyses_bucket
+  ]
+}
+
+
+# this is where we explicitly attach the policy we 
+# created for the role we just created
+resource "aws_iam_role_policy_attachment" "faei_role_policy_attachment" {
+  role       = aws_iam_role.forum_analyses_ext_int_role.name
+  policy_arn = aws_iam_policy.forum_analyses_ext_int_policy.arn
+
+  depends_on = [
+    aws_iam_role.forum_analyses_ext_int_role,
+    aws_iam_policy.forum_analyses_ext_int_policy
+  ]
+}
+
+# once our IAM role and policy is created we will
+# need to normally copy the arn of the IAM role 
+# to attach it to our snowflake storage integration 
+# but in this case we will output it to terraform so
+# that it can be accessed by other terraform files
+# case on our snowflake.tf file which will create our
+# external volumes and integrations
+output "forums_analyses_ext_int_role_arn" {
+  value = aws_iam_role.forum_analyses_ext_int_role.arn
+}
+
+output "forums_analyses_bucket_name" {
+  value = aws_s3_bucket.forums_analyses_bucket.bucket
+}
