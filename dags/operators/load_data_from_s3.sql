@@ -3,7 +3,6 @@ USE forums_analyses_db;
 USE forums_analyses_db.forums_analyses_bronze;
 
 -- SELECT SYSTEM$VERIFY_EXTERNAL_VOLUME('forums_analyses_ext_vol')
-
 CREATE FILE FORMAT IF NOT EXISTS pff
     TYPE = PARQUET;
 

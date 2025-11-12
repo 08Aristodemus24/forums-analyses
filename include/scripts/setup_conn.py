@@ -1,7 +1,6 @@
-from airflow.configuration import conf
-
 import subprocess
 import os
+import base64
 
 def add_airflow_connection(**kwargs):
     conn_id = kwargs.get("conn_id")
@@ -29,18 +28,38 @@ def add_connections(connections: dict):
         print(f"adding {conn_name} connection...")
         add_airflow_connection(**conn_kwargs)
 
+def read_private_key():
+    """
+    """
+    with open("/usr/local/airflow/rsa_key.p8", "rb") as key_file:
+        private_key_content = base64.b64encode(key_file.read()).decode("utf-8")
+    
+    return private_key_content
+
+
 if __name__ == "__main__":
+    # read key file
+    private_key_content = read_private_key()
+
+    # to add snowflake connection via airflow CLI apply the
+    # instructions written in documentation: 
+    # https://www.astronomer.io/docs/learn/connections/snowflake#key-pair-authentication
     connections = {
         "snowflake_conn": {
             "conn_id": "fa_snowflake_conn", 
             "conn_type": "snowflake", 
             "conn_login": os.environ.get("SNOWFLAKE_LOGIN_NAME"),
             "conn_password": os.environ.get("PRIVATE_KEY_PASSPHRASE"),
+            "conn_schema": "FORUMS_ANALYSES_BRONZE",
             "conn_extra": {
                 "account": os.environ.get("SNOWFLAKE_ACCOUNT_ID"),
                 "role": os.environ.get("SNOWFLAKE_ROLE"),
-                "private_key_file": "/usr/local/airflow/rsa_key.p8"
+                "warehouse": "COMPUTE_WH",
+                "database": "FORUMS_ANALYSES_DB",
+                "private_key_content": private_key_content
             }
         },
     }
+
+    # add the connections to airflow
     add_connections(connections)

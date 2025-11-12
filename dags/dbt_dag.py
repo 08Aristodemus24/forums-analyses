@@ -67,10 +67,7 @@ def forums_analyses_dag():
         task_id="load_data_from_s3",
         snowflake_conn_id="fa_snowflake_conn",
         sql="/operators/load_data_from_s3.sql",
-        warehouse="COMPUTE_WH",
-        database="FORUMS_ANALYSES_DB",
-        schema="FORUMS_ANALYSES_BRONZE",
-        statement_count=12
+        statement_count=8
     )
 
     # transform_data = DbtTaskGroup(
