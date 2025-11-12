@@ -1304,8 +1304,63 @@ when I set write to true the allow_writes argument of external volume resource I
 however the result of `SELECT SYSTEM$VERIFY_EXTERNAL_VOLUME('"forums_analyses_ext_vol"')` returned now:
 `"{""success"":false,""storageLocationSelectionResult"":""PASSED"",""storageLocationName"":""delta-ap-southeast-2"",""servicePrincipalProperties"":""STORAGE_AWS_IAM_USER_ARN: arn:aws:iam::xxxx:user/xxx-s; STORAGE_AWS_EXTERNAL_ID: YG61679_SFCRole=xxxx="",""location"":""s3://forums-analyses-bucket/"",""storageAccount"":null,""region"":""ap-southeast-2"",""writeResult"":""FAILED with exception message User: arn:aws:sts::<aws IAM role arn>:assumed-role/forums-analyses-ext-int-role/snowflake is not authorized to perform: s3:PutObject on resource: \""arn:aws:s3:::forums-analyses-bucket/verify_1762953386579_23029527\"" because no identity-based policy allows the s3:PutObject action (Status Code: 403; Error Code: AccessDenied)"",""readResult"":""SKIPPED"",""listResult"":""SKIPPED"",""deleteResult"":""SKIPPED"",""awsRoleArnValidationResult"":""PASSED"",""azureGetUserDelegationKeyResult"":""SKIPPED""}"`
 
+```
+USE forums_analyses_db;
+
+USE forums_analyses_db.forums_analyses_bronze;
+
+SELECT SYSTEM$VERIFY_EXTERNAL_VOLUME('"forums_analyses_ext_vol"');
+
+CREATE FILE FORMAT IF NOT EXISTS pff
+    TYPE = PARQUET;
+
+CREATE OR REPLACE STAGE sa_ext_stage_integration
+    STORAGE_INTEGRATION = "forums_analyses_si"
+    URL = 's3://forums-analyses-bucket' -- Replace with your S3 bucket and folder path
+    FILE_FORMAT = pff;
+
+LIST @sa_ext_stage_integration;
+
+--create the catalog integration for Delta tables 
+CREATE CATALOG INTEGRATION IF NOT EXISTS delta_catalog_integration
+    CATALOG_SOURCE = OBJECT_STORE
+    TABLE_FORMAT = DELTA
+    ENABLED = TRUE;
+
+CREATE OR REPLACE ICEBERG TABLE raw_reddit_posts_comments
+    CATALOG = delta_catalog_integration
+    EXTERNAL_VOLUME = '"forums_analyses_ext_vol"'
+    BASE_LOCATION = 'raw_reddit_posts_comments'
+    AUTO_REFRESH = TRUE;
+
+CREATE OR REPLACE ICEBERG TABLE raw_reddit_posts
+    CATALOG = delta_catalog_integration
+    EXTERNAL_VOLUME = '"forums_analyses_ext_vol"'
+    BASE_LOCATION = 'raw_reddit_posts'
+    AUTO_REFRESH = TRUE;
+
+SELECT * FROM RAW_REDDIT_POSTS;
+-- -- we can now just select from this table as 
+-- -- if it were an existing table in snowflake because
+-- -- mind you this table has not yet been created in our 
+-- -- database schema
+-- CREATE TABLE IF NOT EXISTS RawRedditData AS (
+--     SELECT
+--         $1:title::VARCHAR AS title,
+--         $1:score::INTEGER AS score,
+--         $1:id::VARCHAR AS id,
+--         $1:url::VARCHAR AS url,
+--         $1:comment::VARCHAR AS comment,
+--         -- Add more columns as needed
+--     FROM @sa_ext_stage_integration/raw_reddit_data.parquet
+-- );
+```
+
+when I added PutObject and DeleteObject permissions to the policy `SELECT SYSTEM$VERIFY_EXTERNAL_VOLUME('"forums_analyses_ext_vol"')` returned `{"success":true,"storageLocationSelectionResult":"PASSED","storageLocationName":"delta-ap-southeast-2","servicePrincipalProperties":"STORAGE_AWS_IAM_USER_ARN: arn:aws:iam::058070818872:user/q8c91000-s; STORAGE_AWS_EXTERNAL_ID: YG61679_SFCRole=6_Jc+nu+t4KILVxharNSl8HMqrmMM=","location":"s3://forums-analyses-bucket/","storageAccount":null,"region":"ap-southeast-2","writeResult":"PASSED","readResult":"PASSED","listResult":"PASSED","deleteResult":"PASSED","awsRoleArnValidationResult":"PASSED","azureGetUserDelegationKeyResult":"SKIPPED"}` and when I replaced the name of the external volume from 'forums_analyses_ext_vol' to "forums_analyses_ext_vol" (which still didn't work) then finally to '"forums_analyses_ext_vol"' it finally worked but it throwed a new error which was more useful: `A test file creation on the external volume forums_analyses_ext_vol active storage location delta-ap-southeast-2 failed with the message 'Error assuming AWS_ROLE: User: arn:aws:iam::058070818872:user/q8c91000-s is not authorized to perform: sts:AssumeRole on resource: arn:aws:iam::612565766933:role/forums-analyses-ext-int-role'. Please ensure the external volume has privileges to write files to the active storage location. If read-only access is intended, set ALLOW_WRITES=false on the external volume. `
+
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
+* configuring external stage in snowflake and aws: https://docs.snowflake.com/en/user-guide/data-load-s3-config-storage-integration
 * creating iam policy, s3 bucket, external stage automatically using terraform: https://medium.com/@nakaken0629/how-to-create-an-external-stage-for-amazon-s3-on-snowflake-by-terraform-34c67c78a22a
 * creating external volume, iam policy, iam role, catalog integration, iceberg table as opposed to creating storage integration, iam policy, iam role, external stage, and format in snowflake: 
 - https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-external-volume-s3 

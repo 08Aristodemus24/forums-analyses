@@ -37,7 +37,7 @@ resource "snowflake_external_volume" "forums_analyses_ext_vol" {
     storage_location_name = "delta-ap-southeast-2"
     storage_base_url      = "s3://${aws_s3_bucket.forums_analyses_bucket.bucket}/"
     storage_provider      = "S3"
-    storage_aws_role_arn  = "${aws_iam_role.forum_analyses_ext_int_role.arn}"
+    storage_aws_role_arn  = aws_iam_role.forum_analyses_ext_int_role.arn
   }
   allow_writes = true
 
@@ -55,7 +55,7 @@ resource "snowflake_storage_integration" "forums_analyses_si" {
   type                      = "EXTERNAL_STAGE"
   storage_provider          = "S3"
   enabled                   = true
-  storage_aws_role_arn      = "${aws_iam_role.forum_analyses_ext_int_role.arn}"
+  storage_aws_role_arn      = aws_iam_role.forum_analyses_ext_int_role.arn
   storage_allowed_locations = ["s3://${aws_s3_bucket.forums_analyses_bucket.bucket}"]
 
   # this strictly must be created only after creating 
