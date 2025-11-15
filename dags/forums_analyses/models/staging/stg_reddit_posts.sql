@@ -22,5 +22,5 @@ WHERE
     -- Process files that were created/uploaded to S3 *after* the last max timestamp
     -- stored in your Snowflake destination table.
     -- we use the comment/reply's created_at timestmap    
-    added_at > (SELECT MAX(added_at) FROM reddit_posts)
+    added_at > (SELECT MAX(added_at) FROM {{ this }})
 {% endif %}

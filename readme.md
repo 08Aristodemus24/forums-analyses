@@ -1,3 +1,7 @@
+# Pipeline Architecture:
+![forums-analyses-pipeline](./figures%20%26%20images/assets/second%20architecture.jpg)
+
+
 # Overview
 
 Welcome to Astronomer! This project was generated after you ran 'astro dev init' using the Astronomer CLI. This readme describes the contents of the project, as well as how to run Apache Airflow on your local machine.

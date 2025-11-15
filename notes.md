@@ -1358,6 +1358,65 @@ SELECT * FROM RAW_REDDIT_POSTS;
 
 when I added PutObject and DeleteObject permissions to the policy `SELECT SYSTEM$VERIFY_EXTERNAL_VOLUME('"forums_analyses_ext_vol"')` returned `{"success":true,"storageLocationSelectionResult":"PASSED","storageLocationName":"delta-ap-southeast-2","servicePrincipalProperties":"STORAGE_AWS_IAM_USER_ARN: arn:aws:iam::058070818872:user/q8c91000-s; STORAGE_AWS_EXTERNAL_ID: YG61679_SFCRole=6_Jc+nu+t4KILVxharNSl8HMqrmMM=","location":"s3://forums-analyses-bucket/","storageAccount":null,"region":"ap-southeast-2","writeResult":"PASSED","readResult":"PASSED","listResult":"PASSED","deleteResult":"PASSED","awsRoleArnValidationResult":"PASSED","azureGetUserDelegationKeyResult":"SKIPPED"}` and when I replaced the name of the external volume from 'forums_analyses_ext_vol' to "forums_analyses_ext_vol" (which still didn't work) then finally to '"forums_analyses_ext_vol"' it finally worked but it throwed a new error which was more useful: `A test file creation on the external volume forums_analyses_ext_vol active storage location delta-ap-southeast-2 failed with the message 'Error assuming AWS_ROLE: User: arn:aws:iam::058070818872:user/q8c91000-s is not authorized to perform: sts:AssumeRole on resource: arn:aws:iam::612565766933:role/forums-analyses-ext-int-role'. Please ensure the external volume has privileges to write files to the active storage location. If read-only access is intended, set ALLOW_WRITES=false on the external volume. `
 
+update: finally it worked when I used this:
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+              "s3:PutObject",
+              "s3:GetObject",
+              "s3:GetObjectVersion",
+              "s3:DeleteObject",
+              "s3:DeleteObjectVersion"
+            ],
+            "Resource": "arn:aws:s3:::<bucket>/*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:ListBucket",
+                "s3:GetBucketLocation"
+            ],
+            "Resource": "arn:aws:s3:::<bucket>",
+            "Condition": {
+                "StringLike": {
+                    "s3:prefix": [
+                        *"
+                    ]
+                }
+            }
+        }
+    ]
+}
+```
+
+as the policy document instead of just
+
+```
+{
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid    = "Statement1",
+        Effect = "Allow",
+        Action = [
+          "s3:GetObject",
+          "s3:ListBucket"
+        ],
+        "Resource" : [
+          "arn:aws:s3:::forums-analyses-bucket",
+          "arn:aws:s3:::forums-analyses-bucket/*"
+        ]
+      }
+    ]
+  }
+```
+
+
+
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
 * configuring external stage in snowflake and aws: https://docs.snowflake.com/en/user-guide/data-load-s3-config-storage-integration

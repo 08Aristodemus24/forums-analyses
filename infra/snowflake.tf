@@ -32,7 +32,7 @@ resource "snowflake_schema" "forums_analyses_bronze" {
 
 # external volume
 resource "snowflake_external_volume" "forums_analyses_ext_vol" {
-  name = "forums_analyses_ext_vol"
+  name = "FORUMS_ANALYSES_EXT_VOL"
   storage_location {
     storage_location_name = "delta-ap-southeast-2"
     storage_base_url      = "s3://${aws_s3_bucket.forums_analyses_bucket.bucket}/"
@@ -51,7 +51,7 @@ resource "snowflake_external_volume" "forums_analyses_ext_vol" {
 
 # storage integration
 resource "snowflake_storage_integration" "forums_analyses_si" {
-  name                      = "forums_analyses_si"
+  name                      = "FORUMS_ANALYSES_SI"
   type                      = "EXTERNAL_STAGE"
   storage_provider          = "S3"
   enabled                   = true

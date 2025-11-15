@@ -58,5 +58,5 @@ WHERE
     -- "OLTP system" because it has been included in this filter for the
     -- incremental model
     
-    added_at > (SELECT MAX(added_at) FROM reddit_posts_comments)
+    added_at > (SELECT MAX(added_at) FROM {{ this }})
 {% endif %}
