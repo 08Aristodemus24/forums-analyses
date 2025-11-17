@@ -83,6 +83,10 @@ resource "snowflake_grant_privileges_to_account_role" "fa_database_allowed_roles
   always_apply      = true
   all_privileges    = true
   with_grant_option = true
+
+  depends_on = [ 
+    snowflake_database.forums_analyses_db 
+  ]
 }
 
 # schema privileges
@@ -94,6 +98,10 @@ resource "snowflake_grant_privileges_to_account_role" "fa_schema_allowed_roles" 
   always_apply      = true
   all_privileges    = true
   with_grant_option = true
+
+  depends_on = [ 
+    snowflake_schema.forums_analyses_bronze 
+  ]
 }
 
 # external volume privileges
@@ -106,6 +114,10 @@ resource "snowflake_grant_privileges_to_account_role" "fa_ext_vol_allowed_roles"
   always_apply      = true
   all_privileges    = true
   with_grant_option = true
+
+  depends_on = [ 
+    snowflake_external_volume.forums_analyses_ext_vol
+  ]
 }
 
 # storage integration privileges
@@ -118,5 +130,9 @@ resource "snowflake_grant_privileges_to_account_role" "fa_si_allowed_roles" {
   always_apply      = true
   all_privileges    = true
   with_grant_option = true
+
+  depends_on = [ 
+    snowflake_storage_integration.forums_analyses_si
+  ]
 }
 

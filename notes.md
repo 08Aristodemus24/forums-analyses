@@ -1415,7 +1415,11 @@ as the policy document instead of just
   }
 ```
 
+* run `terraform state rm <resource>.<name of resource>` to remove any potential resource that caused an error during terraform apply that may have been committed to the `terraform.tfstate` and `terraform.tfstate.backup`
 
+sometimes `snowflake_grant_privileges_to_account_role.fa_database_allowed_roles` may raise a object does not exist or not authorized. Just make sure to create the snowflake resources and objects first before adding the line in your terraform file that grants privileges to your user to these objects
+
+then just run `terraform apply --var-file=credentials.tfvars -auto-approve`
 
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6

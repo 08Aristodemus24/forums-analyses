@@ -15,8 +15,7 @@ do-sleep:
 setup-conn:
 	docker exec forums-analyses_00fc64-api-server-1 python /usr/local/airflow/include/scripts/setup_conn.py
 
-up: start-containers do-sleep 
-# setup-conn
+up: start-containers do-sleep setup-conn
 
 down:
 	astro dev stop
