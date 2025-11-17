@@ -1,0 +1,6 @@
+packages:
+  # to use dbt_utils.combination_of_columns macro
+  # we add this package and install it using dbt deps
+  # akin to pip install -r requirements.txt
+  - package: dbt-labs/dbt_utils
+    version: 1.3.2

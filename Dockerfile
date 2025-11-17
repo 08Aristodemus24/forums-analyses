@@ -14,3 +14,10 @@ COPY ./rsa_key.pub ./
 # and pgrade pip to the latest version
 RUN pip install --trusted-host pypi.python.org --trusted-host pypi.org  --upgrade pip
 RUN pip install --no-cache-dir --trusted-host pypi.python.org --trusted-host pypi.org -r requirements.txt
+
+# change working directory from /usr/local/airflow/
+# to /usr/local/airflow/dags/forums_analyses/ 
+WORKDIR /usr/local/airflow/dags/forums_analyses/
+
+# install dependencies of dbt
+RUN dbt deps

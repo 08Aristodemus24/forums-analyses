@@ -1,0 +1,46 @@
+# snapshots:
+#   - name: <name of snapshot>
+#     relation: <source('my_source', 'my_table') or ref('my_model')
+#     description: "<markdown_string>"
+#     config:
+#       alias: string
+#       strategy: timestamp | check
+#       unique_key: column_name_or_expression
+#       # check_cols: # can be 'all' also
+#       #   - post_id
+#       #   - post_name
+#       #   - level
+#       #   - comment_id
+#       #   - comment_name
+#       #   - comment_upvotes
+#       #   - comment_downvotes
+#       #   - comment_created_at
+#       #   - comment_edited_at
+#       #   - comment_author_name
+#       #   - comment_author_fullname
+#       #   - comment_parent_id
+#       #   - comment_body
+#       #   - added_at
+#       #   - dbt_load_timestamp
+#       updated_at: column_name
+#       snapshot_meta_column_names: dictionary
+#       dbt_valid_to_current: string
+#       hard_deletes: ignore | invalidate | new_record
+
+snapshots:
+  - name: reddit_posts_comments_snapshot
+    relation: ref('stg_reddit_posts_comments')
+    description: "distinct reddit posts comments"
+    config:
+      # we use a timestamp which is recommended because unlik
+      # using check which may require multiple columns to track
+      # changes in timestmap we only use the column using a timestamp
+      # to see if the record has changed.
+      strategy: timestamp
+      unique_key: [post_id, comment_id, comment_parent_id]
+      updated_at: added_at
+      dbt_valid_to_current: "to_date('9999-12-31')"
+
+      # Behaves the same as the existing invalidate_hard_deletes=true, 
+      # where deleted records are invalidated by setting dbt_valid_to
+      hard_deletes: invalidate
