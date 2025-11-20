@@ -1695,6 +1695,41 @@ raw ---> stg -|
 
 - akala mo dati using views or ephemeral materialization in your tables will lead to you always overwriting the data everytime new or updated records exist, but this is true only in the case of tables and incremental materialization which yoou only use anyway once in the last layers of the DBT DAG mainly the marts layer where tables are directly used by BI users.Why views or ephemeral materializtoins are okay is that when new or updated records the model and the query inside it is just recalculated every time the dag runs with said new and updated records but without hte expensive tneed to overwrite an existing table since there isn't any existing table since this is just a view or ephemeral
 
+* The best practice for consistently preventing merge conflicts in the future centers on small, isolated changes and frequent synchronization with the main branch.
+
+Here are the key practices to adopt:
+
+1. Adopt a Structured Branching Strategy 🌿
+Using a predictable branching model ensures everyone knows the source of truth and where to merge their work.
+
+Feature Branching: Every new feature, fix, or task must be developed in its own dedicated branch (like your fa-dev branch). This isolates changes and prevents developers from interfering with each other's work on the main branch.
+
+Keep master/main Clean: The main branch should always be stable and ready for deployment. All merges into it should be done via Pull Requests (PRs) after passing automated tests.
+
+2. Reduce the Scope of Work (Small PRs) 📏
+This is the single most effective conflict prevention measure.
+
+Commit Frequently, Merge Early: Don't work on a single feature for weeks. Break down large tasks into the smallest possible, working increments. A Pull Request (PR) that changes only 10-20 files is far less likely to conflict than one that changes 100.
+
+Isolate Logic: When possible, have one developer own a specific component or dbt model (dim_customers) and another own a different, separate model (fct_orders). Conflicts only occur when different branches modify the same lines in the same file.
+
+3. Synchronize Frequently (Rebase vs. Merge) 🔄
+If a long-lived feature branch exists, it must regularly pull updates from the main branch to ensure it isn't drifting too far.
+
+Pull Before Starting: Always run git pull origin master before creating your new feature branch.
+
+Rebase Frequently: Use git rebase master from your feature branch instead of merging master into your feature branch.
+
+Merge: Creates a new merge commit, preserving history but often adding unnecessary complexity.
+
+Rebase (Recommended): Moves your entire branch to the tip of master. This results in a cleaner, linear history and forces you to resolve any conflicts locally and immediately, preventing a messy conflict when the feature is ready to merge back into master.
+
+4. Use Code Review and Automation 🤖
+Code Ownership: Establish guidelines on which teams or individuals own which directories or models. Conflicts in areas with clear ownership are easier to resolve.
+
+PR Templates: Require developers to document what files they changed in the PR template. This allows reviewers to preemptively identify potential areas of conflict with other ongoing branches.
+
+Locking (Avoid Where Possible): In extremely complex projects where two people must edit the same high-risk configuration file, some teams resort to file-locking mechanisms, but this generally slows down development and is usually unnecessary with good practices 1-3.
 
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
