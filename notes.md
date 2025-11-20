@@ -1421,6 +1421,281 @@ sometimes `snowflake_grant_privileges_to_account_role.fa_database_allowed_roles`
 
 then just run `terraform apply --var-file=credentials.tfvars -auto-approve`
 
+* This is a great question, and it points directly to the *division of labor* and *best practices* in a modern data team, especially one using ELT tools like dbt and Snowflake!
+
+Your confusion is understandable because the line between the roles of a *Data Engineer* (or Analytics Engineer) and a *Data Analyst* can sometimes feel blurry, but the layered approach (Staging $\rightarrow$ Intermediate $\rightarrow$ Marts) is designed to clear this up.
+
+The short answer is *yes, the Marts layer is specifically designed to contain the final, business-ready tables that directly answer business questions and are used for visualizations.*
+
+**Understanding the Marts Layer**
+
+The Marts (or *Data Marts*) layer in a dbt project is the *final destination* for your transformed data. It represents the "plating" stage, making the data simple, clean, and immediately digestible for the end consumer.
+
+| Layer | Purpose (The Goal) | Key Role (Who Does the Work) |
+| :--- | :--- | :--- |
+| *Intermediate* | Applying complex, reusable logic (joins, cleaning, re-graining) to prepare the data. It's not for end-users. | *Data/Analytics Engineer* |
+| *Marts* | Presenting the *final, business-ready tables* that are structured to directly answer specific business questions and feed dashboards. | *Data/Analytics Engineer* |
+| *Visualization/BI* | Creating charts, filtering, and performing ad-hoc analysis on the mart tables to *tell the story*. | *Data Analyst/Business User* |
+
+**The "Business-Ready" Difference**
+
+When we say a mart table is "business-ready," it means you have already performed the majority of the data preparation in the data warehouse (Snowflake, via dbt models).
+
+* *Aggregation and Grouping:* Marts often contain tables that are *pre-aggregated* to a common, useful grain. For example, a fct_daily_sales table might already have sales figures grouped by Date, Customer, and Product. This means the expensive GROUP BY and complex joins are done *once* in the dbt pipeline, not repeatedly by the visualization tool.
+* *Simple Joins (Star Schema):* Marts are frequently modeled using Dimensional Modeling (like *Star Schemas*), where a central *Fact* table (e.g., Sales Orders) is surrounded by *Dimension* tables (e.g., Customer, Product). The relationships are straightforward, so Power BI only needs to perform simple joins to link them. 
+* *Clear Business Context:* Column names are intuitive (customer_lifetime_value, order_status_description), making the data easy for a business user to understand without needing to know the complex source system logic.
+
+**Where Your Confusion Comes From (and the Role Separation)**
+
+Your current practice of doing aggregations and joins in Power BI is common, especially in smaller or less mature data setups. However, this is where the modern *Analytics Engineer* (your new role) steps in to create a better workflow.
+
+**The Old/Analyst-Driven Way (The Problem)**
+
+* You load large, less-transformed tables into Power BI.
+* You perform complex JOINs, GROUP BYs, and custom calculations *within Power BI* (using DAX or Power Query).
+* *Consequence:* Power BI becomes slow, you're duplicating complex logic across multiple dashboards, and analysts have to spend more time cleaning and prepping data than analyzing it. This also pushes the compute load from Snowflake (the powerful warehouse) to Power BI (the reporting tool).
+
+**The ELT/dbt Way (The Solution)**
+
+1. *Extract & Load (EL):* Raw data lands in Snowflake.
+2. *Transform (T - Engineer's Job):* You (the Data/Analytics Engineer using *dbt*) write SQL models to:
+* Clean the data (Staging $\rightarrow$ Intermediate).
+* Perform the complex joins, aggregations, and business logic (Intermediate $\rightarrow$ Marts).
+* The *Mart* model is the *last step* of this process.
+3. *Visualize (Analyst's Job):* The Data Analyst loads the final, clean, pre-calculated *Mart* table into Power BI.
+* The Analyst now uses Power BI for its *core purpose*: creating visuals, filtering, and doing *ad-hoc analysis* — not for heavy data transformation.
+* The expensive *Group By* and *Join* operations are already done in Snowflake, making the dashboards faster and more reliable.
+
+*Conclusion: You should be doing those aggregations, group bys, and joins in your dbt Mart models so that the data is clean and ready for immediate visualization by the analysts in Power BI.*
+
+
+
+* Here is a common, simplified path for how a Staging model becomes a dim_customers (Dimension Customer) table in your Marts layer using dbt and SQL.
+
+**Staging $\rightarrow$ Marts: The dim_customers Example**
+
+This transformation process cleans, enhances, and standardizes your raw customer data, making it useful for analysis.
+
+**1. Staging Layer (stg_customers)**
+
+The Staging layer is about *cleaning* and *standardizing* the raw data from your source systems (like your CRM, website, etc.).
+
+*Goal:* Select the necessary columns, rename confusing source names to standard names, and apply simple data type casts.
+```
+| Source Column (CRM) | Staging Column | Transformation Applied |
+| :--- | :--- | :--- |
+| id | customer_key | Rename for clarity, often prefixed with _key. |
+| first_name + last_name | full_name | Concatenate for analysis-ready field. |
+| creation_ts | customer_since_date | Cast to a simple DATE type. |
+| status | is_active | Use a CASE statement to standardize (e.g., CASE WHEN status = 'active' THEN TRUE ELSE FALSE END). |
+```
+
+models/staging/stg_crm__customers.sql
+```
+
+SELECT
+    id AS customer_key,
+    first_name || ' ' || last_name AS full_name,
+    CAST(creation_ts AS DATE) AS customer_since_date,
+    CASE
+        WHEN status = 'active' THEN TRUE
+        ELSE FALSE
+    END AS is_active,
+    ...
+FROM
+    {{ source('crm', 'customers') }}
+```
+
+**2. Intermediate Layer (Optional but Recommended)**
+
+For dim_customers, the Intermediate layer is often used to *resolve duplicates* or *enrich* the data by joining it with other sources before creating the final dimension.
+
+*Goal:* Create a single, canonical view of a customer by joining information from multiple sources (e.g., CRM + Web Tracking Data) and calculating key initial metrics.
+
+models/intermediate/int_customers_with_metrics.sql
+```
+WITH crm_data AS (
+    SELECT * FROM {{ ref('stg_crm__customers') }}
+),
+
+order_stats AS (
+    -- Calculate LTV components using aggregations in the Intermediate layer
+    SELECT
+        customer_key,
+        COUNT(order_id) AS total_orders,
+        SUM(order_total) AS total_spent
+    FROM
+        {{ ref('stg_ecommerce__orders') }}
+    GROUP BY 1
+)
+
+SELECT
+    c.*,
+    o.total_orders,
+    o.total_spent
+FROM
+    crm_data c
+LEFT JOIN
+    order_stats o ON c.customer_key = o.customer_key
+```
+
+**3. Marts Layer (dim_customers)**
+
+This is the final, ready-to-use Dimension table in your mart. It's often built directly from the intermediate layer.
+
+*Goal:* Select the final set of columns in a clear, consistent order, and ensure the table adheres to the dimensional model (Star Schema). The columns here are the attributes analysts will use to slice and dice their data (e.g., Customer Region, Customer Tier).
+
+models/marts/core/dim_customers.sql
+```
+SELECT
+    -- Primary Key and Customer Info
+    customer_key,
+    full_name,
+    customer_since_date,
+
+    -- Attributes (Slice and Dice)
+    is_active,
+    customer_region,
+    customer_tier,
+
+    -- Pre-calculated Metrics (Enhancements)
+    total_orders,
+    total_spent
+    -- total_spent is now a static attribute of the customer at the time the model ran.
+FROM
+    {{ ref('int_customers_with_metrics') }}
+```
+
+
+**Key Takeaways for Your Role**
+
+1. *Modeling Choice:* You are using *Dimensional Modeling* here (creating Fact and Dimension tables). This is the standard for building user-friendly marts in the modern data warehouse.
+2. *Location of Logic:* Notice that all the complex logic (CONCAT, CASE, GROUP BY, SUM) happens in the *Staging* and *Intermediate* models, running on the powerful *Snowflake* warehouse.
+3. *Visualization Tool's Job:* The Analyst connects Power BI to the final dim_customers table. Power BI no longer needs to run complex logic; it just uses total_spent as a pre-calculated measure and uses customer_region as a simple filter. This makes the entire analytics process faster, cheaper, and more reliable.
+
+Would you like to see the companion example of how a *Fact*table (e.g., fct_orders) is created in the Marts layer?
+
+
+
+* You've successfully built the Dimension (dim_customers) table, which answers the "who" and "what." Now, we'll build the Fact table (fct_orders), which answers the "when" and "how much," completing the core of your Star Schema.
+
+The key difference in building a Fact table is that instead of focusing on descriptive attributes, we focus on keys and metrics.
+
+Building a Fact Table: fct_orders Example
+We will base the fct_orders model on your existing stg_ecommerce__orders (the cleaned list of orders) and integrate the keys from your newly built dimension table.
+
+**1. Staging Layer (stg_orders)**
+This layer is already defined in your example as the source for the intermediate step.
+
+Goal: Clean and standardize the transaction source data.
+
+SQL
+
+models/staging/stg_ecommerce__orders.sql
+```
+SELECT
+    order_id,
+    customer_id AS customer_key, -- Standardized key name
+    order_date,
+    order_total,
+    ...
+FROM
+    {{ source('ecommerce', 'orders') }}
+```
+
+**2. Intermediate Layer (Optional but Recommended)**
+For a Fact table, the intermediate step is critical for key resolution. This is where you replace natural keys (like customer_key) with robust Surrogate Keys (if your dimensions use them) and prepare all required metrics.
+
+Goal: Replace business/natural keys with dimension Surrogate Keys and calculate transaction-level metrics.
+
+-- models/intermediate/int_orders_with_keys.sql
+```
+SELECT
+    -- 1. Transactional Keys
+    o.order_id,
+    o.order_date,
+    
+    -- 2. Foreign Keys (Joining to bring in the Dimension Key)
+    o.customer_key, 
+    -- If dim_customers had a surrogate key (SK), you would join and select it here:
+    -- dc.customer_sk, 
+
+    -- 3. Metrics (The 'Facts')
+    o.order_total,
+    o.order_line_count,
+    
+    -- 4. Audit Fields
+    o.updated_at
+    
+FROM
+    {{ ref('stg_ecommerce__orders') }} AS o
+LEFT JOIN 
+    {{ ref('dim_customers') }} AS dc ON o.customer_key = dc.customer_key
+
+-- Optional: Filter out orders with no corresponding customer if required
+-- WHERE dc.customer_key IS NOT NULL
+```
+
+**3. Marts Layer (fct_orders) 💰**
+This is the final table that strictly adheres to the Star Schema design: only keys and measures.
+
+Goal: Select the final set of keys and metrics in a clear, consistent order.
+
+models/marts/core/fct_orders.sql
+```
+SELECT
+    -- 1. Primary Key of the Fact Table (often just the source ID)
+    order_id,
+
+    -- 2. Foreign Keys to Dimension Tables
+    customer_key,
+    -- date_key, (If you had a dim_date, you would join to get the date_key here)
+    -- product_key, (If this were an Order_Items fact, you'd include product_key)
+
+    -- 3. Measures (The metrics analysts will aggregate)
+    order_total,
+    order_line_count
+    
+FROM
+    {{ ref('int_orders_with_keys') }}
+```
+
+Key Takeaways for Fact Table Modeling
+Focus on Foreign Keys: The most important columns are the keys (customer_key, date_key, etc.) that link to your dimension tables.
+
+Focus on Measures: Fact tables contain numerical, additive measures (e.g., revenue, quantity, count).
+
+Granularity: Fact tables should be at the lowest possible grain (e.g., one row per order, or one row per item within an order, if it's a detail table).
+
+Implementation Choice: Since transactional data like orders is append-only, the fct_orders model would typically be materialized as an incremental model in dbt, using a WHERE order_date > MAX(order_date) IN target logic to ensure fast, daily loading.
+
+* Key takeaways
+- heavy transformations occurs in intermediate layer
+- instead of user doing joins, complex transformations, aggregations, sorts, in "Power BI" or "Tableau" all of the compute heavy workload is carried out by the DWH (snowflake) itself
+- dbt's whole point is to take transformation outside the warehouse involving cleaning, aggregation, reformatting, and modelling, perhaps using spark or other distributed computing frameworks, inside the warehouse itself
+- so fact tables and dimension tables are always in the marts layer in dbt
+- ephemeral is basically a CTE in SQL, why we use this is that we don't want to materialize a model into a table everytime in a data warehouse as this would be storage inefficient at best, consuming easily our storage space. Moreover`
+
+raw layer may be table
+stg layer may be ephemeral/view
+int layer may be ephemeral/view
+marts layer may be incremental
+
+```
+raw ---> stg -|
+              |-> int -
+raw ---> stg -|       |
+                      |-> fact
+raw ---> stg -|       |
+              |-> int - 
+raw ---> stg -|
+              |-> int ---> dim
+raw ---> stg -|
+```
+
+- akala mo dati using views or ephemeral materialization in your tables will lead to you always overwriting the data everytime new or updated records exist, but this is true only in the case of tables and incremental materialization which yoou only use anyway once in the last layers of the DBT DAG mainly the marts layer where tables are directly used by BI users.Why views or ephemeral materializtoins are okay is that when new or updated records the model and the query inside it is just recalculated every time the dag runs with said new and updated records but without hte expensive tneed to overwrite an existing table since there isn't any existing table since this is just a view or ephemeral
+
+
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
 * configuring external stage in snowflake and aws: https://docs.snowflake.com/en/user-guide/data-load-s3-config-storage-integration
