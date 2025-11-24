@@ -7,10 +7,7 @@
 
 WITH reddit_posts_comments AS (
     SELECT
-        *,
-        
-        -- Get the last load time from the warehouse for incremental logic
-        CURRENT_TIMESTAMP() AS dbt_load_timestamp
+        *
         -- Add more columns as needed
     FROM {{ source('forums_data', 'raw_reddit_posts_comments') }}
 )
