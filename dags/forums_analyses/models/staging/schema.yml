@@ -18,6 +18,7 @@ models:
               - comment_parent_id
 
 
+
   - name: stg_reddit_posts
     description: "raw reddit posts from s3"
     columns:
