@@ -19,5 +19,8 @@ RUN pip install --no-cache-dir --trusted-host pypi.python.org --trusted-host pyp
 # to /usr/local/airflow/dags/forums_analyses/ 
 WORKDIR /usr/local/airflow/dags/forums_analyses/
 
+# set longer timeout 
+ENV AIRFLOW__CORE__DAGBAG_IMPORT_TIMEOUT=60
+
 # install dependencies of dbt
 RUN dbt deps
