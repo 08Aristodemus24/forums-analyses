@@ -20,5 +20,4 @@ praw==7.8.1
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.0
 requests==2.32.3
-Werkzeug==2.3.7
-astro-run-dag # This package is needed for the astro run command. It will be removed before a deploy
+Werkzeug==2.3.7
