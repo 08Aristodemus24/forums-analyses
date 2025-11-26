@@ -1,13 +1,27 @@
 {{ 
     config(
         materialized='incremental',
-        unique_key=['post_id', 'comment_id', 'comment_parent_id']
+        unique_key=['post_id', 'comment_id', 'comment_parent_id'],
+        on_schema_change='sync_all_columns'
     )
 }}
 
 WITH reddit_posts_comments AS (
     SELECT
-        *
+        post_id,
+        post_name AS post_id_full,
+        level,
+        comment_id,
+        comment_name AS comment_id_full,
+        comment_upvotes,
+        comment_downvotes,
+        comment_created_at,
+        comment_edited_at,
+        comment_author_name AS comment_author_username,
+        comment_author_fullname AS comment_author_id_full,
+        comment_parent_id AS comment_parent_id_full,
+        comment_body,
+        added_at
         -- Add more columns as needed
     FROM {{ source('forums_data', 'raw_reddit_posts_comments') }}
 )

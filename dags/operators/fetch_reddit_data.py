@@ -78,7 +78,8 @@ def upsert_posts_comments(delta_table: DeltaTable, df: pa.Table):
                 target.comment_id = source.comment_id AND \
                 target.comment_parent_id = source.comment_parent_id",
             source_alias="source",
-            target_alias="target"
+            target_alias="target",
+            merge_schema=True
         ).when_matched_update(
             updates={
                 # these are not included as these are the composite keys
@@ -96,7 +97,7 @@ def upsert_posts_comments(delta_table: DeltaTable, df: pa.Table):
                 "comment_author_name": "source.comment_author_name",
                 "comment_author_fullname": "source.comment_author_fullname",
                 "comment_body": "source.comment_body",
-                "added_at": "added_at",
+                "added_at": "source.added_at",
             }, 
             # this tells delta to only update a record if the new record
             # does indeed have changed its column values when compared to the
@@ -131,7 +132,8 @@ def upsert_posts(delta_table: DeltaTable, df: pa.Table):
             df,
             predicate="target.post_id = source.post_id",
             source_alias="source",
-            target_alias="target"
+            target_alias="target",
+            merge_schema=True
         ).when_matched_update(
             updates={
                 # these are not included as these are the composite keys
@@ -142,6 +144,7 @@ def upsert_posts(delta_table: DeltaTable, df: pa.Table):
                 "post_url": "source.post_url",
                 "post_name": "source.post_name",
                 "post_author_name": "source.post_author_name",
+                "post_author_fullname": "source.post_author_fullname",
                 "post_body": "source.post_body",
                 "post_created_at": "source.post_created_at",
                 "post_edited_at": "source.post_edited_at",
@@ -155,6 +158,7 @@ def upsert_posts(delta_table: DeltaTable, df: pa.Table):
                 "source.post_url IS DISTINCT FROM target.post_url OR" \
                 "source.post_name IS DISTINCT FROM target.post_name OR" \
                 "source.post_author_name IS DISTINCT FROM target.post_author_name OR" \
+                "source.post_author_fullname IS DISTINCT FROM target.post_author_fullname" \
                 "source.post_body IS DISTINCT FROM target.post_body OR" \
                 # "source.post_created_at IS DISTINCT FROM target.post_created_at OR" \
                 "source.post_edited_at > target.post_edited_at OR" \
@@ -345,9 +349,10 @@ def extract_posts(subreddit: Subreddit, limit: int, bucket_name, folder_name, ob
             "post_title": submission_dict.get("title"),
             "post_score": submission_dict.get("score"),
             "post_id": submission_dict.get("id"),
-            "post_url": submission_dict.get("url"),
             "post_name": submission_dict.get("name") if submission_dict.get("name") else "[deleted]",
+            "post_url": submission_dict.get("url"),
             "post_author_name": submission_dict.get("author").name if submission_dict.get("author") else "[deleted]",
+            "post_author_fullname": submission_dict.get("author_fullname"),
             "post_body": submission_dict.get("selftext"),
             "post_created_at": dt.datetime.fromtimestamp(submission_dict.get("created")),
             "post_edited_at": dt.datetime.fromtimestamp(submission_dict.get("edited")),
@@ -410,6 +415,7 @@ if __name__ == "__main__":
 
     # look for subreddit to search posts comments in
     subreddit = reddit.subreddit(args.subreddit_name)
+
 
     if "posts" in args.kind:
         extract_posts(

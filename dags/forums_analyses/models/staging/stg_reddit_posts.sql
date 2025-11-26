@@ -2,13 +2,23 @@
     config(
         materialized='incremental',
         unique_key=['post_id'],
+        on_schema_change='sync_all_columns'
     )
 }}
 
 WITH reddit_posts AS (
     SELECT
-        *
-        -- Add more columns as needed
+        post_title,
+        post_score,
+        post_id,
+        post_name AS post_id_full,
+        post_url,
+        post_author_name AS post_author_username,
+        post_author_fullname AS post_author_id_full,
+        post_body,
+        post_created_at,
+        post_edited_at,
+        added_at
     FROM {{ source('forums_data', 'raw_reddit_posts') }}
 )
 
