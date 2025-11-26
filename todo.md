@@ -30,6 +30,9 @@ reason why you may not be able to describe external volume created by terraform 
 # setting up reddit_posts staging model
 * <s>I will have to also include timestamp to when comment or post was made so that incremental model can include a potentially edited post if a post has been edited and just so happened to be scraped again </s>
 
+# setting up medium api data extractor
+* https://mediumapi.com/ 
+
 # IBM Interview Prep
 * need to know how to build macros
 
