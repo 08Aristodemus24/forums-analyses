@@ -15,7 +15,7 @@ models:
             combination_of_columns:
               - post_id
               - comment_id
-              - comment_parent_id
+              - comment_parent_id_full
 
 
 

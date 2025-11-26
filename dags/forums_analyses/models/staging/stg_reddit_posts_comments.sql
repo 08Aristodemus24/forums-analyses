@@ -1,7 +1,7 @@
 {{ 
     config(
         materialized='incremental',
-        unique_key=['post_id', 'comment_id', 'comment_parent_id'],
+        unique_key=['post_id', 'comment_id', 'comment_parent_id_full'],
         on_schema_change='sync_all_columns'
     )
 }}
