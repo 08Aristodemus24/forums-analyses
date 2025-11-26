@@ -1,6 +1,8 @@
 # Pipeline Architecture:
 ![forums-analyses-pipeline](./figures%20%26%20images/assets/second%20architecture.jpg)
 
+# Cloud Infrastructure:
+![forums-analyses-infrastructure](./figures%20%26%20images/assets/cloud%20infrastructure.jpg)
 
 # Overview
 
