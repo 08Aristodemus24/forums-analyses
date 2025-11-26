@@ -1,6 +1,7 @@
 {{ 
     config(
-        materialized='view'
+        materialized='view',
+        on_schema_change='sync_all_columns'
     )
 }}
 
