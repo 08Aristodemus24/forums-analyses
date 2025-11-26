@@ -1731,6 +1731,10 @@ PR Templates: Require developers to document what files they changed in the PR t
 
 Locking (Avoid Where Possible): In extremely complex projects where two people must edit the same high-risk configuration file, some teams resort to file-locking mechanisms, but this generally slows down development and is usually unnecessary with good practices 1-3.
 
+* schema evolution or adding new columns in existing delta lake table will be inevitable
+
+
+
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
 * configuring external stage in snowflake and aws: https://docs.snowflake.com/en/user-guide/data-load-s3-config-storage-integration
@@ -1739,3 +1743,5 @@ Locking (Avoid Where Possible): In extremely complex projects where two people m
 - https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-external-volume-s3 
 - 
 - https://docs.snowflake.com/en/sql-reference/sql/create-iceberg-table-delta
+
+* dealing with `pyarrow delta lake Exception: External error: Schema error: Duplicate field name` (according to the article this is a known bug): https://github.com/delta-io/delta-rs/issues/3943
