@@ -1731,9 +1731,11 @@ PR Templates: Require developers to document what files they changed in the PR t
 
 Locking (Avoid Where Possible): In extremely complex projects where two people must edit the same high-risk configuration file, some teams resort to file-locking mechanisms, but this generally slows down development and is usually unnecessary with good practices 1-3.
 
-* schema evolution or adding new columns in existing delta lake table will be inevitable
+* schema evolution or adding new columns in existing delta lake table will be inevitable, that's why you jave to set mergeSchema in spark to true, or set merge_schema to true in delta-rs when using pyarrow tables
 
+* dbt build both builds the tables in the DWH and runs and builds the necessary tests, seeds, and snapshots in our project while dbt run is only confined to building tables in the DWH and dbt test is confined to only running the tests of our models without building or materializing our models in the DWH. 
 
+* on the other hand we can actually select which specific models to run/build/test by using the --select flag and specifying our model and even specify also if models upstream or downstream to it should also be run, built, or tested using `dbt <mode e.g. run, build, or test> --select +<model name>` (to run the model and all models that depend on it upstream) and `dbt <mode e.g. run, build, or test> --select +<model name>+` (to run the model and all models that precede it downstream) 
 
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
