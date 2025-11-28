@@ -4,7 +4,7 @@ models:
   - name: stg_reddit_posts_comments
     description: "raw reddit posts comments from s3"
     columns:
-      - name: post_id
+      - name: post_id_full
         description: "The primary key for this table"
         data_tests:
           # this tests if the the column in table doesn't contain any nulls 
@@ -14,8 +14,8 @@ models:
       - dbt_utils.unique_combination_of_columns:
           arguments: # available in v1.10.5 and higher. Older versions can set the <argument_name> as the top-level property.
             combination_of_columns:
-              - post_id
-              - comment_id
+              - post_id_full
+              - comment_id_full
               - comment_parent_id_full
 
 
@@ -23,7 +23,7 @@ models:
   - name: stg_reddit_posts
     description: "raw reddit posts from s3"
     columns:
-      - name: post_id
+      - name: post_id_full
         description: "The primary key for this table"
         data_tests:
           # this tests if the the column in table doesn't contain any nulls 

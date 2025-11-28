@@ -28,16 +28,16 @@
 #       hard_deletes: ignore | invalidate | new_record
 
 snapshots:
-  - name: reddit_posts_comments_snapshot
-    relation: ref('stg_reddit_posts_comments')
-    description: "distinct reddit posts comments"
+  - name: dim_reddit_posts_snapshot
+    relation: ref('dim_reddit_posts')
+    description: "distinct reddit posts"
     config:
       # we use a timestamp which is recommended because unlik
       # using check which may require multiple columns to track
       # changes in timestmap we only use the column using a timestamp
       # to see if the record has changed.
       strategy: timestamp
-      unique_key: [post_id, comment_id, comment_parent_id_full]
+      unique_key: [post_id]
       updated_at: added_at
       dbt_valid_to_current: "to_date('9999-12-31')"
 
