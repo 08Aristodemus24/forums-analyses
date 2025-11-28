@@ -1,7 +1,8 @@
+-- extracts all the unique users in both posts and in 
+-- those that made comments/replies
 {{
     config(
         materialized='view',
-        on_schema_change='sync_all_columns'
     )
 }}
 

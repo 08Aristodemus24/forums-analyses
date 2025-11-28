@@ -1737,6 +1737,29 @@ Locking (Avoid Where Possible): In extremely complex projects where two people m
 
 * on the other hand we can actually select which specific models to run/build/test by using the --select flag and specifying our model and even specify also if models upstream or downstream to it should also be run, built, or tested using `dbt <mode e.g. run, build, or test> --select +<model name>` (to run the model and all models that depend on it upstream) and `dbt <mode e.g. run, build, or test> --select +<model name>+` (to run the model and all models that precede it downstream) 
 
+* snowpark library you can understand as actually just using a spark dataframe and spark user capabilities but utilizing the distributed compute of snowflake
+```
+# Import python packages
+import streamlit as st
+import pandas as pd
+
+# Snowpark
+from snowflake.snowpark.context import get_active_session
+import snowflake.snowpark.functions as F
+
+# Cortex Functions
+import snowflake.cortex  as cortex
+
+session = get_active_session()
+
+# Understand the sentiment of customer review using Cortex Sentiment
+reviews_df = session.table('truck_reviews')
+
+reviews_df = reviews_df.withColumn('SENTIMENT', cortex.sentiment(F.col('REVIEW')))
+
+reviews_df.select(["REVIEW","SENTIMENT"]).show(15, max_width = 100)
+```
+
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
 * configuring external stage in snowflake and aws: https://docs.snowflake.com/en/user-guide/data-load-s3-config-storage-integration

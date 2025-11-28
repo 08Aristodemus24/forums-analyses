@@ -6,11 +6,9 @@
     -- definitions clean and allows you to test and run transformations 
     -- separately.
     config(
-        materialized='ephemeral',
-        on_schema_change='sync_all_columns'
+        materialized='ephemeral'
     )
 }}
 
-SELECT
-    *
-FROM {{ ref('stg_reddit_posts_comments') }}
+SELECT *
+FROM {{ ref('dim_reddit_dates') }}

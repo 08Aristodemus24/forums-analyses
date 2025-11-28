@@ -1,27 +1,8 @@
 version: 2
 
 models:
-  - name: int_reddit_comment_to_reply_ratio
-    description: "comment count to reply count ratio"
-    columns:
-      - name: cnt
-        description: "count of replies and comments"
-        data_tests:
-          # this tests if the the column in table doesn't contain any nulls 
-          - not_null
-
-  - name: int_reddit_users
-    description: "list of all distinct reddit users"
-    columns:
-      - name: user_id
-        description: "The primary key for this user dim table"
-        data_tests:
-          # this tests if the the column in table doesn't contain any nulls 
-          - not_null
-          - unique
-
-  - name: int_reddit_dates
-    description: "list of all distinct dates of reddit comments and posts"
+  - name: dim_reddit_dates
+    description: "dimension table for distinct reddit dates"
     columns:
       - name: date_id
         description: "the primary key for this date dim table"
@@ -37,7 +18,17 @@ models:
               arguments:
                 values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
-  - name: int_reddit_posts
+  - name: dim_reddit_users
+    description: "dimension table for distinct reddit users"
+    columns:
+      - name: user_id
+        description: "The primary key for this user dim table"
+        data_tests:
+          # this tests if the the column in table doesn't contain any nulls 
+          - not_null
+          - unique
+
+  - name: dim_reddit_posts
     description: "list of all distinct posts of reddit"
     columns:
       - name: post_id
@@ -47,7 +38,7 @@ models:
           - not_null
           - unique
 
-  - name: int_reddit_comments
+  - name: fct_reddit_comments
     description: "list of all distinct comments of reddit"
     data_tests:
       - dbt_utils.unique_combination_of_columns:
