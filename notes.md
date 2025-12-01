@@ -1767,6 +1767,127 @@ For example, we can stage the raw customers and orders data to shape it into wha
 
 * with the youtube api if you want to interact with youtube's client interface with your account you will need to create instead an OAuth2 client id kind of like with reddit, but if you're interacting with youtube with no account then just the API key is enough
 
+* a single `item` of the `response` object returned from `youtube.commentThreads().list(**params).execute()` contains the ff:
+```
+{'etag': 'aHTTcyKom34kuM7FUJwIwmvhH4s',
+  'id': 'UgxobbYFW5QNK-WFcNF4AaABAg',
+  'kind': 'youtube#commentThread',
+  'replies': {
+    'comments': [
+      {
+        'etag': 'AIOuAJxmbBzRJ9s2le8VsLT6_gY',
+        'id': 'UgxobbYFW5QNK-WFcNF4AaABAg.9s4V-mdzLq79s5enfTdY8b',
+        'kind': 'youtube#comment',
+        'snippet': {
+          'authorChannelId': {
+            'value': 'UCaizTs-t-jXjj8H0-S3ATYA'
+          },
+          'authorChannelUrl': 'http://www.youtube.com/@analyticswithadam',
+          'authorDisplayName': '@analyticswithadam',
+          'authorProfileImageUrl': 'https://yt3.ggpht.com/2PBxLW_kGCY1hfybNHu216RHGBDBNZW4m7aS9kU2Lj_6waMwDMmDrGGEg6zJsYuAq63nDtNd=s48-c-k-c0x00ffffff-no-rj',
+          'canRate': True,
+          'channelId': 'UCaizTs-t-jXjj8H0-S3ATYA',
+          'likeCount': 0,
+          'parentId': 'UgxobbYFW5QNK-WFcNF4AaABAg',
+          'publishedAt': '2023-07-13T06:26:01Z',
+          'textDisplay': 'Glad it was useful',
+          'textOriginal': 'Glad it was useful',
+          'updatedAt': '2023-07-13T06:26:01Z',
+          'videoId': 'SIm2W9TtzR0',
+          'viewerRating': 'none'
+        }
+      },
+      {
+        'etag': 'nsigOsdXr79YDN2WHK4gwJXAR7k',
+        'id': 'UgxobbYFW5QNK-WFcNF4AaABAg.9s4V-mdzLq7AOXiT2PhrVd',
+        'kind': 'youtube#comment',
+        'snippet': {
+          'authorChannelId': {
+            'value': 'UCA_EdNiC9bUaQsbTT3-YsAg'
+          },
+          'authorChannelUrl': 'http://www.youtube.com/@JennaHasm',
+          'authorDisplayName': '@JennaHasm',
+          'authorProfileImageUrl': 'https://yt3.ggpht.com/WUm40JH_Uqb4dYhjx6jYFBQzJHmwEMOFYPxLvHLLwo-1_5aISu5XaISbB84S7IYZG4Y0afJEyQ=s48-c-k-c0x00ffffff-no-rj',
+          'canRate': True,
+          'channelId': 'UCaizTs-t-jXjj8H0-S3ATYA',
+          'likeCount': 0,
+          'parentId': 'UgxobbYFW5QNK-WFcNF4AaABAg',
+          'publishedAt': '2025-10-21T09:12:46Z',
+          'textDisplay': '\u200b@analyticswithadam<br>Do '
+                        'you know why youtube '
+                        'rewards (monetarely) '
+                        'channel owners that '
+                        'create distructive '
+                        'content instead of '
+                        'channel owners like '
+                        'yours for example. From '
+                        'what O noticed it&#39;s '
+                        'not the niche topic '
+                        'that is the problem, '
+                        'it&#39;s ... rewarding '
+                        'the worst of '
+                        'humans.<br>It '
+                        'doesn&#39;t make a lot '
+                        'of sense to me.',
+          'textOriginal': '\u200b@analyticswithadam\n'
+                          'Do you know why '
+                          'youtube rewards '
+                          '(monetarely) channel '
+                          'owners that create '
+                          'distructive content '
+                          'instead of channel '
+                          'owners like yours for '
+                          'example. From what O '
+                          "noticed it's not the "
+                          'niche topic that is '
+                          "the problem, it's ... "
+                          'rewarding the worst of '
+                          'humans.\n'
+                          "It doesn't make a lot "
+                          'of sense to me.',
+          'updatedAt': '2025-10-21T09:12:46Z',
+          'videoId': 'SIm2W9TtzR0',
+          'viewerRating': 'none'
+        }
+      }
+    ]
+  },
+ 'snippet': {
+    'canReply': True,
+    'channelId': 'UCaizTs-t-jXjj8H0-S3ATYA',
+    'isPublic': True,
+    'topLevelComment': {
+      'etag': '81lATGyrrx6iL2m58jTqimCH7bs',
+      'id': 'UgxobbYFW5QNK-WFcNF4AaABAg',
+      'kind': 'youtube#comment',
+      'snippet': {
+        'authorChannelId': {
+          'value': 'UCAeABcbzXpqZ9ELNznsqRBg'
+        },
+        'authorChannelUrl': 'http://www.youtube.com/@oraclesql',
+        'authorDisplayName': '@oraclesql',
+        'authorProfileImageUrl': 'https://yt3.ggpht.com/FVtbQGQrlS_QWV1bAMc-wZ9vUd1lKKix4yN3wtFE2N07-qdYjakorpSSk8u11Q-NQ5JIq7hl=s48-c-k-c0x00ffffff-no-rj',
+        'canRate': True,
+        'channelId': 'UCaizTs-t-jXjj8H0-S3ATYA',
+        'likeCount': 1,
+        'publishedAt': '2023-07-12T19:32:27Z',
+        'textDisplay': 'Thank you for '
+                      'this Adam. Great '
+                      'tuorial',
+        'textOriginal': 'Thank you for '
+                        'this Adam. Great '
+                        'tuorial',
+        'updatedAt': '2023-07-12T19:32:27Z',
+        'videoId': 'SIm2W9TtzR0',
+        'viewerRating': 'none'
+      }
+    },
+    'totalReplyCount': 2,
+    'videoId': 'SIm2W9TtzR0'
+  }
+}
+```
+
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
 * configuring external stage in snowflake and aws: https://docs.snowflake.com/en/user-guide/data-load-s3-config-storage-integration
