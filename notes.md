@@ -1760,6 +1760,13 @@ reviews_df = reviews_df.withColumn('SENTIMENT', cortex.sentiment(F.col('REVIEW')
 reviews_df.select(["REVIEW","SENTIMENT"]).show(15, max_width = 100)
 ```
 
+
+* Modularity in DBT is the degree to which a system's components may be separated and recombined, often with the benefit of flexibility and variety in use. This allows us to build data artifacts in logical steps.
+
+For example, we can stage the raw customers and orders data to shape it into what we want it to look like. Then we can build a model that references both of these to build the final dim_customers model.
+
+* with the youtube api if you want to interact with youtube's client interface with your account you will need to create instead an OAuth2 client id kind of like with reddit, but if you're interacting with youtube with no account then just the API key is enough
+
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
 * configuring external stage in snowflake and aws: https://docs.snowflake.com/en/user-guide/data-load-s3-config-storage-integration
@@ -1770,3 +1777,5 @@ reviews_df.select(["REVIEW","SENTIMENT"]).show(15, max_width = 100)
 - https://docs.snowflake.com/en/sql-reference/sql/create-iceberg-table-delta
 
 * dealing with `pyarrow delta lake Exception: External error: Schema error: Duplicate field name` (according to the article this is a known bug): https://github.com/delta-io/delta-rs/issues/3943
+* deleting projects from google cloud console: https://stackoverflow.com/questions/16621921/how-to-delete-a-project-from-google-cloud-console
+* docs for youtube api: https://developers.google.com/youtube/v3/getting-started
