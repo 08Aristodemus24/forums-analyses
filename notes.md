@@ -1888,6 +1888,16 @@ For example, we can stage the raw customers and orders data to shape it into wha
 }
 ```
 
+* benefit of using subdirectories in your models directory is that it allows you to configure materializations at the folder level for a collection of model
+
+* two functions of a staging model in dbt:
+- Perform light transformations on your data set
+- Connect to upstream sources using the source macro
+
+* two functions of a marts model in dbt
+- Apply business logic for stakeholders
+- Reference upstream models using the ref macro
+
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
 * configuring external stage in snowflake and aws: https://docs.snowflake.com/en/user-guide/data-load-s3-config-storage-integration
