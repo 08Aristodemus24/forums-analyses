@@ -2,7 +2,8 @@
     config(
         materialized='incremental',
         unique_key=['post_id_full'],
-        on_schema_change='sync_all_columns'
+        on_schema_change='sync_all_columns',
+        incremental_strategy='merge'
     )
 }}
 

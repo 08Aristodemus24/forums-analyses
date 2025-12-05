@@ -1,23 +1,23 @@
 {{
     config(
-        unique_key=['id']
+        materialized='incremental',
+        unique_key=['customer_id'],
+        on_schema_change='sync_all_columns',
+        incremental_strategy='merge'
     )
 }}
 
-WITH stripe_payments AS (
+WITH jaffle_shop_customers AS (
     SELECT
-        ID AS id,
-        ORDERID AS order_id,
-        PAYMENTMETHOD AS payment_method,
-        STATUS AS status,
-        AMOUNT AS amount,
-        CREATED AS created_at
+        ID AS customer_id,
+        FIRST_NAME AS first_name,
+        LAST_NAME AS last_name,
         CURRENT_TIMESTAMP() AS dbt_load_timestamp
-    FROM {{ source('stripe', 'payments') }}
+    FROM {{ source('jaffle_shop', 'raw_jaffle_shop_customers') }}
 )
 
 SELECT *
-FROM stripe_payments
+FROM jaffle_shop_customers
 {% if is_incremental() %}
 WHERE dbt_load_timestamp > (SELECT MAX(dbt_load_timestamp) FROM {{ this }})
 {% endif %}
