@@ -5,7 +5,7 @@ sources:
     database: SNOWFLAKE_LEARNING_DB
     schema: PUBLIC
     tables:
-      - name: payments
+      - name: raw_stripe_payments
         # loaded_at_field: _batched_at
         # freshness:
         #   warn_after: {count: 12, period: hour}

@@ -1898,6 +1898,75 @@ For example, we can stage the raw customers and orders data to shape it into wha
 - Apply business logic for stakeholders
 - Reference upstream models using the ref macro
 
+* you always need to check if the source system tables have changed then you have to run `dbt build` to build again all models upstream that reference this source system table and to reflect the changes in the staging, intermediate, and marts models 
+
+* how come this works in snowflake:
+```
+
+
+MERGE INTO SNOWFLAKE_LEARNING_DB.PUBLIC.STG_JAFFLE_SHOP__CUSTOMERS target
+USING (
+    WITH jaffle_shop_customers AS (
+        SELECT
+            ID AS customer_id,
+            FIRST_NAME AS first_name,
+            LAST_NAME AS last_name,
+            CURRENT_TIMESTAMP() AS dbt_load_timestamp
+        FROM SNOWFLAKE_LEARNING_DB.PUBLIC.RAW_JAFFLE_SHOP_CUSTOMERS
+    )
+
+    SELECT *
+    FROM jaffle_shop_customers
+    WHERE dbt_load_timestamp > (SELECT MAX(dbt_load_timestamp) FROM SNOWFLAKE_LEARNING_DB.PUBLIC.STG_JAFFLE_SHOP__CUSTOMERS)
+) source
+ON target.customer_id = source.customer_id
+WHEN MATCHED AND (
+    source.first_name IS DISTINCT FROM target.first_name OR
+    source.last_name IS DISTINCT FROM target.last_name OR
+    source.dbt_load_timestamp IS DISTINCT FROM target.dbt_load_timestamp
+) THEN
+    UPDATE SET
+        target.first_name = source.first_name,
+        target.last_name = source.last_name,
+        target.dbt_load_timestamp = source.dbt_load_timestamp
+WHEN NOT MATCHED THEN
+    INSERT (
+        customer_id, 
+        first_name, 
+        last_name, 
+        dbt_load_timestamp
+    ) VALUES
+    (source.customer_id, source.first_name, source.last_name, source.dbt_load_timestamp)
+```
+
+but this doesn't in dbt?
+
+```
+{{
+    config(
+        materialized='incremental',
+        unique_key=['customer_id'],
+        on_schema_change='sync_all_columns',
+        incremental_strategy='merge'
+    )
+}}
+
+WITH jaffle_shop_customers AS (
+    SELECT
+        ID AS customer_id,
+        FIRST_NAME AS first_name,
+        LAST_NAME AS last_name,
+        CURRENT_TIMESTAMP() AS dbt_load_timestamp
+    FROM {{ source('jaffle_shop', 'raw_jaffle_shop_customers') }}
+)
+
+SELECT *
+FROM jaffle_shop_customers
+{% if is_incremental() %}
+WHERE dbt_load_timestamp > (SELECT MAX(dbt_load_timestamp) FROM {{ this }})
+{% endif %}
+```
+
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
 * configuring external stage in snowflake and aws: https://docs.snowflake.com/en/user-guide/data-load-s3-config-storage-integration
