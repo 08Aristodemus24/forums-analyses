@@ -17,7 +17,7 @@ WITH jaffle_shop_orders AS (
     FROM {{ source('jaffle_shop', 'raw_jaffle_shop_orders') }}
 )
 
-SELECT *
+SELECT *    
 FROM jaffle_shop_orders
 {% if is_incremental() %}
 WHERE dbt_load_timestamp > (SELECT MAX(dbt_load_timestamp) FROM {{ this }})

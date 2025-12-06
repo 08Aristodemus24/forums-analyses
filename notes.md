@@ -1967,6 +1967,81 @@ WHERE dbt_load_timestamp > (SELECT MAX(dbt_load_timestamp) FROM {{ this }})
 {% endif %}
 ```
 
+* The `append` strategy is simple to implement and has low processing costs. It inserts selected records into the destination table without updating or deleting existing data. This strategy doesn’t align directly with type 1 or type 2 slowly changing dimensions (SCD). It differs from SCD1, which overwrites existing records, and only loosely resembles SCD2. While it adds new rows (like SCD2), it doesn’t manage versioning or track historical changes explicitly.
+
+Importantly, append doesn't check for duplicates or verify whether a record already exists in the destination. If the same record appears multiple times in the source, it will be inserted again, potentially resulting in duplicate rows. This may not be an issue depending on your use case and data quality requirements.
+
+NOTE: this is why if our source system table e.g. raw_reddit_posts, and raw_reddit_posts_comments change and we need to reflect it in our stg_reddit_posts, and stg_raw_reddit_posts_comments by specifying our incremental_strategy argument as `merge` instead of `append`, and add our necessary predicates for it
+
+* By default the incremental strategy in dbt depends on the adapter being used; however, for data warehouses that support it, the most common default is `merge`. For adapters that don't support a native `merge` statement, dbt may default to `append`. However snowflake supports `merge`, this is why when we use incremental materializations and define a unique key/s in the background snowflake does a merge operation:
+```
+-- back compat for old kwarg name
+  
+  begin;
+    merge into FORUMS_ANALYSES_DB.FORUMS_ANALYSES_BRONZE.stg_reddit_posts_comments as DBT_INTERNAL_DEST
+        using FORUMS_ANALYSES_DB.FORUMS_ANALYSES_BRONZE.stg_reddit_posts_comments__dbt_tmp as DBT_INTERNAL_SOURCE
+        on (
+                    DBT_INTERNAL_SOURCE.post_id_full = DBT_INTERNAL_DEST.post_id_full
+                ) and (
+                    DBT_INTERNAL_SOURCE.comment_id_full = DBT_INTERNAL_DEST.comment_id_full
+                ) and (
+                    DBT_INTERNAL_SOURCE.comment_parent_id_full = DBT_INTERNAL_DEST.comment_parent_id_full
+                )
+
+    
+    when matched then update set
+        "POST_ID" = DBT_INTERNAL_SOURCE."POST_ID","POST_ID_FULL" = DBT_INTERNAL_SOURCE."POST_ID_FULL","LEVEL" = DBT_INTERNAL_SOURCE."LEVEL","COMMENT_ID" = DBT_INTERNAL_SOURCE."COMMENT_ID","COMMENT_ID_FULL" = DBT_INTERNAL_SOURCE."COMMENT_ID_FULL","COMMENT_UPVOTES" = DBT_INTERNAL_SOURCE."COMMENT_UPVOTES","COMMENT_DOWNVOTES" = DBT_INTERNAL_SOURCE."COMMENT_DOWNVOTES","COMMENT_CREATED_AT" = DBT_INTERNAL_SOURCE."COMMENT_CREATED_AT","COMMENT_EDITED_AT" = DBT_INTERNAL_SOURCE."COMMENT_EDITED_AT","COMMENT_AUTHOR_USERNAME" = DBT_INTERNAL_SOURCE."COMMENT_AUTHOR_USERNAME","COMMENT_AUTHOR_ID_FULL" = DBT_INTERNAL_SOURCE."COMMENT_AUTHOR_ID_FULL","COMMENT_PARENT_ID_FULL" = DBT_INTERNAL_SOURCE."COMMENT_PARENT_ID_FULL","COMMENT_BODY" = DBT_INTERNAL_SOURCE."COMMENT_BODY","ADDED_AT" = DBT_INTERNAL_SOURCE."ADDED_AT"
+    
+
+    when not matched then insert
+        ("POST_ID", "POST_ID_FULL", "LEVEL", "COMMENT_ID", "COMMENT_ID_FULL", "COMMENT_UPVOTES", "COMMENT_DOWNVOTES", "COMMENT_CREATED_AT", "COMMENT_EDITED_AT", "COMMENT_AUTHOR_USERNAME", "COMMENT_AUTHOR_ID_FULL", "COMMENT_PARENT_ID_FULL", "COMMENT_BODY", "ADDED_AT")
+    values
+        ("POST_ID", "POST_ID_FULL", "LEVEL", "COMMENT_ID", "COMMENT_ID_FULL", "COMMENT_UPVOTES", "COMMENT_DOWNVOTES", "COMMENT_CREATED_AT", "COMMENT_EDITED_AT", "COMMENT_AUTHOR_USERNAME", "COMMENT_AUTHOR_ID_FULL", "COMMENT_PARENT_ID_FULL", "COMMENT_BODY", "ADDED_AT")
+
+;
+    commit;
+``` 
+
+so in essence we want dbt to run the above akin to this:
+
+```
+MERGE INTO SNOWFLAKE_LEARNING_DB.PUBLIC.STG_JAFFLE_SHOP__CUSTOMERS target
+USING (
+    WITH jaffle_shop_customers AS (
+        SELECT
+            ID AS customer_id,
+            FIRST_NAME AS first_name,
+            LAST_NAME AS last_name,
+            CURRENT_TIMESTAMP() AS dbt_load_timestamp
+        FROM SNOWFLAKE_LEARNING_DB.PUBLIC.RAW_JAFFLE_SHOP_CUSTOMERS
+    )
+
+    SELECT *
+    FROM jaffle_shop_customers
+    WHERE dbt_load_timestamp > (SELECT MAX(dbt_load_timestamp) FROM SNOWFLAKE_LEARNING_DB.PUBLIC.STG_JAFFLE_SHOP__CUSTOMERS)
+) source
+ON target.customer_id = source.customer_id
+WHEN MATCHED AND (
+    source.first_name IS DISTINCT FROM target.first_name OR
+    source.last_name IS DISTINCT FROM target.last_name OR
+    source.dbt_load_timestamp IS DISTINCT FROM target.dbt_load_timestamp
+) THEN
+    UPDATE SET
+        target.first_name = source.first_name,
+        target.last_name = source.last_name,
+        target.dbt_load_timestamp = source.dbt_load_timestamp
+WHEN NOT MATCHED THEN
+    INSERT (
+        customer_id, 
+        first_name, 
+        last_name, 
+        dbt_load_timestamp
+    ) VALUES
+    (source.customer_id, source.first_name, source.last_name, source.dbt_load_timestamp)
+```
+
+where it successfully changes all dbt load timestamps, first names, and last names
+
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
 * configuring external stage in snowflake and aws: https://docs.snowflake.com/en/user-guide/data-load-s3-config-storage-integration
