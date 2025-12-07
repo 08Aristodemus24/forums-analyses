@@ -35,6 +35,9 @@ if __name__ == "__main__":
     # data = response.json()
     # pprint.pprint(data)
     
+    # youtube url when this is built will be
+    # `https://www.youtube.com/watch?v=<video id>` or in 
+    # this case `https://www.youtube.com/watch?v=SIm2W9TtzR0`
     youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
     params = {
         "part": ",".join(["snippet", "replies"]),

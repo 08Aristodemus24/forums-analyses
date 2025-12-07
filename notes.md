@@ -1773,7 +1773,7 @@ For example, we can stage the raw customers and orders data to shape it into wha
   'id': 'UgxobbYFW5QNK-WFcNF4AaABAg',
   'kind': 'youtube#commentThread',
   'replies': {
-    'comments': [
+    'comments': [ # these are the replies to the top level comment found
       {
         'etag': 'AIOuAJxmbBzRJ9s2le8VsLT6_gY',
         'id': 'UgxobbYFW5QNK-WFcNF4AaABAg.9s4V-mdzLq79s5enfTdY8b',
@@ -1846,7 +1846,7 @@ For example, we can stage the raw customers and orders data to shape it into wha
                           "It doesn't make a lot "
                           'of sense to me.',
           'updatedAt': '2025-10-21T09:12:46Z',
-          'videoId': 'SIm2W9TtzR0',
+          'videoId': 'SIm2W9TtzR0', # this is that youtube video's vidoeId
           'viewerRating': 'none'
         }
       }
