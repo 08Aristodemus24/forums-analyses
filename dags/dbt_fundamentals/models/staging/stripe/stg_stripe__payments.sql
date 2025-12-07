@@ -16,7 +16,7 @@ WITH stripe_payments AS (
         AMOUNT AS amount,
         CREATED AS created_at,
         CURRENT_TIMESTAMP() AS dbt_load_timestamp
-    FROM {{ source('stripe', 'raw_stripe_payments') }}
+    FROM {{ source('stripe', 'payments') }}
 )
 
 SELECT *

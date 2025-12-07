@@ -2042,6 +2042,8 @@ WHEN NOT MATCHED THEN
 
 where it successfully changes all dbt load timestamps, first names, and last names
 
+* what if we changed `raw.jaffle_shop.orders` to `raw_test.jaffle_shop.orders`. We would have to change all the `.sql` model files we have in our dbt project making our work manual and tedious, however `sources.yml` solves this by defining a single database argument where we specify which database we use and if we wanted to change the database we would just change it in the `source.yml` file or if our schema name changes from `raw.jaffle_shop.orders` to `raw.flower_shop.orders`
+
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
 * configuring external stage in snowflake and aws: https://docs.snowflake.com/en/user-guide/data-load-s3-config-storage-integration

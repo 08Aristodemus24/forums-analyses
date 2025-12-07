@@ -13,7 +13,7 @@ WITH jaffle_shop_customers AS (
         FIRST_NAME AS first_name,
         LAST_NAME AS last_name,
         CURRENT_TIMESTAMP() AS dbt_load_timestamp
-    FROM {{ source('jaffle_shop', 'raw_jaffle_shop_customers') }}
+    FROM {{ source('jaffle_shop', 'customers') }}
 )
 
 SELECT *

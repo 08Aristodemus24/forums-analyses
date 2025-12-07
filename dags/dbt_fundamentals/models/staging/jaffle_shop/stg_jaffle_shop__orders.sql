@@ -14,7 +14,7 @@ WITH jaffle_shop_orders AS (
         ORDER_DATE AS order_date,
         STATUS AS status, 
         CURRENT_TIMESTAMP() AS dbt_load_timestamp
-    FROM {{ source('jaffle_shop', 'raw_jaffle_shop_orders') }}
+    FROM {{ source('jaffle_shop', 'orders') }}
 )
 
 SELECT *    

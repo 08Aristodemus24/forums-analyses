@@ -5,5 +5,5 @@ sources:
     database: SNOWFLAKE_LEARNING_DB
     schema: PUBLIC
     tables:
-      - name: raw_jaffle_shop_orders
-      - name: raw_jaffle_shop_customers
+      - name: orders
+      - name: customers
