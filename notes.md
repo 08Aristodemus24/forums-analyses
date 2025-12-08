@@ -1810,7 +1810,7 @@ For example, we can stage the raw customers and orders data to shape it into wha
           'authorProfileImageUrl': 'https://yt3.ggpht.com/WUm40JH_Uqb4dYhjx6jYFBQzJHmwEMOFYPxLvHLLwo-1_5aISu5XaISbB84S7IYZG4Y0afJEyQ=s48-c-k-c0x00ffffff-no-rj',
           'canRate': True,
           'channelId': 'UCaizTs-t-jXjj8H0-S3ATYA',
-          'likeCount': 0,
+          'likeCount': 0, 
           'parentId': 'UgxobbYFW5QNK-WFcNF4AaABAg',
           'publishedAt': '2025-10-21T09:12:46Z',
           'textDisplay': '\u200b@analyticswithadam<br>Do '
@@ -2072,6 +2072,90 @@ where it successfully changes all dbt load timestamps, first names, and last nam
 +--------------------+--------+--------+--------+--------+
 ```
 
+* The result of a youtube.search.list(**params).execute() is:
+```
+{
+  'etag': 'rMvyctcNvzzd_ozmjXnrJ6FORhY',
+  'id': {
+    'kind': 'youtube#video', 
+    'videoId': 'XPqQoQqejCc'
+  },
+  'kind': 'youtube#searchResult',
+  'snippet': {
+    'channelId': 'UCPE_UIuGbfeZSEnFE1WI-Gg',
+    'channelTitle': 'Untitled Joker',
+    'description': 'We hope you have a good time with our videos, and '
+                  'you are welcome to subscribe to our channel！！ Our '
+                  'video production team ...',
+    'liveBroadcastContent': 'none',
+    'publishTime': '2025-09-11T15:03:26Z',
+    'publishedAt': '2025-09-11T15:03:26Z',
+    'thumbnails': {
+      'default': {
+        'height': 90,
+        'url': 'https://i.ytimg.com/vi/XPqQoQqejCc/default.jpg',
+        'width': 120
+      },
+      'high': {
+        'height': 360,
+        'url': 'https://i.ytimg.com/vi/XPqQoQqejCc/hqdefault.jpg',
+        'width': 480
+      },
+      'medium': {
+        'height': 180,
+        'url': 'https://i.ytimg.com/vi/XPqQoQqejCc/mqdefault.jpg',
+        'width': 320
+      }
+    },
+    'title': 'True and False K-Pop: Demon Hunters#joker  #kpop'}}
+```
+
+or
+
+{
+  'etag': 'N8YyyIG6opwGxoLWDCw7hWqQe-8',
+  'id': {
+    'kind': 'youtube#video', 
+    'videoId': 'yebNIHKAC4A' # THIS IS WHAT WE WANT
+  },
+  'kind': 'youtube#searchResult',
+  'snippet': {
+    'channelId': 'UCnLuLSV-Oi0ctqjxGgxFlmg',
+    'channelTitle': 'Sony Pictures Animation',
+    'description': "We're going up, up, up. Watch the official lyric "
+                    'video for “Golden” from KPop Demon Hunters. KPop '
+                    'Demon Hunters is now on ...', # THIS IS BUT A SNIPPET OF THE VIDEO DESCRIPTION NOT THE FULL
+    'liveBroadcastContent': 'none',
+    'publishTime': '2025-06-23T22:30:00Z',
+    'publishedAt': '2025-06-23T22:30:00Z',
+    'thumbnails': {
+      'default': {
+        'height': 90,
+        'url': 'https://i.ytimg.com/vi/yebNIHKAC4A/default.jpg',
+        'width': 120
+      },
+      'high': {
+        'height': 360,
+        'url': 'https://i.ytimg.com/vi/yebNIHKAC4A/hqdefault.jpg',
+        'width': 480
+      },
+      'medium': {
+        'height': 180,
+        'url': 'https://i.ytimg.com/vi/yebNIHKAC4A/mqdefault.jpg',
+        'width': 320
+      }
+    },
+    'title': '“Golden” Official Lyric Video | KPop Demon Hunters | ' 'Sony Animation'
+  }
+}
+
+* `returned "The request cannot be completed because you have exceeded your <a href="/youtube/v3/getting-started#quota">quota</a>.". Details: "[{'message': 'The request cannot be completed because you have exceeded your <a href="/youtube/v3/getting-started#quota">quota</a>.', 'domain': 'youtube.quota', 'reason': 'quotaExceeded'}]">` is something that needs a workaround
+
+Quota impact: A call to this commentThreads().list() method has a quota cost of 1 unit.
+Quota impact: A call to this videos().list() method has a quota cost of 1 unit.
+Quota impact: A call to this search().list() method has a quota cost of 100 units.
+
+and and according to the [youtube data api docs](https://developers.google.com/youtube/v3/getting-started) a read operation that retrieves a list of resources -- channels, videos, playlists -- usually costs 1 unit, a write operation that creates, updates, or deletes a resource usually has costs 50 units, a search request costs 100 units, and a video upload costs 100 units.s
 
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
