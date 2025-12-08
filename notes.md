@@ -2155,7 +2155,54 @@ Quota impact: A call to this commentThreads().list() method has a quota cost of 
 Quota impact: A call to this videos().list() method has a quota cost of 1 unit.
 Quota impact: A call to this search().list() method has a quota cost of 100 units.
 
-and and according to the [youtube data api docs](https://developers.google.com/youtube/v3/getting-started) a read operation that retrieves a list of resources -- channels, videos, playlists -- usually costs 1 unit, a write operation that creates, updates, or deletes a resource usually has costs 50 units, a search request costs 100 units, and a video upload costs 100 units.s
+and and according to the [youtube data api docs](https://developers.google.com/youtube/v3/getting-started) a read operation that retrieves a list of resources -- channels, videos, playlists -- usually costs 1 unit, a write operation that creates, updates, or deletes a resource usually has costs 50 units, a search request costs 100 units, and a video upload costs 100 units.
+
+
+That 403 error with the quota message and the huge discrepancy in limits (10,000 vs. 1,800,000) is due to the YouTube Data API's tiered quota system—specifically, the difference between your Daily Limit and a much larger Per Minute/Per User Limit.
+
+The error means you have exhausted your primary daily budget, and the larger number you see is for a different, secondary limit that is currently irrelevant.
+
+🛑 Interpreting the Quota Limits
+1. The Limit You Hit: The Daily Quota (10,000 Units)
+Your primary limit is the Daily Quota, which is set at a default of 10,000 units per Google Cloud project.
+
+Every API call, even if invalid, consumes "units" from this pool.
+
+The cost of each call varies greatly:
+
+Simple Reads (e.g., fetching video/channel details: videos.list): 1 unit.
+
+Fetching Comments (comments.list): 1 unit per 100 comments fetched.
+
+Searches (search.list): 100 units.
+
+When you hit the 10,000-unit ceiling, the API returns the 403 error (quotaExceeded), and your application is blocked until the quota resets at midnight Pacific Time (PT).
+
+2. The Limit You Saw: Queries Per Minute (QPM) (1,800,000 Units)
+The much larger number you're seeing (e.g., 1,800,000) is likely your Queries Per Minute (QPM) or Queries Per Minute Per User limit.
+
+This limit dictates the maximum speed at which you can make requests if you had enough daily units.
+
+Why it's useless now: Since your Daily Limit (10,000) is so much smaller than the QPM limit, the QPM limit effectively never comes into play. You cannot possibly use 1.8 million units per minute if your total daily budget is only 10,000 units.
+
+💡 How to Fix and Optimize Your Scraping
+The most common reason for hitting the 10,000-unit limit quickly, especially in a scraping project, is heavy reliance on the Search endpoint.
+
+Reduce search.list: Every time you use search.list to find videos by keyword, you spend 100 units. If you run 100 searches, you've used your entire daily quota!
+
+Optimization: Look for Channel IDs and use playlistItems.list instead, which usually costs only 1 unit to fetch a list of videos from a channel's uploads.
+
+Use Batching and Part Parameters:
+
+Batching: Request details for multiple resources (like 50 videos) in a single API call where possible. This costs 1 unit total, rather than 50 units for 50 separate calls.
+
+Partial Resources: Use the part parameter (e.g., part=snippet,statistics) to retrieve only the fields you absolutely need. This reduces latency and bandwidth, though it may not always save quota units.
+
+Caching: Implement an application-level cache. For static content like video titles and descriptions, cache the data for 24 hours. For dynamic data like view counts, cache for a few hours.
+
+Request a Quota Increase: Since your project is part of a larger, defined MLOps pipeline, you have a strong justification to request an increase. You must fill out the Audit and Quota Extension Form and provide a detailed arithmetic calculation justifying your required daily quota. Quota increases are typically free.
+
+For more details on managing your API usage and dealing with the quota system, watch Using Google's YouTube Data API v3 and Exceeded Your Quota? w/Python Build an Easy Workaround System. This video provides tips on implementing a workaround system when you encounter the quota exceeded error.
 
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
