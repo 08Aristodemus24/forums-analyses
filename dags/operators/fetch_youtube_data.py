@@ -39,33 +39,50 @@ if __name__ == "__main__":
     # `https://www.youtube.com/watch?v=<video id>` or in 
     # this case `https://www.youtube.com/watch?v=SIm2W9TtzR0`
     youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
-    params = {
-        "part": ",".join(["snippet", "replies"]),
-        "videoId": "SIm2W9TtzR0",
-        "maxResults": 100
-    }
+    # params = {
+    #     "part": ",".join(["snippet", "replies"]),
+    #     "videoId": "SIm2W9TtzR0",
+    #     "maxResults": 100
+    # }
     
-    comments = []
-    next_page_token = None
-    request = youtube.commentThreads().list(**params)
+    # comments = []
+    # next_page_token = None
+    # request = youtube.commentThreads().list(**params)
+
+    # while True:
+    #     response = request.execute()
+        
+    #     for item in response["items"]:
+    #         pprint.pprint(item)
+    #         comment = item["snippet"]["topLevelComment"]["snippet"]
+    #         comments.append({
+    #             "author": comment["authorDisplayName"],
+    #             "published_at": comment["publishedAt"],
+    #             "text": comment["textDisplay"],
+    #             "like_count": comment["likeCount"]
+    #         })
+
+    #     next_page_token = response.get("nextPageToken")
+    #     if not next_page_token:
+    #         break
+    
+    params = {
+        "part": ",".join(["snippet"]),
+        "q": "Kpop demon hunters",
+        "maxResults": 100,
+    }
+    request = youtube.search().list(**params)
 
     while True:
         response = request.execute()
         
         for item in response["items"]:
             pprint.pprint(item)
-            comment = item["snippet"]["topLevelComment"]["snippet"]
-            comments.append({
-                "author": comment["authorDisplayName"],
-                "published_at": comment["publishedAt"],
-                "text": comment["textDisplay"],
-                "like_count": comment["likeCount"]
-            })
 
         next_page_token = response.get("nextPageToken")
         if not next_page_token:
             break
-
+        
     # # Print or process the extracted comments
     # for comment in comments:
     #     print(f"Author: {comment['author']}")

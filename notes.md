@@ -1888,6 +1888,8 @@ For example, we can stage the raw customers and orders data to shape it into wha
 }
 ```
 
+this is because we set the params of the `commentThreads()` resource method `.list()` to `{"part": ",".join(["snippet", "replies"]), "videoId": "SIm2W9TtzR0", "maxResults": 100}` where the `part` key is a string of comma separated values that indicate what parts of the resulting request we only want to include, which in this case we only set to snippet and replies, but for specific resources of the youtube API like videos, comments, search requests, channels, etc. For instance a video resource has the following keys/parts when the resulting dictionary object from the request is returned: snippet, contentDetails, fileDetails, player, processingDetails, recordingDetails, statistics, status, suggestions, topicDetails. With these options we can specify only in the part parameter of our `list()`, `insert()`, `delete()` methods to return only the keys we need. so if we need all results our `part` param will be set to `"snippet, contentDetails, fileDetails, player, processingDetails, recordingDetails, statistics, status, suggestions, topicDetails"`
+
 * benefit of using subdirectories in your models directory is that it allows you to configure materializations at the folder level for a collection of model
 
 * two functions of a staging model in dbt:
@@ -2043,6 +2045,33 @@ WHEN NOT MATCHED THEN
 where it successfully changes all dbt load timestamps, first names, and last names
 
 * what if we changed `raw.jaffle_shop.orders` to `raw_test.jaffle_shop.orders`. We would have to change all the `.sql` model files we have in our dbt project making our work manual and tedious, however `sources.yml` solves this by defining a single database argument where we specify which database we use and if we wanted to change the database we would just change it in the `source.yml` file or if our schema name changes from `raw.jaffle_shop.orders` to `raw.flower_shop.orders`
+
+* for youtube api these are the resources that we can list, insert, update, and delete
+```
++--------------------+--------+--------+--------+--------+
+| resource           | list   | insert | update | delete |
++--------------------+--------+--------+--------+--------+
+| activity           | ✔      | ❌    | ❌     | ❌    |
+| caption            | ✔      | ✔     | ✔      | ✔     |
+| channel            | ✔      | ❌    | ❌     | ❌    |
+| channelBanner      | ❌     | ✔     | ❌     | ❌    |
+| channelSection     | ✔      | ✔     | ✔      | ✔     |
+| comment            | ✔      | ✔     | ✔      | ✔     |
+| commentThread      | ✔      | ✔     | ✔      | ❌    |
+| guideCategory      | ❌     | ❌      ❌     | ❌    |
+| i18nLanguage       | ✔      | ❌    | ❌     | ❌    |
+| i18nRegion         | ✔      | ❌    | ❌     | ❌    |
+| playlist           | ✔      | ✔     | ✔      | ✔     |
+| playlistItem       | ✔      | ✔     | ✔      | ✔     |
+| search result      | ✔      | ❌    | ❌     | ❌    |
+| subscription       | ✔      | ❌    | ❌     | ❌    |
+| thumbnail          | ❌     | ❌    | ❌     | ❌    |
+| video              | ✔      | ✔     | ✔      | ✔     |
+| videoCategory      | ✔      | ❌    | ❌     | ❌    |
+| watermark          | ❌     | ❌    | ❌     | ❌    |
++--------------------+--------+--------+--------+--------+
+```
+
 
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
