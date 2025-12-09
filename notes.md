@@ -1890,6 +1890,267 @@ For example, we can stage the raw customers and orders data to shape it into wha
 
 this is because we set the params of the `commentThreads()` resource method `.list()` to `{"part": ",".join(["snippet", "replies"]), "videoId": "SIm2W9TtzR0", "maxResults": 100}` where the `part` key is a string of comma separated values that indicate what parts of the resulting request we only want to include, which in this case we only set to snippet and replies, but for specific resources of the youtube API like videos, comments, search requests, channels, etc. For instance a video resource has the following keys/parts when the resulting dictionary object from the request is returned: snippet, contentDetails, fileDetails, player, processingDetails, recordingDetails, statistics, status, suggestions, topicDetails. With these options we can specify only in the part parameter of our `list()`, `insert()`, `delete()` methods to return only the keys we need. so if we need all results our `part` param will be set to `"snippet, contentDetails, fileDetails, player, processingDetails, recordingDetails, statistics, status, suggestions, topicDetails"`
 
+* a 
+```
+{
+  'contentDetails': {
+    'caption': 'false',
+    'contentRating': {},
+    'definition': 'hd',
+    'dimension': '2d',
+    'duration': 'PT3M19S',
+    'licensedContent': False,
+    'projection': 'rectangular'
+  },
+ 'etag': 'QgvLF32RrMhZKtnKcDWfZnec8qs',
+ 'id': 'yebNIHKAC4A',
+ 'kind': 'youtube#video',
+ 'localizations': {
+    'en': {
+      'description': 'We’re going up, up, up. Watch the '
+        'official lyric video for “Golden” '
+        'from KPop Demon Hunters. KPop Demon '
+        'Hunters is now on Netflix. \n'
+        '\n'
+        'Listen to the KPop Demon Hunters '
+        'soundtrack here: '
+        'https://kpopdemonhunters.lnk.to/Soundtrack \n'
+        '\n'
+        'About KPop Demon Hunters: \n'
+        "When they aren't selling out "
+        'stadiums, KPop superstars Rumi, Mira '
+        'and Zoey use their secret identities '
+        'as badass demon hunters to protect '
+        'their fans from an ever-present '
+        'supernatural threat. Together, they '
+        'must face their biggest enemy yet – '
+        'an irresistible rival boy band of '
+        'demons in disguise.\n'
+        '\n'
+        'Directed by: Maggie Kang and Chris '
+        'Appelhans\n'
+        'Produced by: Michelle Wong\n'
+        'Co-Produced by: Scott Berri, Jacky '
+        'Priddle\n'
+        'Cast: Arden Cho, Ahn Hyo-seop, May '
+        'Hong, Ji-young Yoo, Yunjin Kim, Joel '
+        'Kim Booster, Liza Koshy, with Daniel '
+        'Dae Kim, Ken Jeong and Byung Hun '
+        'Lee.\n'
+        '\n'
+        'Subscribe to the Sony Animation '
+        'YouTube channel here: '
+        'https://bit.ly/2SGtGHU \n'
+        '\n'
+        'Follow Sony Animation on Social:\n'
+        'TikTok: '
+        'https://www.tiktok.com/@sonypicturesanimation \n'
+        'Twitter: '
+        'https://twitter.com/SonyAnimation \n'
+        'Instagram: '
+        'https://www.instagram.com/sonyanimation/ \n'
+        'Facebook: '
+        'https://www.facebook.com/SonyPicturesAnimation/\n'
+        '\n'
+        '#SonyAnimation #Netflix #KPop\n'
+        '\n'
+        '“Golden” Official Lyric Video | KPop '
+        'Demon Hunters | Sony Animation\n'
+        'https://www.youtube.com/user/SonyAnimation',
+      'title': '“Golden” Official Lyric Video | KPop Demon ''Hunters Sony Animation'
+    } 
+  },
+ 'paidProductPlacementDetails': {
+    'hasPaidProductPlacement': False
+  },
+ 'player': {
+    'embedHtml': '<iframe width="480" height="270" '
+      'src="//www.youtube.com/embed/yebNIHKAC4A" '
+      'frameborder="0" allow="accelerometer; autoplay; '
+      'clipboard-write; encrypted-media; gyroscope; '
+      'picture-in-picture; web-share" '
+      'referrerpolicy="strict-origin-when-cross-origin" '
+      'allowfullscreen></iframe>'
+  },
+ 'recordingDetails': {},
+ 'snippet': {
+    'categoryId': '1',
+    'channelId': 'UCnLuLSV-Oi0ctqjxGgxFlmg',
+    'channelTitle': 'Sony Pictures Animation',
+    'defaultAudioLanguage': 'en-US',
+    'defaultLanguage': 'en',
+    'description': 'We’re going up, up, up. Watch the official lyric '
+      'video for “Golden” from KPop Demon Hunters. KPop '
+      'Demon Hunters is now on Netflix. \n'
+      '\n'
+      'Listen to the KPop Demon Hunters soundtrack here: '
+      'https://kpopdemonhunters.lnk.to/Soundtrack \n'
+      '\n'
+      'About KPop Demon Hunters: \n'
+      "When they aren't selling out stadiums, KPop "
+      'superstars Rumi, Mira and Zoey use their secret '
+      'identities as badass demon hunters to protect '
+      'their fans from an ever-present supernatural '
+      'threat. Together, they must face their biggest '
+      'enemy yet – an irresistible rival boy band of '
+      'demons in disguise.\n'
+      '\n'
+      'Directed by: Maggie Kang and Chris Appelhans\n'
+      'Produced by: Michelle Wong\n'
+      'Co-Produced by: Scott Berri, Jacky Priddle\n'
+      'Cast: Arden Cho, Ahn Hyo-seop, May Hong, Ji-young '
+      'Yoo, Yunjin Kim, Joel Kim Booster, Liza Koshy, '
+      'with Daniel Dae Kim, Ken Jeong and Byung Hun '
+      'Lee.\n'
+      '\n'
+      'Subscribe to the Sony Animation YouTube channel '
+      'here: https://bit.ly/2SGtGHU \n'
+      '\n'
+      'Follow Sony Animation on Social:\n'
+      'TikTok: '
+      'https://www.tiktok.com/@sonypicturesanimation \n'
+      'Twitter: https://twitter.com/SonyAnimation \n'
+      'Instagram: '
+      'https://www.instagram.com/sonyanimation/ \n'
+      'Facebook: '
+      'https://www.facebook.com/SonyPicturesAnimation/\n'
+      '\n'
+      '#SonyAnimation #Netflix #KPop\n'
+      '\n'
+      '“Golden” Official Lyric Video | KPop Demon '
+      'Hunters | Sony Animation\n'
+      'https://www.youtube.com/user/SonyAnimation',
+    'liveBroadcastContent': 'none',
+    'localized': {
+      'description': 'We’re going up, up, up. Watch the '
+        'official lyric video for “Golden” '
+        'from KPop Demon Hunters. KPop Demon '
+        'Hunters is now on Netflix. \n'
+        '\n'
+        'Listen to the KPop Demon Hunters '
+        'soundtrack here: '
+        'https://kpopdemonhunters.lnk.to/Soundtrack \n'
+        '\n'
+        'About KPop Demon Hunters: \n'
+        "When they aren't selling out "
+        'stadiums, KPop superstars Rumi, '
+        'Mira and Zoey use their secret '
+        'identities as badass demon hunters '
+        'to protect their fans from an '
+        'ever-present supernatural threat. '
+        'Together, they must face their '
+        'biggest enemy yet – an irresistible '
+        'rival boy band of demons in '
+        'disguise.\n'
+        '\n'
+        'Directed by: Maggie Kang and Chris '
+        'Appelhans\n'
+        'Produced by: Michelle Wong\n'
+        'Co-Produced by: Scott Berri, Jacky '
+        'Priddle\n'
+        'Cast: Arden Cho, Ahn Hyo-seop, May '
+        'Hong, Ji-young Yoo, Yunjin Kim, '
+        'Joel Kim Booster, Liza Koshy, with '
+        'Daniel Dae Kim, Ken Jeong and Byung '
+        'Hun Lee.\n'
+        '\n'
+        'Subscribe to the Sony Animation '
+        'YouTube channel here: '
+        'https://bit.ly/2SGtGHU \n'
+        '\n'
+        'Follow Sony Animation on Social:\n'
+        'TikTok: '
+        'https://www.tiktok.com/@sonypicturesanimation \n'
+        'Twitter: '
+        'https://twitter.com/SonyAnimation \n'
+        'Instagram: '
+        'https://www.instagram.com/sonyanimation/ \n'
+        'Facebook: '
+        'https://www.facebook.com/SonyPicturesAnimation/\n'
+        '\n'
+        '#SonyAnimation #Netflix #KPop\n'
+        '\n'
+        '“Golden” Official Lyric Video | '
+        'KPop Demon Hunters | Sony '
+        'Animation\n'
+        'https://www.youtube.com/user/SonyAnimation',
+      'title': '“Golden” Official Lyric Video | KPop ''Demon Hunters | Sony Animation'
+    },
+    'publishedAt': '2025-06-23T22:30:00Z',
+    'tags': [
+      'Sony Pictures Animation',
+      'Sony Animation',
+      'Sony Pictures Imageworks',
+      'Imageworks',
+      'Netflix',
+      'K-Pop',
+      'KPop',
+      'Anime',
+      'KDrama',
+      'Huntrix',
+      'Saja Boys',
+      'Idol',
+      'Korea',
+      'Korean',
+      'Jeongyeon',
+      'Jihyo',
+      'Chaeyoung',
+      'Golden',
+      'KPop Demon Hunters'
+    ],
+    'thumbnails': {
+      'default': {
+        'height': 90,
+        'url': 'https://i.ytimg.com/vi/yebNIHKAC4A/default.jpg',
+        'width': 120
+      },
+      'high': {
+        'height': 360,
+        'url': 'https://i.ytimg.com/vi/yebNIHKAC4A/hqdefault.jpg',
+        'width': 480
+      },
+      'maxres': {
+        'height': 720,
+        'url': 'https://i.ytimg.com/vi/yebNIHKAC4A/maxresdefault.jpg',
+        'width': 1280
+      },
+      'medium': {
+        'height': 180,
+        'url': 'https://i.ytimg.com/vi/yebNIHKAC4A/mqdefault.jpg',
+        'width': 320
+      },
+      'standard': {
+        'height': 480,
+        'url': 'https://i.ytimg.com/vi/yebNIHKAC4A/sddefault.jpg',
+        'width': 640
+      }
+    },
+    'title': '“Golden” Official Lyric Video | KPop Demon Hunters | ''Sony Animation'
+  },
+  'statistics': {
+    'commentCount': '151804',
+    'favoriteCount': '0',
+    'likeCount': '4957377',
+    'viewCount': '855315952'
+  },
+  'status': {
+    'embeddable': True,
+    'license': 'youtube',
+    'madeForKids': False,
+    'privacyStatus': 'public',
+    'publicStatsViewable': True,
+    'uploadStatus': 'processed'
+  },
+  'topicDetails': {
+    'topicCategories': [
+      'https://en.wikipedia.org/wiki/Music',
+      'https://en.wikipedia.org/wiki/Music_of_Asia',
+      'https://en.wikipedia.org/wiki/Pop_music'
+    ]
+  }
+}
+```                      
+
 * benefit of using subdirectories in your models directory is that it allows you to configure materializations at the folder level for a collection of model
 
 * two functions of a staging model in dbt:
