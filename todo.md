@@ -38,10 +38,10 @@
     |- what we could do is build an intermediate table that determines the sentiment of posts and comments using snowflake cortex ai
 * 
 
-
-
-# setting up medium api data extractor
-* https://mediumapi.com/ 
+# setting up youtube api data extractor
+* setup search of videos of a certain topic
+* use the searched video ids to get statistics, snippet, etc.
+* in each video id setup request for getting the comment threads from each video
 
 # IBM Interview Prep
 * need to know how to build macros
