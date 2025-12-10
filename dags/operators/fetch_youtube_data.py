@@ -147,23 +147,83 @@ if __name__ == "__main__":
                     .get("snippet")\
                     .get("videoId"),
                 "comment_id": item.get("id"),
-                "author_channel_id": "",
-                "channel_id_where_comment_was_made": "",
-                "parent_comment_id": "",
-                "text_original": "",
-                "text_display": "",
-                "published_at": "",
-                "updated_at": "",
-                "like_count": "",
-                "author_display_name": "",
-                "author_channel_uri": "",
+                "author_channel_id": item.get("snippet")\
+                    .get("topLevelComment")\
+                    .get("snippet")\
+                    .get("authorChannelId")\
+                    .get("value"),
+                "channel_id_where_comment_was_made": item.get("snippet")\
+                    .get("topLevelComment")\
+                    .get("channelId"),
+                "parent_comment_id": None,
+                "text_original": item.get("snippet")\
+                    .get("topLevelComment")\
+                    .get("snippet")\
+                    .get("textOriginal"),
+                "text_display": item.get("snippet")\
+                    .get("topLevelComment")\
+                    .get("snippet")\
+                    .get("textDisplay"),
+                "published_at": item.get("snippet")\
+                    .get("topLevelComment")\
+                    .get("snippet")\
+                    .get("publishedAt"),
+                "updated_at": item.get("snippet")\
+                    .get("topLevelComment")\
+                    .get("snippet")\
+                    .get("updatedAt"),
+                "like_count": item.get("snippet")\
+                    .get("topLevelComment")\
+                    .get("snippet")\
+                    .get("likeCount"),
+                "author_display_name": item.get("snippet")\
+                    .get("topLevelComment")\
+                    .get("snippet")\
+                    .get("authorDisplayName"),
+                "author_channel_uri": item.get("snippet")\
+                    .get("topLevelComment")\
+                    .get("snippet")\
+                    .get("authorChannelUri"),
             })
+
+            # if replies key does not exist in items then 
+            # that means there are no replies to the top 
+            # level comment thereby not running the loop
+            if item.get("replies"):
+                for reply in item.get("replies").get("comments"):
+                    comments.append({
+                        "level": "reply",
+                        "video_id": reply.get("snippet")\
+                            .get("videoId"),
+                        "comment_id": reply.get("id"),
+                        "author_channel_id": reply.get("snippet")\
+                            .get("authorChannelId")\
+                            .get("value"),
+                        "channel_id_where_comment_was_made": reply.get("snippet")\
+                            .get("channelId"),
+                        "parent_comment_id": reply.get("snippet")\
+                            .get("parentId"),
+                        "text_original": reply.get("snippet")\
+                            .get("textOriginal"),
+                        "text_display": reply.get("snippet")\
+                            .get("textDisplay"),
+                        "published_at": reply.get("snippet")\
+                            .get("publishedAt"),
+                        "updated_at": reply.get("snippet")\
+                            .get("updatedAt"),
+                        "like_count": reply.get("snippet")\
+                            .get("likeCount"),
+                        "author_display_name": reply.get("snippet")\
+                            .get("authorDisplayName"),
+                        "author_channel_uri": reply.get("snippet")\
+                            .get("authorChannelUri"),
+                    })
 
         next_page_token = response.get("nextPageToken")
         if not next_page_token:
             break
     
-
+    pprint.pprint(comments)
     # we will make a search first to retrieve a list of videos
     # query = "Kpop demon hunters"
     # params = {
