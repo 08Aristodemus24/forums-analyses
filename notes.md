@@ -1893,7 +1893,7 @@ this is because we set the params of the `commentThreads()` resource method `.li
 * a 
 ```
 {
-  'contentDetails': {
+  'contentDetails': { # WE NEED CONTENT DETAILS AS THIS CONTAINS INFORMATION ABOUT DURATION OF VIDEO e.g. duration which is an ISO 8601 string. PT stands for Time Duration, 3M is 3 minutes, and 19S is 19 seconds, that we can use if video is long form content and determine how many people watch long form content
     'caption': 'false',
     'contentRating': {},
     'definition': 'hd',
@@ -1903,7 +1903,7 @@ this is because we set the params of the `commentThreads()` resource method `.li
     'projection': 'rectangular'
   },
  'etag': 'QgvLF32RrMhZKtnKcDWfZnec8qs',
- 'id': 'yebNIHKAC4A',
+ 'id': 'yebNIHKAC4A', #id of video
  'kind': 'youtube#video',
  'localizations': {
     'en': {
@@ -1956,8 +1956,8 @@ this is because we set the params of the `commentThreads()` resource method `.li
         '\n'
         '“Golden” Official Lyric Video | KPop '
         'Demon Hunters | Sony Animation\n'
-        'https://www.youtube.com/user/SonyAnimation',
-      'title': '“Golden” Official Lyric Video | KPop Demon ''Hunters Sony Animation'
+        'https://www.youtube.com/user/SonyAnimation', # full description of video
+      'title': '“Golden” Official Lyric Video | KPop Demon ''Hunters Sony Animation' # full title of video
     } 
   },
  'paidProductPlacementDetails': {
@@ -1975,8 +1975,8 @@ this is because we set the params of the `commentThreads()` resource method `.li
  'recordingDetails': {},
  'snippet': {
     'categoryId': '1',
-    'channelId': 'UCnLuLSV-Oi0ctqjxGgxFlmg',
-    'channelTitle': 'Sony Pictures Animation',
+    'channelId': 'UCnLuLSV-Oi0ctqjxGgxFlmg', # id of the channel that made the vidoe
+    'channelTitle': 'Sony Pictures Animation', # title fo the channel that made the video
     'defaultAudioLanguage': 'en-US',
     'defaultLanguage': 'en',
     'description': 'We’re going up, up, up. Watch the official lyric '
@@ -2019,7 +2019,7 @@ this is because we set the params of the `commentThreads()` resource method `.li
       '\n'
       '“Golden” Official Lyric Video | KPop Demon '
       'Hunters | Sony Animation\n'
-      'https://www.youtube.com/user/SonyAnimation',
+      'https://www.youtube.com/user/SonyAnimation', # FULL DESCRIPTION OF VIDEO
     'liveBroadcastContent': 'none',
     'localized': {
       'description': 'We’re going up, up, up. Watch the '
@@ -2073,11 +2073,11 @@ this is because we set the params of the `commentThreads()` resource method `.li
         '“Golden” Official Lyric Video | '
         'KPop Demon Hunters | Sony '
         'Animation\n'
-        'https://www.youtube.com/user/SonyAnimation',
-      'title': '“Golden” Official Lyric Video | KPop ''Demon Hunters | Sony Animation'
+        'https://www.youtube.com/user/SonyAnimation', # FULL DESCRIPTION OF VIDEO
+      'title': '“Golden” Official Lyric Video | KPop ''Demon Hunters | Sony Animation' # FULL TITLE OF VIDEO
     },
-    'publishedAt': '2025-06-23T22:30:00Z',
-    'tags': [
+    'publishedAt': '2025-06-23T22:30:00Z', # NEED THIS TIMESTAMP
+    'tags': [ # NEED THESE TAGS FOR TOPIC MODELLING
       'Sony Pictures Animation',
       'Sony Animation',
       'Sony Pictures Imageworks',
@@ -2125,9 +2125,9 @@ this is because we set the params of the `commentThreads()` resource method `.li
         'width': 640
       }
     },
-    'title': '“Golden” Official Lyric Video | KPop Demon Hunters | ''Sony Animation'
+    'title': '“Golden” Official Lyric Video | KPop Demon Hunters | ''Sony Animation' # FULL TITLE OF VIDEO
   },
-  'statistics': {
+  'statistics': { # STATISTICS THAT WE NEED FOR THE VIDEO THAT CONTAIN QUANTIFIABLE TRANSACTION DATA
     'commentCount': '151804',
     'favoriteCount': '0',
     'likeCount': '4957377',
@@ -2136,12 +2136,12 @@ this is because we set the params of the `commentThreads()` resource method `.li
   'status': {
     'embeddable': True,
     'license': 'youtube',
-    'madeForKids': False,
+    'madeForKids': False, # WE MIGHT NEED THIS TO DETERMINE HOW MANY OF THE VIDEOS ARE MADE FOR ADULTS
     'privacyStatus': 'public',
     'publicStatsViewable': True,
     'uploadStatus': 'processed'
   },
-  'topicDetails': {
+  'topicDetails': { # WE DON'T NEED THIS MUCH
     'topicCategories': [
       'https://en.wikipedia.org/wiki/Music',
       'https://en.wikipedia.org/wiki/Music_of_Asia',

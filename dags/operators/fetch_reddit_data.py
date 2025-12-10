@@ -381,7 +381,7 @@ if __name__ == "__main__":
     parser.add_argument("--object_name", type=str, default="raw_reddit_posts_comments", help="represents the name of provisioned object/filename in s3")
     parser.add_argument("--folder_name", type=str, default="", help="represents the name of folder containing the object/filename in s3 bucket")
     parser.add_argument("--subreddit_name", type=str, default="KpopDemonHunters", help="represents the subreddit to scrape posts comments in")
-    parser.add_argument("--kind", type=str, default="post", help="represents the kind of data to scrape on reddit can be post or comment")
+    parser.add_argument("--kind", type=str, default="posts", help="represents the kind of data to scrape on reddit can be post or comment")
     parser.add_argument("--limit", type=int, default=1, help="represents the limit to the number of posts to scrape on reddit")
     parser.add_argument("--local", action="store_true", help="represents if the bucket name and object is a local path to the delta file if user decides not to write in s3")
     args = parser.parse_args()
