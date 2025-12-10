@@ -3,6 +3,7 @@ import pprint
 import logging
 import pyarrow as pa
 import datetime as dt
+import isodate
 
 from dotenv import load_dotenv
 from pathlib import Path
@@ -32,6 +33,111 @@ logger = setup_logging()
 logger.info("Script started.") # Will appear on console and file
 logger.debug("Attempting to extract forum data.") # Will only appear in the file'
 
+def upsert_videos_comments(delta_table: DeltaTable, df: pa.Table):
+    """
+    updates old comment records and inserts new 
+    comment record in the existing delta table 
+    using the data in the source table 
+    """
+
+    try:
+        delta_table.merge(
+            df,
+            predicate="target.post_id = source.post_id AND \
+                target.comment_id = source.comment_id AND \
+                target.comment_parent_id = source.comment_parent_id",
+            source_alias="source",
+            target_alias="target",
+            merge_schema=True
+        ).when_matched_update(
+            updates={
+                # these are not included as these are the composite keys
+                # that are not by good practice supposed to be updated
+                # "post_id": "source.post_id",
+                # "comment_id": "source.comment_id",
+                # "comment_parent_id": "source.comment_parent_id",
+                "post_name": "source.post_name",
+                "level": "source.level",
+                "comment_upvotes": "source.comment_upvotes",
+                "comment_downvotes": "source.comment_downvotes",
+                "comment_name": "source.comment_name",
+                # "comment_created_at": "source.comment_created_at",
+                "comment_edited_at": "source.comment_edited_at",
+                "comment_author_name": "source.comment_author_name",
+                "comment_author_fullname": "source.comment_author_fullname",
+                "comment_body": "source.comment_body",
+                "added_at": "source.added_at",
+            }, 
+            # this tells delta to only update a record if the new record
+            # does indeed have changed its column values when compared to the
+            # current record
+            predicate="source.post_name IS DISTINCT FROM target.post_name OR" \
+                "source.level IS DISTINCT FROM target.level OR" \
+                "source.comment_upvotes IS DISTINCT FROM target.comment_upvotes OR" \
+                "source.comment_downvotes IS DISTINCT FROM target.comment_downvotes OR" \
+                "source.comment_name IS DISTINCT FROM target.comment_name OR" \
+                # "source.comment_created_at IS DISTINCT FROM target.comment_created_at OR" \
+                "source.comment_edited_at > target.comment_edited_at OR" \
+                "source.comment_author_name IS DISTINCT FROM target.comment_author_name OR" \
+                "source.comment_author_fullname IS DISTINCT FROM target.comment_author_fullname OR" \
+                "source.comment_body IS DISTINCT FROM target.comment_body" \
+                "source.added_at IS DISTINCT FROM target.added_at"
+        ).when_not_matched_insert_all()\
+        .execute()
+
+    except Exception as e:
+        # this runs if no table exists in s3 bucket
+        logger.warning(f"`{e}` occured during delta upsert")
+
+def upsert_videos(delta_table: DeltaTable, df: pa.Table):
+    """
+    updates old post records and inserts new post
+    records in the existing delta table using the
+    data in the source table 
+    """
+
+    try:
+        delta_table.merge(
+            df,
+            predicate="target.post_id = source.post_id",
+            source_alias="source",
+            target_alias="target",
+            merge_schema=True
+        ).when_matched_update(
+            updates={
+                # these are not included as these are the composite keys
+                # that are not by good practice supposed to be updated
+                # "post_id": "source.post_id",
+                "post_title": "source.post_title",
+                "post_score": "source.post_score",
+                "post_url": "source.post_url",
+                "post_name": "source.post_name",
+                "post_author_name": "source.post_author_name",
+                "post_author_fullname": "source.post_author_fullname",
+                "post_body": "source.post_body",
+                "post_created_at": "source.post_created_at",
+                "post_edited_at": "source.post_edited_at",
+                "added_at": "source.added_at",
+            }, 
+            # this tells delta to only update a record if the new record
+            # does indeed have changed its column values when compared to the
+            # current record
+            predicate="source.post_title IS DISTINCT FROM target.post_title OR" \
+                "source.post_score IS DISTINCT FROM target.post_score OR" \
+                "source.post_url IS DISTINCT FROM target.post_url OR" \
+                "source.post_name IS DISTINCT FROM target.post_name OR" \
+                "source.post_author_name IS DISTINCT FROM target.post_author_name OR" \
+                "source.post_author_fullname IS DISTINCT FROM target.post_author_fullname" \
+                "source.post_body IS DISTINCT FROM target.post_body OR" \
+                # "source.post_created_at IS DISTINCT FROM target.post_created_at OR" \
+                "source.post_edited_at > target.post_edited_at OR" \
+                "source.added_at IS DISTINCT FROM target.added_at OR"
+        ).when_not_matched_insert_all()\
+        .execute()
+
+    except Exception as e:
+        # this runs if no table exists in s3 bucket
+        logger.warning(f"`{e}` occured during delta upsert")
 
 def write_delta_to_bucket(
     aws_creds: dict, 
@@ -90,6 +196,313 @@ def write_delta_to_bucket(
             mode="overwrite", 
         )
 
+def search_videos(youtube, query, limit):
+    """
+    Docstring for search_videos
+    fileDetails, processingDetails, and suggestion parts of a youtube video
+    can only be accessed by owner of the video, so if you want to access
+    it you won't but if you do want to access your own videos these parts
+    can be accessed using OAuth2 credentials
+    
+    :param youtube: Description
+    :param query: Description
+    :param limit: Description
+    """
+
+    # we will make a search first to retrieve a list of videos
+    params = {
+        "part": ",".join(["snippet"]),
+        "q": query,
+        "order": "viewCount",
+        "maxResults": limit,
+        # can be video, channel, or playlist
+        # this can be useful if were trying to widen
+        # pool of data sources,but keep it simple for
+        # now
+        "type": "video"
+    }
+
+    next_page_token = None
+    logger.info(f"beginning search of youtube videos from query {query}...")
+    request = youtube.search().list(**params)
+
+    video_ids = []
+    for _ in range(limit):
+        response = request.execute()
+        
+        # loop through search results video ids and collect
+        for item in response["items"]:
+            id = item.get("id", {})
+            video_id = id.get("videoId")
+            video_ids.append(video_id)
+
+        next_page_token = response.get("nextPageToken")
+        if not next_page_token:
+            break
+    
+    # get only the unique video ids as some may be duplicated
+    video_ids = list(set(video_ids))
+    logger.info(f"collected {query} related video ids.")
+
+    return video_ids
+
+def extract_videos(
+    youtube, 
+    video_ids, 
+    limit, 
+    aws_creds, 
+    bucket_name, 
+    folder_name, 
+    object_name, 
+    is_local, 
+    upsert_func
+):
+    """
+    Docstring for extract_videos
+    
+    :param youtube: Description
+    :param video_ids: Description
+    :param limit: Description
+    :param aws_creds: Description
+    :param bucket_name: Description
+    :param folder_name: Description
+    :param object_name: Description
+    :param is_local: Description
+    :param upsert_func: Description
+    """
+
+    params = {
+        "part": ",".join([
+            "contentDetails", 
+
+            # "fileDetails",
+            "id",
+            "liveStreamingDetails",
+
+            # we don't this localizations too much 
+            # "localizations",
+
+            # we don't this paidProductPlacementDetails too much 
+            # "paidProductPlacementDetails",
+
+            # we don't this player too much 
+            # "player",
+
+            # "processingDetails",
+
+            # we don't this recordingDetails too much 
+            # "recordingDetails",
+
+            "snippet",
+            "statistics",
+            "status",
+
+            # "suggestions",
+
+            # we don't need topicDetails too much
+            "topicDetails"
+        ]),
+        # The id parameter specifies a comma-separated 
+        # list of the YouTube video ID(s) for the resource(s) 
+        # that are being retrieved. In a video resource, 
+        # the id property specifies the video's ID.
+        "id": ",".join(video_ids)
+    }
+    
+    videos = []
+    next_page_token = None
+    logger.info(f"beginning retrieval of youtube videos details from list of video ids...")
+    request = youtube.videos().list(**params)
+
+    while True:
+        response = request.execute()
+        
+        for item in response["items"]:
+            videos.append({
+                "video_id": item.get("id"),
+
+                # PT3M19S to time delta is 3m19s
+                "duration": item.get("contentDetails")
+                    .get("duration"),
+                "channel_id": item.get("snippet")\
+                    .get("channelId"),
+                "channel_title": item.get("snippet")\
+                    .get("channelTitle"),
+                "video_title": item.get("snippet")\
+                    .get("title"),
+                "video_description": item.get("snippet")\
+                    .get("description"),
+                "video_tags": item.get("snippet")\
+                    .get("tags"),
+                "comment_count": int(item.get("statistics")\
+                    .get("commentCount")),
+                "favorite_count": int(item.get("statistics")\
+                    .get("favoriteCount")),
+                "like_count": int(item.get("statistics")\
+                    .get("likeCount")),
+                "view_count": int(item.get("statistics")
+                    .get("viewCount")),
+                "made_for_kids": item.get("status")\
+                    .get("madeForKids"),
+
+                # 2025-06-23T22:30:00Z
+                "published_at": dt.datetime.strptime(item.get("snippet")
+                    .get("publishedAt"), "%Y-%m-%dT%H:%M:%SZ"),
+            })
+
+        next_page_token = response.get("nextPageToken")
+        if not next_page_token:
+            break
+    
+    # Quota impact: A call to this method has a quota cost of 1 unit.
+    logger.info(f"retrieval of youtube videos details done.")
+    
+    pprint.pprint(videos)
+    logger.info(f"videos count: {len(videos)}")
+
+    # convert the list of dictionaries/records to pyarrow 
+    # table from scraped data
+    videos_table = pa.Table.from_pylist(videos)
+    logger.info(f"videos table shape:{videos_table.shape}")
+
+    write_delta_to_bucket(aws_creds, videos_table, bucket_name, object_name, folder_name, is_local, upsert_func)
+
+def extract_videos_comments(
+    youtube, 
+    video_ids, 
+    limit, 
+    aws_creds, 
+    bucket_name, 
+    folder_name, 
+    object_name, 
+    is_local, 
+    upsert_func
+):
+    """
+    Docstring for extract_videos_comments
+    
+    :param youtube: Description
+    :param video_ids: Description
+    :param limit: Description
+    :param aws_creds: Description
+    :param bucket_name: Description
+    :param folder_name: Description
+    :param object_name: Description
+    :param is_local: Description
+    :param upsert_func: Description
+    """
+
+    # define comments where all comments in videos will be
+    # stored
+    comments = []
+    for video_id in video_ids:
+        params = {
+            "part": ",".join(["snippet", "replies"]),
+            "videoId": video_id,
+            "maxResults": 100
+        }
+        
+        next_page_token = None
+        request = youtube.commentThreads().list(**params)
+
+        for _ in range(limit):
+            response = request.execute()
+            
+            for item in response["items"]:
+                # append top level comment statistics
+                comments.append({
+                    "level": "comment",
+                    "video_id": item.get("snippet")\
+                        .get("topLevelComment")\
+                        .get("snippet")\
+                        .get("videoId"),
+                    "comment_id": item.get("id"),
+                    "author_channel_id": item.get("snippet")\
+                        .get("topLevelComment")\
+                        .get("snippet")\
+                        .get("authorChannelId")\
+                        .get("value"),
+                    "channel_id_where_comment_was_made": item.get("snippet")\
+                        .get("topLevelComment")\
+                        .get("snippet")\
+                        .get("channelId"),
+                    "parent_comment_id": None,
+                    "text_original": item.get("snippet")\
+                        .get("topLevelComment")\
+                        .get("snippet")\
+                        .get("textOriginal"),
+                    "text_display": item.get("snippet")\
+                        .get("topLevelComment")\
+                        .get("snippet")\
+                        .get("textDisplay"),
+                    "published_at": item.get("snippet")\
+                        .get("topLevelComment")\
+                        .get("snippet")\
+                        .get("publishedAt"),
+                    "updated_at": item.get("snippet")\
+                        .get("topLevelComment")\
+                        .get("snippet")\
+                        .get("updatedAt"),
+                    "like_count": item.get("snippet")\
+                        .get("topLevelComment")\
+                        .get("snippet")\
+                        .get("likeCount"),
+                    "author_display_name": item.get("snippet")\
+                        .get("topLevelComment")\
+                        .get("snippet")\
+                        .get("authorDisplayName"),
+                    "author_channel_url": item.get("snippet")\
+                        .get("topLevelComment")\
+                        .get("snippet")\
+                        .get("authorChannelUrl"),
+                })
+
+                # if replies key does not exist in items then 
+                # that means there are no replies to the top 
+                # level comment thereby not running the loop
+                if item.get("replies"):
+                    for reply in item.get("replies").get("comments"):
+                        comments.append({
+                            "level": "reply",
+                            "video_id": reply.get("snippet")\
+                                .get("videoId"),
+                            "comment_id": reply.get("id"),
+                            "author_channel_id": reply.get("snippet")\
+                                .get("authorChannelId")\
+                                .get("value"),
+                            "channel_id_where_comment_was_made": reply.get("snippet")\
+                                .get("channelId"),
+                            "parent_comment_id": reply.get("snippet")\
+                                .get("parentId"),
+                            "text_original": reply.get("snippet")\
+                                .get("textOriginal"),
+                            "text_display": reply.get("snippet")\
+                                .get("textDisplay"),
+                            "published_at": reply.get("snippet")\
+                                .get("publishedAt"),
+                            "updated_at": reply.get("snippet")\
+                                .get("updatedAt"),
+                            "like_count": reply.get("snippet")\
+                                .get("likeCount"),
+                            "author_display_name": reply.get("snippet")\
+                                .get("authorDisplayName"),
+                            "author_channel_url": reply.get("snippet")\
+                                .get("authorChannelUrl"),
+                        })
+
+            next_page_token = response.get("nextPageToken")
+            if not next_page_token:
+                break
+        
+    pprint.pprint(comments)
+    logger.info(f"comments count: {len(comments)}")
+
+    # convert the list of dictionaries/records to pyarrow 
+    # table from scraped data
+    videos_comments_table = pa.Table.from_pylist(comments)
+    logger.info(f"videos comments and replies table shape:{videos_comments_table.shape}")
+
+    write_delta_to_bucket(aws_creds, videos_comments_table, bucket_name, object_name, folder_name, is_local, upsert_func)
 
 if __name__ == "__main__":
     # python fetch_youtube_data.py --bucket_name forums-analyses-bucket --object_name raw_youtube_videos_comments --kind comments
@@ -113,221 +526,48 @@ if __name__ == "__main__":
     env_dir = Path('../../').resolve()
     load_dotenv(os.path.join(env_dir, '.env'))
 
+    # get env variables
+    aws_creds = {
+        "access_key": os.environ.get("AWS_ACCESS_KEY_ID"),
+        "secret_key": os.environ.get("AWS_SECRET_ACCESS_KEY"),
+        "region": os.environ.get("AWS_REGION_NAME"),
+    }
     YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY")
-
-    # # fileDetails, processingDetails, and suggestion parts of a youtube video
-    # # can only be accessed by owner of the video, so if you want to access
-    # # it you won't but if you do want to access your own videos these parts
-    # # can be accessed using OAuth2 credentials
 
     # youtube url when this is built will be
     # `https://www.youtube.com/watch?v=<video id>` or in 
     # this case `https://www.youtube.com/watch?v=SIm2W9TtzR0`
     youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
     
-    # we will make a search first to retrieve a list of videos
-    query = "Kpop demon hunters"
-    params = {
-        "part": ",".join(["snippet"]),
-        "q": query,
-        "order": "viewCount",
-        "maxResults": 1,
-        # can be video, channel, or playlist
-        # this can be useful if were trying to widen
-        # pool of data sources,but keep it simple for
-        # now
-        "type": "video"
-    }
+    # searches videos and returns the list of video ids
+    video_ids = search_videos(youtube, args.search_query, args.limit)
 
-    next_page_token = None
-    logger.info(f"beginning search of youtube videos from query {query}.")
-    request = youtube.search().list(**params)
-
-    video_ids = []
-    for _ in range(args.limit):
-        response = request.execute()
-        
-        # loop through search results video ids and collect
-        for item in response["items"]:
-            id = item.get("id", {})
-            video_id = id.get("videoId")
-            video_ids.append(video_id)
-
-        next_page_token = response.get("nextPageToken")
-        if not next_page_token:
-            break
-    
-    # get only the unique video ids as some may be duplicated
-    video_ids = list(set(video_ids))
-    logger.info(f"collected {query} related video ids.")
-    
+    # extracts comments from list of youtube videos
     if args.kind == "comments":
-        # define comments where all comments in videos will be
-        # stored
-        comments = []
-        for video_id in video_ids:
-            params = {
-                "part": ",".join(["snippet", "replies"]),
-                "videoId": video_id,
-                "maxResults": 100
-            }
-            
-            next_page_token = None
-            request = youtube.commentThreads().list(**params)
-
-            for _ in range(args.limit):
-                response = request.execute()
-                
-                for item in response["items"]:
-                    # append top level comment statistics
-                    comments.append({
-                        "level": "comment",
-                        "video_id": item.get("snippet")\
-                            .get("topLevelComment")\
-                            .get("snippet")\
-                            .get("videoId"),
-                        "comment_id": item.get("id"),
-                        "author_channel_id": item.get("snippet")\
-                            .get("topLevelComment")\
-                            .get("snippet")\
-                            .get("authorChannelId")\
-                            .get("value"),
-                        "channel_id_where_comment_was_made": item.get("snippet")\
-                            .get("topLevelComment")\
-                            .get("snippet")\
-                            .get("channelId"),
-                        "parent_comment_id": None,
-                        "text_original": item.get("snippet")\
-                            .get("topLevelComment")\
-                            .get("snippet")\
-                            .get("textOriginal"),
-                        "text_display": item.get("snippet")\
-                            .get("topLevelComment")\
-                            .get("snippet")\
-                            .get("textDisplay"),
-                        "published_at": item.get("snippet")\
-                            .get("topLevelComment")\
-                            .get("snippet")\
-                            .get("publishedAt"),
-                        "updated_at": item.get("snippet")\
-                            .get("topLevelComment")\
-                            .get("snippet")\
-                            .get("updatedAt"),
-                        "like_count": item.get("snippet")\
-                            .get("topLevelComment")\
-                            .get("snippet")\
-                            .get("likeCount"),
-                        "author_display_name": item.get("snippet")\
-                            .get("topLevelComment")\
-                            .get("snippet")\
-                            .get("authorDisplayName"),
-                        "author_channel_url": item.get("snippet")\
-                            .get("topLevelComment")\
-                            .get("snippet")\
-                            .get("authorChannelUrl"),
-                    })
-
-                    # if replies key does not exist in items then 
-                    # that means there are no replies to the top 
-                    # level comment thereby not running the loop
-                    if item.get("replies"):
-                        for reply in item.get("replies").get("comments"):
-                            comments.append({
-                                "level": "reply",
-                                "video_id": reply.get("snippet")\
-                                    .get("videoId"),
-                                "comment_id": reply.get("id"),
-                                "author_channel_id": reply.get("snippet")\
-                                    .get("authorChannelId")\
-                                    .get("value"),
-                                "channel_id_where_comment_was_made": reply.get("snippet")\
-                                    .get("channelId"),
-                                "parent_comment_id": reply.get("snippet")\
-                                    .get("parentId"),
-                                "text_original": reply.get("snippet")\
-                                    .get("textOriginal"),
-                                "text_display": reply.get("snippet")\
-                                    .get("textDisplay"),
-                                "published_at": reply.get("snippet")\
-                                    .get("publishedAt"),
-                                "updated_at": reply.get("snippet")\
-                                    .get("updatedAt"),
-                                "like_count": reply.get("snippet")\
-                                    .get("likeCount"),
-                                "author_display_name": reply.get("snippet")\
-                                    .get("authorDisplayName"),
-                                "author_channel_url": reply.get("snippet")\
-                                    .get("authorChannelUrl"),
-                            })
-
-                next_page_token = response.get("nextPageToken")
-                if not next_page_token:
-                    break
-            
-        pprint.pprint(comments)
+        extract_videos_comments(
+            youtube=youtube, 
+            video_ids=video_ids, 
+            limit=args.limit, 
+            aws_creds=aws_creds, 
+            bucket_name=args.bucket_name, 
+            folder_name=args.folder_name, 
+            object_name=args.object_name, 
+            is_local=args.local, 
+            upsert_func=upsert_videos_comments
+        )
 
     elif args.kind == "videos":
-        params = {
-            "part": ",".join([
-                "contentDetails", 
-
-                # "fileDetails",
-                "id",
-                "liveStreamingDetails",
-
-                # we don't this localizations too much 
-                # "localizations",
-
-                # we don't this paidProductPlacementDetails too much 
-                # "paidProductPlacementDetails",
-
-                # we don't this player too much 
-                # "player",
-
-                # "processingDetails",
-
-                # we don't this recordingDetails too much 
-                # "recordingDetails",
-
-                "snippet",
-                "statistics",
-                "status",
-
-                # "suggestions",
-
-                # we don't need topicDetails too much
-                "topicDetails"
-            ]),
-            # The id parameter specifies a comma-separated 
-            # list of the YouTube video ID(s) for the resource(s) 
-            # that are being retrieved. In a video resource, 
-            # the id property specifies the video's ID.
-            "id": ",".join(video_ids)
-        }
-        
-        videos = []
-        next_page_token = None
-        logger.info(f"beginning retrieval of youtube videos details from list of video ids.")
-        request = youtube.videos().list(**params)
-
-        while True:
-            response = request.execute()
-            
-            for item in response["items"]:
-                videos.append({
-                    "video_id": item.get("id"),
-                    "duration": item.get("contentDetails")\
-                        .get("duration"),
-                    ""
-                })
-
-            next_page_token = response.get("nextPageToken")
-            if not next_page_token:
-                break
-        
-        # Quota impact: A call to this method has a quota cost of 1 unit.
-        logger.info(f"retrieval of youtube videos details done.")
-
+        extract_videos(
+            youtube=youtube, 
+            video_ids=video_ids, 
+            limit=args.limit, 
+            aws_creds=aws_creds, 
+            bucket_name=args.bucket_name, 
+            folder_name=args.folder_name, 
+            object_name=args.object_name, 
+            is_local=args.local, 
+            upsert_func=upsert_videos
+        )
 
 # [{'author_channel_id': 'UCHwB2B8dAzuDRo1YbIeSSqA',
 #   'author_channel_uri': None,
