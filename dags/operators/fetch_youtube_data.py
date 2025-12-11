@@ -43,9 +43,7 @@ def upsert_videos_comments(delta_table: DeltaTable, df: pa.Table):
     try:
         delta_table.merge(
             df,
-            predicate="target.post_id = source.post_id AND \
-                target.comment_id = source.comment_id AND \
-                target.comment_parent_id = source.comment_parent_id",
+            predicate="target.comment_id = source.comment_id",
             source_alias="source",
             target_alias="target",
             merge_schema=True
@@ -53,35 +51,43 @@ def upsert_videos_comments(delta_table: DeltaTable, df: pa.Table):
             updates={
                 # these are not included as these are the composite keys
                 # that are not by good practice supposed to be updated
-                # "post_id": "source.post_id",
-                # "comment_id": "source.comment_id",
-                # "comment_parent_id": "source.comment_parent_id",
-                "post_name": "source.post_name",
-                "level": "source.level",
-                "comment_upvotes": "source.comment_upvotes",
-                "comment_downvotes": "source.comment_downvotes",
-                "comment_name": "source.comment_name",
-                # "comment_created_at": "source.comment_created_at",
-                "comment_edited_at": "source.comment_edited_at",
-                "comment_author_name": "source.comment_author_name",
-                "comment_author_fullname": "source.comment_author_fullname",
-                "comment_body": "source.comment_body",
-                "added_at": "source.added_at",
+                "level" : "source.level",
+                # "video_id" : "source.video_id",
+                # "comment_id" : "source.comment_id",
+                "author_channel_id" : "source.author_channel_id",
+                "channel_id_where_comment_was_made" : "source.channel_id_where_comment_was_made",
+                "parent_comment_id" : "source.parent_comment_id",
+                "text_original" : "source.text_original",
+                "text_display" : "source.text_display",
+                # "published_at" : "source.published_at",
+                "updated_at" : "source.updated_at",
+                "like_count" : "source.like_count",
+                "author_display_name" : "source.author_display_name",
+                "author_channel_url" : "source.author_channel_url",
+
+                "added_at": "source.added_at", 
             }, 
             # this tells delta to only update a record if the new record
             # does indeed have changed its column values when compared to the
             # current record
-            predicate="source.post_name IS DISTINCT FROM target.post_name OR" \
-                "source.level IS DISTINCT FROM target.level OR" \
-                "source.comment_upvotes IS DISTINCT FROM target.comment_upvotes OR" \
-                "source.comment_downvotes IS DISTINCT FROM target.comment_downvotes OR" \
-                "source.comment_name IS DISTINCT FROM target.comment_name OR" \
-                # "source.comment_created_at IS DISTINCT FROM target.comment_created_at OR" \
-                "source.comment_edited_at > target.comment_edited_at OR" \
-                "source.comment_author_name IS DISTINCT FROM target.comment_author_name OR" \
-                "source.comment_author_fullname IS DISTINCT FROM target.comment_author_fullname OR" \
-                "source.comment_body IS DISTINCT FROM target.comment_body" \
-                "source.added_at IS DISTINCT FROM target.added_at"
+            predicate="""
+                (source.level IS DISTINCT FROM target.level) OR    
+                (source.author_channel_id IS DISTINCT FROM target.author_channel_id) OR
+                (source.channel_id_where_comment_was_made IS DISTINCT FROM target.channel_id_where_comment_was_made) OR
+                (source.parent_comment_id IS DISTINCT FROM target.parent_comment_id) OR
+                (source.text_original IS DISTINCT FROM target.text_original) OR
+                (source.text_display IS DISTINCT FROM target.text_display) OR
+                (source.updated_at > target.updated_at) OR
+                (source.like_count IS DISTINCT FROM target.like_count) OR
+                (source.author_display_name IS DISTINCT FROM target.author_display_name) OR
+                (source.author_channel_url IS DISTINCT FROM target.author_channel_url) OR
+                
+                (source.added_at IS DISTINCT FROM target.added_at)
+            """
+            
+            # (source.video_id IS DISTINCT FROM target.video_id) OR
+            # (source.comment_id IS DISTINCT FROM target.comment_id) OR
+            # (source.published_at IS DISTINCT FROM target.published_at) OR
         ).when_not_matched_insert_all()\
         .execute()
 
@@ -99,7 +105,7 @@ def upsert_videos(delta_table: DeltaTable, df: pa.Table):
     try:
         delta_table.merge(
             df,
-            predicate="target.post_id = source.post_id",
+            predicate="target.video_id = source.video_id",
             source_alias="source",
             target_alias="target",
             merge_schema=True
@@ -107,31 +113,40 @@ def upsert_videos(delta_table: DeltaTable, df: pa.Table):
             updates={
                 # these are not included as these are the composite keys
                 # that are not by good practice supposed to be updated
-                # "post_id": "source.post_id",
-                "post_title": "source.post_title",
-                "post_score": "source.post_score",
-                "post_url": "source.post_url",
-                "post_name": "source.post_name",
-                "post_author_name": "source.post_author_name",
-                "post_author_fullname": "source.post_author_fullname",
-                "post_body": "source.post_body",
-                "post_created_at": "source.post_created_at",
-                "post_edited_at": "source.post_edited_at",
-                "added_at": "source.added_at",
+                # "video_id": "source.video_id",
+                "duration": "source.duration",
+                "channel_id": "source.channel_id",
+                "channel_title": "source.channel_title",
+                "video_title": "source.video_title",
+                "video_description": "source.video_description",
+                "video_tags": "source.video_tags",
+                "comment_count": "source.comment_count",
+                "favorite_count": "source.favorite_count",
+                "like_count": "source.like_count",
+                "view_count": "source.view_count",
+                "made_for_kids": "source.made_for_kids",
+                # "published_at": "source.published_at"
+                "added_at": "source.added_at", 
             }, 
             # this tells delta to only update a record if the new record
             # does indeed have changed its column values when compared to the
             # current record
-            predicate="source.post_title IS DISTINCT FROM target.post_title OR" \
-                "source.post_score IS DISTINCT FROM target.post_score OR" \
-                "source.post_url IS DISTINCT FROM target.post_url OR" \
-                "source.post_name IS DISTINCT FROM target.post_name OR" \
-                "source.post_author_name IS DISTINCT FROM target.post_author_name OR" \
-                "source.post_author_fullname IS DISTINCT FROM target.post_author_fullname" \
-                "source.post_body IS DISTINCT FROM target.post_body OR" \
-                # "source.post_created_at IS DISTINCT FROM target.post_created_at OR" \
-                "source.post_edited_at > target.post_edited_at OR" \
-                "source.added_at IS DISTINCT FROM target.added_at OR"
+            predicate="""
+                (source.duration IS DISTINCT FROM target.duration) OR
+                (source.channel_id IS DISTINCT FROM target.channel_id) OR
+                (source.channel_title IS DISTINCT FROM target.channel_title) OR
+                (source.video_title IS DISTINCT FROM target.video_title) OR
+                (source.video_description IS DISTINCT FROM target.video_description) OR 
+                (source.video_tags IS DISTINCT FROM target.video_tags) OR 
+                (source.comment_count IS DISTINCT FROM target.comment_count) OR 
+                (source.favorite_count IS DISTINCT FROM target.favorite_count) OR 
+                (source.like_count IS DISTINCT FROM target.like_count) OR 
+                (source.view_count IS DISTINCT FROM target.view_count) OR
+                (source.made_for_kids IS DISTINCT FROM target.made_for_kids) OR
+                
+                (source.added_at IS DISTINCT FROM target.added_at)
+            """
+            # "source.published_at IS DISTINCT FROM target.published_at OR"
         ).when_not_matched_insert_all()\
         .execute()
 
@@ -318,6 +333,7 @@ def extract_videos(
         response = request.execute()
         
         for item in response["items"]:
+            # pprint.pprint(item)
             videos.append({
                 "video_id": item.get("id"),
 
@@ -348,6 +364,7 @@ def extract_videos(
                 # 2025-06-23T22:30:00Z
                 "published_at": dt.datetime.strptime(item.get("snippet")
                     .get("publishedAt"), "%Y-%m-%dT%H:%M:%SZ"),
+                "added_at": dt.datetime.now()
             })
 
         next_page_token = response.get("nextPageToken")
@@ -455,6 +472,7 @@ def extract_videos_comments(
                         .get("topLevelComment")\
                         .get("snippet")\
                         .get("authorChannelUrl"),
+                    "added_at": dt.datetime.now()
                 })
 
                 # if replies key does not exist in items then 
@@ -488,6 +506,7 @@ def extract_videos_comments(
                                 .get("authorDisplayName"),
                             "author_channel_url": reply.get("snippet")\
                                 .get("authorChannelUrl"),
+                            "added_at": dt.datetime.now()
                         })
 
             next_page_token = response.get("nextPageToken")
@@ -3703,3 +3722,4 @@ if __name__ == "__main__":
 #   'text_original': '4',
 #   'updated_at': '2025-12-10T04:21:10Z',
 #   'video_id': 'yebNIHKAC4A'}]
+
