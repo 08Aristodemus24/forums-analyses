@@ -227,7 +227,7 @@ def write_delta_to_bucket(
             mode="overwrite", 
         )
 
-def get_all_replies(replies, kwargs):
+def get_all_replies(replies: list, kwargs: dict):
     reply_data = []
     for reply in replies:
         if isinstance(reply, CommentForest):
@@ -266,7 +266,16 @@ def get_all_replies(replies, kwargs):
 
     return reply_data
 
-def extract_posts_comments(subreddit: Subreddit, limit: int, bucket_name, folder_name, object_name, is_local, upsert_func):
+def extract_posts_comments(
+    subreddit: Subreddit,
+    limit: int,
+    aws_creds: dict[str, str],
+    bucket_name: str,
+    folder_name: str,
+    object_name: str,
+    is_local: bool,
+    upsert_func: Callable
+):
     """
     extracts all comments and replies from a given post
     in a subreddit then structured into a pyarrow table
@@ -330,7 +339,16 @@ def extract_posts_comments(subreddit: Subreddit, limit: int, bucket_name, folder
     write_delta_to_bucket(aws_creds, post_comments_table, bucket_name, object_name, folder_name, is_local, upsert_func)
 
 
-def extract_posts(subreddit: Subreddit, limit: int, bucket_name, folder_name, object_name, is_local, upsert_func):
+def extract_posts(
+    subreddit: Subreddit, 
+    limit: int, 
+    aws_creds: dict[str, str], 
+    bucket_name: str, 
+    folder_name: str, 
+    object_name: str, 
+    is_local: bool, 
+    upsert_func: Callable
+):
     """
     extracts all comments and replies from a given post
     in a subreddit then structured into a pyarrow table
@@ -421,6 +439,7 @@ if __name__ == "__main__":
         extract_posts(
             subreddit, 
             limit=args.limit, 
+            aws_creds=aws_creds,
             bucket_name=args.bucket_name, 
             folder_name=args.folder_name, 
             object_name=args.object_name, 
@@ -431,6 +450,7 @@ if __name__ == "__main__":
         extract_posts_comments(
             subreddit, 
             limit=args.limit, 
+            aws_creds=aws_creds,
             bucket_name=args.bucket_name, 
             folder_name=args.folder_name, 
             object_name=args.object_name, 

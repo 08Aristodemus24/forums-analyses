@@ -35,9 +35,9 @@ logger.debug("Attempting to extract forum data.") # Will only appear in the file
 
 def upsert_videos_comments(delta_table: DeltaTable, df: pa.Table):
     """
-    updates old comment records and inserts new 
-    comment record in the existing delta table 
-    using the data in the source table 
+    updates old youtube comment records and inserts
+    new youtube comment records in the existing delta 
+    table using the data in the source table 
     """
 
     try:
@@ -97,7 +97,7 @@ def upsert_videos_comments(delta_table: DeltaTable, df: pa.Table):
 
 def upsert_videos(delta_table: DeltaTable, df: pa.Table):
     """
-    updates old post records and inserts new post
+    updates old video records and inserts new video
     records in the existing delta table using the
     data in the source table 
     """
@@ -155,7 +155,7 @@ def upsert_videos(delta_table: DeltaTable, df: pa.Table):
         logger.warning(f"`{e}` occured during delta upsert")
 
 def write_delta_to_bucket(
-    aws_creds: dict, 
+    aws_creds: dict[str, str], 
     df: pa.Table, 
     bucket_name: str, 
     object_name: str, 
@@ -211,17 +211,15 @@ def write_delta_to_bucket(
             mode="overwrite", 
         )
 
-def search_videos(youtube, query, limit):
+def search_videos(youtube, query: str, limit: int):
     """
-    Docstring for search_videos
+    searches for youtube videos by sending a request '
+    to youtube api  
+    
     fileDetails, processingDetails, and suggestion parts of a youtube video
     can only be accessed by owner of the video, so if you want to access
     it you won't but if you do want to access your own videos these parts
     can be accessed using OAuth2 credentials
-    
-    :param youtube: Description
-    :param query: Description
-    :param limit: Description
     """
 
     # we will make a search first to retrieve a list of videos
@@ -263,14 +261,14 @@ def search_videos(youtube, query, limit):
 
 def extract_videos(
     youtube, 
-    video_ids, 
-    limit, 
-    aws_creds, 
-    bucket_name, 
-    folder_name, 
-    object_name, 
-    is_local, 
-    upsert_func
+    video_ids: list[str], 
+    limit: int, 
+    aws_creds: dict[str, str], 
+    bucket_name: str, 
+    folder_name: str, 
+    object_name: str, 
+    is_local: bool, 
+    upsert_func: Callable
 ):
     """
     Docstring for extract_videos
@@ -386,14 +384,14 @@ def extract_videos(
 
 def extract_videos_comments(
     youtube, 
-    video_ids, 
-    limit, 
-    aws_creds, 
-    bucket_name, 
-    folder_name, 
-    object_name, 
-    is_local, 
-    upsert_func
+    video_ids: list[str], 
+    limit: int, 
+    aws_creds: dict, 
+    bucket_name: str, 
+    folder_name: str, 
+    object_name: str, 
+    is_local: bool, 
+    upsert_func: Callable
 ):
     """
     Docstring for extract_videos_comments
