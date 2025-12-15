@@ -1,0 +1,22 @@
+version: 2
+
+models:
+  - name: stg_jaffle_shop__customers
+    description: "customers from jaffle shop"
+    columns:
+      - name: customer_id
+        description: "unique customers"
+        data_tests:
+          # this tests if the the column in table doesn't contain any nulls 
+          - not_null
+          - unique
+
+  - name: stg_jaffle_shop__orders
+    description: "orders made by customers from jaffle shop"
+    columns:
+      - name: order_id
+        description: "unique orders made by customers"
+        data_tests:
+          # this tests if the the column in table doesn't contain any nulls 
+          - not_null
+          - unique

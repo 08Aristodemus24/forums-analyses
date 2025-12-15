@@ -1,11 +1,11 @@
-{{
+{# {{
     config(
         materialized='incremental',
         unique_key=['customer_id'],
         on_schema_change='sync_all_columns',
         incremental_strategy='merge'
     )
-}}
+}} #}
 
 WITH jaffle_shop_customers AS (
     SELECT
@@ -18,6 +18,6 @@ WITH jaffle_shop_customers AS (
 
 SELECT *
 FROM jaffle_shop_customers
-{% if is_incremental() %}
+{# {% if is_incremental() %}
 WHERE dbt_load_timestamp > (SELECT MAX(dbt_load_timestamp) FROM {{ this }})
-{% endif %}
+{% endif %} #}

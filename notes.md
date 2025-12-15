@@ -2163,6 +2163,53 @@ this is because we set the params of the `commentThreads()` resource method `.li
 
 * you always need to check if the source system tables have changed then you have to run `dbt build` to build again all models upstream that reference this source system table and to reflect the changes in the staging, intermediate, and marts models 
 
+* 
+You have a table in your data platform called `raw.jaffle_shop.orders`.
+
+You are attempting to run this select statement to preview the `'orders'` source:
+
+`select * from {{ source( 'jaffle_shop', 'orders') }}`
+
+This statement is not running. Examine this YAML configuration :
+```
+sources:
+  - name: jaffle_shop
+    database: jaffle_shop
+    schema: raw
+    tables:
+      - name: orders
+      - name: customers
+```
+What is the problem with this YAML file?
+
+A. The source name is `Jaffle_shop`, and should replace `'raw'` In the source macro.
+`B. The database and the schema field should be swapped. Correct ✓`
+C. The schema name and database name should match.
+D. The source macro should also include the database name In addition to the schema name.
+
+
+*  A new model that you are creating needs to reference your `jaffle_orders_information_table`.
+Examine this source configuration:
+```
+sources:
+  - name: jaffle_shop
+    database: raw
+    schema: jaffle_shop_dataset
+    tables:
+      - name: orders
+        identifier: jaffle_orders_information_table
+      - name: customers
+        identifier: jaffle_customers_information_table
+```
+How would you reference this information using the source macro?
+A. {{ source('laffle_shop', 'laffle_orders_Information_table') }}
+B. {{ source('laffle_shop_dataset', 'orders') }}
+`C. {{ source('laffle_shop', 'orders') }} Your Answer: Correct`
+D. {{ source('laffle_shop_dataset', 'laffle_orders_Information_table') }}
+
+how identifiers in sources work: https://docs.getdbt.com/reference/resource-properties/identifier
+
+
 * how come this works in snowflake:
 ```
 
