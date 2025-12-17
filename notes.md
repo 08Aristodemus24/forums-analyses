@@ -816,6 +816,72 @@ reviews_df = reviews_df.withColumn('SENTIMENT', cortex.sentiment(F.col('REVIEW')
 reviews_df.select(["REVIEW","SENTIMENT"]).show(15, max_width = 100)
 ```
 
+* A stage in Snowflake is a temporary cloud storage location (internal to Snowflake or external like S3/Azure/GCS) that acts as a holding area for data files before loading into tables or after unloading
+                     |-> External Stages: References data files in your cloud storage (S3, Azure Blob, GCS). 
+snowflake -> stages -| 
+                     |-> Internal Stages: Storage within Snowflake's system, managed by Snowflake 
+
+Internal stages can have the ff. types:
+1. User Stages: Private to each user for personal uploads. `LIST @~<name of stage>`
+2. Table Stages: Associated with a specific table for direct loading/unloading. `LIST @%<name of stage>`
+3. Named Stages: Reusable, manually created stages for more flexibility. `LIST @<name of stage>`
+
+External stages however are standalone and are distinct to internal stages if their is a reference to the location of the data lake file:
+```
+CREATE OR REPLACE STAGE sa_ext_stage_integration
+    STORAGE_INTEGRATION = forums_analyses_si
+    URL = 's3://forums-analyses-bucket' -- Replace with your S3 bucket and folder path
+    FILE_FORMAT = pff;
+
+LIST @sa_ext_stage_integration;
+
+CREATE OR REPLACE TABLE raw_reddit_data AS (
+  SELECT
+    $1:title::VARCHAR AS title,
+    $1:score::INTEGER AS score,
+    $1:id::VARCHAR AS id,
+    $1:url::VARCHAR AS url,
+    $1:comment::VARCHAR AS comment,
+    -- Add more columns as needed
+  FROM @sa_ext_stage_integration/raw_reddit_data.parquet
+);
+```
+
+OR
+
+```
+CREATE OR REPLACE STAGE sa_ext_stage_integration
+    STORAGE_INTEGRATION = forums_analyses_si
+    URL = 's3://forums-analyses-bucket' -- Replace with your S3 bucket and folder path
+    FILE_FORMAT = pff;
+
+LIST @sa_ext_stage_integration;
+
+CREATE OR REPLACE TABLE raw_reddit_data (
+  title VARCHAR(255),
+  score INTEGER,
+  id VARCHAR(20),
+  url VARCHAR(255),
+  comment VARCHAR
+);
+
+COPY INTO raw_reddit_data
+FROM @sa_ext_stage_integration/raw_reddit_data.parquet;
+```
+
+these are the two ways of creating stages and then copying them into physical tables in the database
+
+* No copy procedures in snowflake are paramount. In a data platform like Snowflake, using a named external stage for data loading typically requires using the `COPY INTO` command to explicitly move or reference data into a standard table, whereas Iceberg tables are designed for direct querying in place without a separate copy or ingestion step.
+
+Here are the key differences:
+External Stages and COPY INTO: An external stage in Snowflake points to files in your external cloud storage (like S3, Azure Blob, or GCS). To make that data available in a standard Snowflake-managed table for full DML operations (inserts, updates, deletes), you must execute a COPY INTO command. This command scans the data from the staged files and writes it into the target table, a process that consumes compute resources.
+
+Iceberg Tables and Direct Access: Snowflake-managed Iceberg tables, by contrast, allow you to work with data files directly in your external cloud storage using an open table format specification. Snowflake manages the table metadata and can query the data files in place, eliminating the need for a separate COPY INTO ingestion process to make the data available for analytics.
+
+External Tables (a related concept): Note that "external tables" (a different, read-only Snowflake feature from external stages) also allow querying data in external storage without copying. However, they are read-only and require extra steps (like using ALTER EXTERNAL TABLE ... REFRESH) to update metadata about new files, which Iceberg tables manage more seamlessl
+
+* warehouse manipulation statements in snowflake:
+1. 
 
 ## Reddit, Youtube API
 * 
