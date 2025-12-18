@@ -743,7 +743,12 @@ where it successfully changes all dbt load timestamps, first names, and last nam
 
 * what if we changed `raw.jaffle_shop.orders` to `raw_test.jaffle_shop.orders`. We would have to change all the `.sql` model files we have in our dbt project making our work manual and tedious, however `sources.yml` solves this by defining a single database argument where we specify which database we use and if we wanted to change the database we would just change it in the `source.yml` file or if our schema name changes from `raw.jaffle_shop.orders` to `raw.flower_shop.orders`
 
-
+* ephemeral models e.g. `SELECT * FROM table` will be materialized in downstream models as: 
+```
+WITH <ephemeral model name> AS (
+  SELECT * FROM table
+)
+```
 
 ## Snowflake
 * How we can connect to snowflake using dbt:
@@ -882,6 +887,513 @@ External Tables (a related concept): Note that "external tables" (a different, r
 
 * warehouse manipulation statements in snowflake:
 1. 
+
+* Clustering in snowflake:
+
+to create a clustered table in snowflake on a specific column/s we create the table by:
+```
+CREATE TABLE my_table (
+    id INT,
+    date_col DATE,
+    other_data VARCHAR
+)
+CLUSTER BY (date_col, id);
+```
+
+```
+USE acenres;
+USE acenres.<schema name>;
+
+-- show tables and views in schema
+SHOW TABLES;
+```
+
+this is what show tables returns, where we can use it as subquery to return only
+the rows or tables that have `automatic_clustering` on
+```
+retention_time | automatic_clustering | change_tracking | search_optimization
+7              | OFF                  | OFF             | OFF
+7              | OFF                  | OFF             | OFF
+7              | OFF                  | OFF             | OFF
+7              | OFF                  | OFF             | OFF
+```
+
+
+`SELECT * FROM <table name>;`
+
+if a table with a clustering key is defined this will not raise an error: `SELECT SYSTEM$CLUSTERING_INFORMATION('<table name>');` however we can still see the clustering information e.g. depth and information of a column in a table without a cluster index defined by specifying the specific column/s
+```
+SELECT SYSTEM$CLUSTERING_INFORMATION('<table name>', '(raw_metric)');
+SELECT SYSTEM$CLUSTERING_DEPTH('<table name>', '(raw_metric)');
+```
+
+to define a cluster in an existing table we use: `ALTER TABLE <table_name> CLUSTER BY (<col 1> [, <col 2>, ...])` e.g. `ALTER TABLE my_table CLUSTER BY (date_col, id);`
+
+to drop it simply use `ALTER TABLE <name> DROP CLUSTERING KEY`
+
+just the mere fact that we use the `CLUSTER BY` clause in snowflake for a table will automatically cluster/recluster said table in our database. So when this is the case when we execute `SHOW TABLE` and look through the table that we know has a cluster we will see that the `automatic_clustering` column is set to `ON`. And if ever we wanted to temporarily stop the automatic clustering of the table we would run `ALTER TABLE <table name> SUSPEND RECLUSTER` resulting in that table having an `automatic_clustering` col of `OFF` and if we would want to resume it again we would run `ALTER TABLE <table name> RESUME RECLUSTER`. And finally if we wanted to recluster that tables columns in which it was clustered by we run the latter command again.
+
+It is importatnt to note that automatic clustering consumes snowflake credits, but does not require you to provide a virtual warehouse, this is because snowflake internally manages and achieves efficient resource utilization for reclustering the tables
+
+* external tables/stages moreover cannot use the cluster by feature in snowflake
+
+* The more frequently a table is queried, the more benefit clustering provides. However, the more frequently a table changes, the more expensive it will be to keep it clustered. Therefore, clustering is generally most cost-effective for tables that are queried frequently and do not change frequently.
+
+* Whether you want faster response times or lower overall costs, clustering is best for a table that meets all of the following criteria:
+
+1. The table contains a large number of micro-partitions. Typically, this means that the table contains multiple terabytes (TB) of data.
+
+2. The queries can take advantage of clustering. Typically, this means that one or both of the following are true:
+
+- The queries are selective. In other words, the queries need to read only a small percentage of rows (and thus usually a small percentage of micro-partitions) in the table.
+
+- The queries sort the data. (For example, the query contains an ORDER BY clause on the table.)
+
+3. A high percentage of the queries can benefit from the same clustering key(s). In other words, many/most queries select on, or sort on, the same few column(s).
+
+If your goal is primarily to reduce overall costs, then each clustered table should have a high ratio of queries to DML operations (INSERT/UPDATE/DELETE). This typically means that the table is queried frequently and updated infrequently.
+
+* The number of distinct values (i.e. cardinality, or how many unique values there are) in a column/expression is a critical aspect of selecting it as a clustering key. It is important to choose a clustering key that has:
+1. A large enough number of distinct values to enable effective pruning on the table. I.e. many unique values like `DOG`, `CAT`, `MOUSE`, `HORSE`, `DOLPHIN`, `GOAT`, etc. if in the context of perhaps ML for animal species classification
+2. A small enough number of distinct values to allow Snowflake to effectively group rows in the same micro-partitions. e.g. dates with only years like `2010`, `2012`, `2013`, `2015`, etc.
+
+so that when for example the year 2010 is only the one being filtered for, we can find the rows with only 2010 in a specific partition and discard all other partitions to retrieve it faster
+
+A column with very low cardinality might yield only minimal pruning, such as a column named IS_NEW_CUSTOMER that contains only Boolean values. At the other extreme, a column with very high cardinality is also typically not a good candidate to use as a clustering key directly. For example, a column that contains nanosecond timestamp values would not make a good clustering key.
+
+extremely high cardinality --- high cardinality --- medium cardinality --- low cardinality --- extremely low cardinality
+
+we can think of this kind of scale where the farther we are to the left or right that clustering may not be a good idea due to the cardinality.
+
+* In general, if a column (or expression) has higher cardinality, then maintaining clustering on that column is more expensive.
+
+The cost of clustering on a unique key might be more than the benefit of clustering on that key, especially if point lookups are not the primary use case for that table.
+
+* If you want to use a column with very high cardinality as a clustering key, Snowflake recommends defining the key as an expression on the column, rather than on the column directly, to reduce the number of distinct values. The expression should preserve the original ordering of the column so that the minimum and maximum values in each partition still enable pruning.
+
+For example, if a fact table has a TIMESTAMP column c_timestamp containing many discrete values (many more than the number of micro-partitions in the table), then a clustering key could be defined on the column by casting the values to dates instead of timestamps (e.g. to_date(c_timestamp)). This would reduce the cardinality to the total number of days, which typically produces much better pruning results.
+
+* If you are defining a multi-column clustering key for a table, the order in which the columns are specified in the CLUSTER BY clause is important. As a general rule, Snowflake recommends ordering the columns from lowest cardinality to highest cardinality. Putting a higher cardinality column before a lower cardinality column will generally reduce the effectiveness of clustering on the latter column.
+
+* A view is simply saved/cached queries e.g. `CREATE OR REPLACE <db name>.<schema name>.<view name> (<col 1>, <col 2>, ..., <col n>) AS (SELECT <col 1 (must be the same name as col definition in view and that means renaming this queried col if needed)>, <col 2>, ..., <col n>)`. This is a non materialized view which can utilize `JOIN` clauses in the select statements. However materialized views such as those used in dbt are used to improve time efficiency of queries frequently used as such
+```
+Feature        | Materialized View                                 | Non-Materialized View
+Data Storage   | Stores data physically (like a table)             | No data stored; it's a virtual definition
+Query Speed    | Fast (precomputed)                                | Slower (computed on demand)
+Data Freshness | Stale (needs refresh)                             | Always current (real-time)
+Storage Cost   | High (stores data)                                | Low (only stores query)
+Maintenance    | High (refresh needed)                             | Minimal (none for data)
+Best For       | Performance-critical, complex, infrequent changes | Data simplification, security, up-to-date data
+```
+
+* A column in a table can be a varient type usually those containing structured data such as:
+```
+{'etag': 'aHTTcyKom34kuM7FUJwIwmvhH4s',
+  'id': 'UgxobbYFW5QNK-WFcNF4AaABAg',
+  'kind': 'youtube#commentThread',
+  'replies': {
+    'comments': [ # these are the replies to the top level comment found
+      {
+        'etag': 'AIOuAJxmbBzRJ9s2le8VsLT6_gY',
+        'id': 'UgxobbYFW5QNK-WFcNF4AaABAg.9s4V-mdzLq79s5enfTdY8b',
+        'kind': 'youtube#comment',
+        'snippet': {
+          'authorChannelId': {
+            'value': 'UCaizTs-t-jXjj8H0-S3ATYA'
+          },
+          'authorChannelUrl': 'http://www.youtube.com/@analyticswithadam',
+          'authorDisplayName': '@analyticswithadam',
+          'authorProfileImageUrl': 'https://yt3.ggpht.com/2PBxLW_kGCY1hfybNHu216RHGBDBNZW4m7aS9kU2Lj_6waMwDMmDrGGEg6zJsYuAq63nDtNd=s48-c-k-c0x00ffffff-no-rj',
+          'canRate': True,
+          'channelId': 'UCaizTs-t-jXjj8H0-S3ATYA',
+          'likeCount': 0,
+          'parentId': 'UgxobbYFW5QNK-WFcNF4AaABAg',
+          'publishedAt': '2023-07-13T06:26:01Z',
+          'textDisplay': 'Glad it was useful',
+          'textOriginal': 'Glad it was useful',
+          'updatedAt': '2023-07-13T06:26:01Z',
+          'videoId': 'SIm2W9TtzR0',
+          'viewerRating': 'none'
+        }
+      },
+      {
+        'etag': 'nsigOsdXr79YDN2WHK4gwJXAR7k',
+        'id': 'UgxobbYFW5QNK-WFcNF4AaABAg.9s4V-mdzLq7AOXiT2PhrVd',
+        'kind': 'youtube#comment',
+        'snippet': {
+          'authorChannelId': {
+            'value': 'UCA_EdNiC9bUaQsbTT3-YsAg'
+          },
+          'authorChannelUrl': 'http://www.youtube.com/@JennaHasm',
+          'authorDisplayName': '@JennaHasm',
+          'authorProfileImageUrl': 'https://yt3.ggpht.com/WUm40JH_Uqb4dYhjx6jYFBQzJHmwEMOFYPxLvHLLwo-1_5aISu5XaISbB84S7IYZG4Y0afJEyQ=s48-c-k-c0x00ffffff-no-rj',
+          'canRate': True,
+          'channelId': 'UCaizTs-t-jXjj8H0-S3ATYA',
+          'likeCount': 0, 
+          'parentId': 'UgxobbYFW5QNK-WFcNF4AaABAg',
+          'publishedAt': '2025-10-21T09:12:46Z',
+          'textDisplay': '\u200b@analyticswithadam<br>Do '
+                        'you know why youtube '
+                        'rewards (monetarely) '
+                        'channel owners that '
+                        'create distructive '
+                        'content instead of '
+                        'channel owners like '
+                        'yours for example. From '
+                        'what O noticed it&#39;s '
+                        'not the niche topic '
+                        'that is the problem, '
+                        'it&#39;s ... rewarding '
+                        'the worst of '
+                        'humans.<br>It '
+                        'doesn&#39;t make a lot '
+                        'of sense to me.',
+          'textOriginal': '\u200b@analyticswithadam\n'
+                          'Do you know why '
+                          'youtube rewards '
+                          '(monetarely) channel '
+                          'owners that create '
+                          'distructive content '
+                          'instead of channel '
+                          'owners like yours for '
+                          'example. From what O '
+                          "noticed it's not the "
+                          'niche topic that is '
+                          "the problem, it's ... "
+                          'rewarding the worst of '
+                          'humans.\n'
+                          "It doesn't make a lot "
+                          'of sense to me.',
+          'updatedAt': '2025-10-21T09:12:46Z',
+          'videoId': 'SIm2W9TtzR0', # this is that youtube video's vidoeId
+          'viewerRating': 'none'
+        }
+      }
+    ]
+  },
+ 'snippet': {
+    'canReply': True,
+    'channelId': 'UCaizTs-t-jXjj8H0-S3ATYA',
+    'isPublic': True,
+    'topLevelComment': {
+      'etag': '81lATGyrrx6iL2m58jTqimCH7bs',
+      'id': 'UgxobbYFW5QNK-WFcNF4AaABAg',
+      'kind': 'youtube#comment',
+      'snippet': {
+        'authorChannelId': {
+          'value': 'UCAeABcbzXpqZ9ELNznsqRBg'
+        },
+        'authorChannelUrl': 'http://www.youtube.com/@oraclesql',
+        'authorDisplayName': '@oraclesql',
+        'authorProfileImageUrl': 'https://yt3.ggpht.com/FVtbQGQrlS_QWV1bAMc-wZ9vUd1lKKix4yN3wtFE2N07-qdYjakorpSSk8u11Q-NQ5JIq7hl=s48-c-k-c0x00ffffff-no-rj',
+        'canRate': True,
+        'channelId': 'UCaizTs-t-jXjj8H0-S3ATYA',
+        'likeCount': 1,
+        'publishedAt': '2023-07-12T19:32:27Z',
+        'textDisplay': 'Thank you for '
+                      'this Adam. Great '
+                      'tuorial',
+        'textOriginal': 'Thank you for '
+                        'this Adam. Great '
+                        'tuorial',
+        'updatedAt': '2023-07-12T19:32:27Z',
+        'videoId': 'SIm2W9TtzR0',
+        'viewerRating': 'none'
+      }
+    },
+    'totalReplyCount': 2,
+    'videoId': 'SIm2W9TtzR0'
+  }
+}
+```
+this is an example of one row or instance of a comment from the youtube api which can most likely be a row or instance too in a snowflake column having the variant type. 
+
+lets say we had a table `my_variant_table` e.g.
+```
+CREATE TABLE my_variant_table (
+  comment_obj VARIANT
+)
+```
+
+OR 
+
+```
+WITH my_comment_table AS (
+  SELECT PARSE_JSON('{
+    "etag": "aHTTcyKom34kuM7FUJwIwmvhH4s",
+    "id": "UgxobbYFW5QNK-WFcNF4AaABAg",
+    "kind": "youtube#commentThread",
+    "replies": {
+      "comments": [
+        {
+          "etag": "AIOuAJxmbBzRJ9s2le8VsLT6_gY",
+          "id": "UgxobbYFW5QNK-WFcNF4AaABAg.9s4V-mdzLq79s5enfTdY8b",
+          "kind": "youtube#comment",
+          "snippet": {
+            "authorChannelId": {
+              "value": "UCaizTs-t-jXjj8H0-S3ATYA"
+            },
+            "authorChannelUrl": "http://www.youtube.com/@analyticswithadam",
+            "authorDisplayName": "@analyticswithadam",
+            "authorProfileImageUrl": "https://yt3.ggpht.com/2PBxLW_kGCY1hfybNHu216RHGBDBNZW4m7aS9kU2Lj_6waMwDMmDrGGEg6zJsYuAq63nDtNd=s48-c-k-c0x00ffffff-no-rj",
+            "canRate": True,
+            "channelId": "UCaizTs-t-jXjj8H0-S3ATYA",
+            "likeCount": 0,
+            "parentId": "UgxobbYFW5QNK-WFcNF4AaABAg",
+            "publishedAt": "2023-07-13T06:26:01Z",
+            "textDisplay": "Glad it was useful",
+            "textOriginal": "Glad it was useful",
+            "updatedAt": "2023-07-13T06:26:01Z",
+            "videoId": "SIm2W9TtzR0",
+            "viewerRating": "none"
+          }
+        },
+        {
+          "etag": "nsigOsdXr79YDN2WHK4gwJXAR7k",
+          "id": "UgxobbYFW5QNK-WFcNF4AaABAg.9s4V-mdzLq7AOXiT2PhrVd",
+          "kind": "youtube#comment",
+          "snippet": {
+            "authorChannelId": {
+              "value": "UCA_EdNiC9bUaQsbTT3-YsAg"
+            },
+            "authorChannelUrl": "http://www.youtube.com/@JennaHasm",
+            "authorDisplayName": "@JennaHasm",
+            "authorProfileImageUrl": "https://yt3.ggpht.com/WUm40JH_Uqb4dYhjx6jYFBQzJHmwEMOFYPxLvHLLwo-1_5aISu5XaISbB84S7IYZG4Y0afJEyQ=s48-c-k-c0x00ffffff-no-rj",
+            "canRate": True,
+            "channelId": "UCaizTs-t-jXjj8H0-S3ATYA",
+            "likeCount": 0, 
+            "parentId": "UgxobbYFW5QNK-WFcNF4AaABAg",
+            "publishedAt": "2025-10-21T09:12:46Z",
+
+            "textDisplay": "\u200b@analyticswithadam<br>Do\\nyou know why youtube\\nrewards (monetarely)\\nchannel owners that\\ncreate distructive\\ncontent instead of\\nchannel owners like\\nyours for example. From\\nwhat O noticed it&#39;s\\nnot the niche topic\\nthat is the problem,\\nit&#39;s ... rewarding\\nthe worst of\\nhumans.<br>It\\ndoesn&#39;t make a lot\\nof sense to me.",
+
+            "textOriginal": "\u200b@analyticswithadam<br>Do\\nyou know why youtube\\nrewards (monetarely)\\nchannel owners that\\ncreate distructive\\ncontent instead of\\nchannel owners like\\nyours for example. From\\nwhat O noticed it&#39;s\\nnot the niche topic\\nthat is the problem,\\nit&#39;s ... rewarding\\nthe worst of\\nhumans.<br>It\\ndoesn&#39;t make a lot\\nof sense to me.",
+
+            "updatedAt": "2025-10-21T09:12:46Z",
+            "videoId": "SIm2W9TtzR0",
+            "viewerRating": "none"
+          }
+        }
+      ]
+    },
+  "snippet": {
+      "canReply": True,
+      "channelId": "UCaizTs-t-jXjj8H0-S3ATYA",
+      "isPublic": True,
+      "topLevelComment": {
+        "etag": "81lATGyrrx6iL2m58jTqimCH7bs",
+        "id": "UgxobbYFW5QNK-WFcNF4AaABAg",
+        "kind": "youtube#comment",
+        "snippet": {
+          "authorChannelId": {
+            "value": "UCAeABcbzXpqZ9ELNznsqRBg"
+          },
+          "authorChannelUrl": "http://www.youtube.com/@oraclesql",
+          "authorDisplayName": "@oraclesql",
+          "authorProfileImageUrl": "https://yt3.ggpht.com/FVtbQGQrlS_QWV1bAMc-wZ9vUd1lKKix4yN3wtFE2N07-qdYjakorpSSk8u11Q-NQ5JIq7hl=s48-c-k-c0x00ffffff-no-rj",
+          "canRate": True,
+          "channelId": "UCaizTs-t-jXjj8H0-S3ATYA",
+          "likeCount": 1,
+          "publishedAt": "2023-07-12T19:32:27Z",
+          "textDisplay": "Thank you for\\nthis Adam. Great\\ntuorial",
+          "textOriginal": "Thank you for\\nthis Adam. Great\\ntuorial",
+          "updatedAt": "2023-07-12T19:32:27Z",
+          "videoId": "SIm2W9TtzR0",
+          "viewerRating": "none"
+        }
+      },
+      "totalReplyCount": 2,
+      "videoId": "SIm2W9TtzR0"
+    }
+  }') AS comment_obj
+)
+
+SELECT * FROM my_comment_table
+```
+
+and we sought to see what data type was the `comment_obj` column using the `TYPEOF()` function we would get a column of `OBJECT`'s since this `comment_obj` column itself has instances of dictionaries, objects, etc. kind of like in python or javascript. 
+
+again important attributes in this object will definitely be: level, video_id, comment_id, author_channel_id, channel_id_where_comment_was_made, parent_comment_id, text_original, text_display, published_at, updated_at, like_count, author_display_name, author_channel_url, added_at
+
+and below is a sample of how we can access jsons/objects/dictionaries with snowflake:
+```
+USE snowflake_learning_db;
+
+WITH my_comment_table AS (
+    SELECT PARSE_JSON('{
+      "etag": "aHTTcyKom34kuM7FUJwIwmvhH4s",
+      "id": "UgxobbYFW5QNK-WFcNF4AaABAg",
+      "kind": "youtube#commentThread",
+      "replies": {
+        "comments": [
+          {
+            "etag": "AIOuAJxmbBzRJ9s2le8VsLT6_gY",
+            "id": "UgxobbYFW5QNK-WFcNF4AaABAg.9s4V-mdzLq79s5enfTdY8b",
+            "kind": "youtube#comment",
+            "snippet": {
+              "authorChannelId": {
+                "value": "UCaizTs-t-jXjj8H0-S3ATYA"
+              },
+              "authorChannelUrl": "http://www.youtube.com/@analyticswithadam",
+              "authorDisplayName": "@analyticswithadam",
+              "authorProfileImageUrl": "https://yt3.ggpht.com/2PBxLW_kGCY1hfybNHu216RHGBDBNZW4m7aS9kU2Lj_6waMwDMmDrGGEg6zJsYuAq63nDtNd=s48-c-k-c0x00ffffff-no-rj",
+              "canRate": True,
+              "channelId": "UCaizTs-t-jXjj8H0-S3ATYA",
+              "likeCount": 0,
+              "parentId": "UgxobbYFW5QNK-WFcNF4AaABAg",
+              "publishedAt": "2023-07-13T06:26:01Z",
+              "textDisplay": "Glad it was useful",
+              "textOriginal": "Glad it was useful",
+              "updatedAt": "2023-07-13T06:26:01Z",
+              "videoId": "SIm2W9TtzR0",
+              "viewerRating": "none"
+            }
+          },
+          {
+            "etag": "nsigOsdXr79YDN2WHK4gwJXAR7k",
+            "id": "UgxobbYFW5QNK-WFcNF4AaABAg.9s4V-mdzLq7AOXiT2PhrVd",
+            "kind": "youtube#comment",
+            "snippet": {
+              "authorChannelId": {
+                "value": "UCA_EdNiC9bUaQsbTT3-YsAg"
+              },
+              "authorChannelUrl": "http://www.youtube.com/@JennaHasm",
+              "authorDisplayName": "@JennaHasm",
+              "authorProfileImageUrl": "https://yt3.ggpht.com/WUm40JH_Uqb4dYhjx6jYFBQzJHmwEMOFYPxLvHLLwo-1_5aISu5XaISbB84S7IYZG4Y0afJEyQ=s48-c-k-c0x00ffffff-no-rj",
+              "canRate": True,
+              "channelId": "UCaizTs-t-jXjj8H0-S3ATYA",
+              "likeCount": 0, 
+              "parentId": "UgxobbYFW5QNK-WFcNF4AaABAg",
+              "publishedAt": "2025-10-21T09:12:46Z",
+    
+              "textDisplay": "\u200b@analyticswithadam<br>Do\\nyou know why youtube\\nrewards (monetarely)\\nchannel owners that\\ncreate distructive\\ncontent instead of\\nchannel owners like\\nyours for example. From\\nwhat O noticed it&#39;s\\nnot the niche topic\\nthat is the problem,\\nit&#39;s ... rewarding\\nthe worst of\\nhumans.<br>It\\ndoesn&#39;t make a lot\\nof sense to me.",
+    
+              "textOriginal": "\u200b@analyticswithadam<br>Do\\nyou know why youtube\\nrewards (monetarely)\\nchannel owners that\\ncreate distructive\\ncontent instead of\\nchannel owners like\\nyours for example. From\\nwhat O noticed it&#39;s\\nnot the niche topic\\nthat is the problem,\\nit&#39;s ... rewarding\\nthe worst of\\nhumans.<br>It\\ndoesn&#39;t make a lot\\nof sense to me.",
+    
+              "updatedAt": "2025-10-21T09:12:46Z",
+              "videoId": "SIm2W9TtzR0",
+              "viewerRating": "none"
+            }
+          }
+        ]
+      },
+     "snippet": {
+        "canReply": True,
+        "channelId": "UCaizTs-t-jXjj8H0-S3ATYA",
+        "isPublic": True,
+        "topLevelComment": {
+          "etag": "81lATGyrrx6iL2m58jTqimCH7bs",
+          "id": "UgxobbYFW5QNK-WFcNF4AaABAg",
+          "kind": "youtube#comment",
+          "snippet": {
+            "authorChannelId": {
+              "value": "UCAeABcbzXpqZ9ELNznsqRBg"
+            },
+            "authorChannelUrl": "http://www.youtube.com/@oraclesql",
+            "authorDisplayName": "@oraclesql",
+            "authorProfileImageUrl": "https://yt3.ggpht.com/FVtbQGQrlS_QWV1bAMc-wZ9vUd1lKKix4yN3wtFE2N07-qdYjakorpSSk8u11Q-NQ5JIq7hl=s48-c-k-c0x00ffffff-no-rj",
+            "canRate": True,
+            "channelId": "UCaizTs-t-jXjj8H0-S3ATYA",
+            "likeCount": 1,
+            "publishedAt": "2023-07-12T19:32:27Z",
+            "textDisplay": "Thank you for\\nthis Adam. Great\\ntuorial",
+            "textOriginal": "Thank you for\\nthis Adam. Great\\ntuorial",
+            "updatedAt": "2023-07-12T19:32:27Z",
+            "videoId": "SIm2W9TtzR0",
+            "viewerRating": "none"
+          }
+        },
+        "totalReplyCount": 2,
+        "videoId": "SIm2W9TtzR0"
+      }
+    }') AS comment_obj
+),
+
+comments AS (
+    SELECT
+        'comment' AS level,
+        comment_obj:snippet:topLevelComment:snippet:videoId::VARCHAR(50) AS video_id,
+        comment_obj:id::VARCHAR(50) AS comment_id,
+        comment_obj:snippet:topLevelComment:snippet:authorChannelId:value::VARCHAR(50) AS author_channel_id,
+        comment_obj:snippet:topLevelComment:snippet:channelId::VARCHAR(50) AS channel_id_where_comment_was_made,
+        
+        -- we leave as null since there a top level comment
+        -- has no parent
+        NULL AS parent_comment_id,
+        
+        comment_obj:snippet:topLevelComment:snippet:textOriginal::TEXT AS text_original,
+        comment_obj:snippet:topLevelComment:snippet:textDisplay::TEXT AS text_display,
+        comment_obj:snippet:topLevelComment:snippet:publishedAt::TIMESTAMP_NTZ AS published_at,
+        comment_obj:snippet:topLevelComment:snippet:updatedAt::TIMESTAMP_NTZ AS updated_at,
+        comment_obj:snippet:topLevelComment:snippet:likeCount::NUMBER(5, 0) AS like_count,
+        comment_obj:snippet:topLevelComment:snippet:authorDisplayName::VARCHAR(50) AS author_display_name,
+        comment_obj:snippet:topLevelComment:snippet:authorChannelUrl::VARCHAR(50) AS author_channel_url
+    FROM my_comment_table
+),
+
+replies AS (
+    SELECT 
+        'reply' AS level,
+        value:snippet:videoId::VARCHAR(50) AS video_id,
+        value:id::VARCHAR(50) AS comment_id,
+        value:snippet:authorChannelId:value::VARCHAR(50) AS author_channel_id,
+        value:snippet:channelId::VARCHAR(50) AS channel_id_where_comment_was_made,
+        value:snippet:parentId::VARCHAR(50) AS parent_comment_id,
+        value:snippet:textOriginal::TEXT AS text_original,
+        value:snippet:textDisplay::TEXT AS text_display,
+        value:snippet:publishedAt::TIMESTAMP_NTZ AS published_at,
+        value:snippet:updatedAt::TIMESTAMP_NTZ AS updated_at,
+        value:snippet:likeCount::NUMBER(5, 0) AS like_count,
+        value:snippet:authorDisplayName::VARCHAR(50) AS author_display_name,
+        value:snippet:authorChannelUrl::VARCHAR(50) AS author_channel_url
+    FROM 
+        my_comment_table mct,
+        -- this explode our array column value into
+        -- their own respective rows, in this case
+        -- we are aliasing my_comment_table accessing
+        -- accessing the comment_obj column then the value
+        -- of the replies key and then  the value of the
+        -- comments key
+        LATERAL FLATTEN(input => mct.comment_obj:replies:comments)
+)
+
+-- unionize the CTEs of comments and replies
+SELECT * FROM comments
+UNION BY NAME
+SELECT * FROM replies
+```
+
+final table will be:
+```
+| level | video_id | comment_id | ... | like_count | author_channel_id | author_display_name |
+| reply | SIm2W9TtzR0 | mdzLq79s5enfTdY8b | ... | 0 | @analyticswithadam | http://... | 
+| reply | SIm2W9TtzR0 | mdzLq7AOXiT2PhrVd | ... | 0 | @JennaHasm | http://... | 
+| comment | SIm2W9TtzR0 | WFcNF4AaABAg | ... | 0 | @oraclesql | http://... | 
+```
+
+basically how LATERAL FLATTEN works is `LATERAL FLATTEN(input => <alias of table with object or array column>.<column array directly or object that might contain the array (if object then we use : as our preceding char instead of .)>.<array directly or object that might contain the array (if object then we use : as our preceding char instead of .)>)`
+
+* different time travel methods:
+- using timestamps (use AT and TIMESTAMP)
+- using seconds/offsets (use AT and OFFSET )
+- using previous query ids (use BEFORE and STATEMENT)
+
+```
+SET good_data_query_id = LAST_QUERY_ID();
+SET good_data_timestamp = CURRENT_TIMESTAMP;
+```
+
+to use the variable use `$good_data_query_id` or `$good_data_timestamp`
+
+to time travel if indeed our data/table has been corrupted and data/table is still within retention time
+
+we use `SELECT * FROM <table we want to retrieve uncorrupted state> AT(TIMESTAMP => $good_data_timestamp);` or `SELECT * FROM <table we want to retrieve uncorrupted state> BEFORE(STATEMENT => $good_query_id);`
+
+* permanent tables retention is 0 <= x <= 90, transient and temporary tables have retentions of 0 <= x <= 90
+
+temporary tables exist until session ends
+
+transient tables exist until they are dropped
 
 ## Reddit, Youtube API
 * 
