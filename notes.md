@@ -1511,6 +1511,141 @@ $$
 $$
 ```
 
+* Stored procedures
+```
+CREATE OR REPLACE PROCEDURE delete_old ()
+RETURNS BOOLEAN
+LANGUAGE SQL
+AS
+$$
+  DECLARE
+    $max_ts
+    $cutoff_ts
+  BEGIN
+    $max_ts := (SELECT MAX(order_ts) FROM orders)
+    -- say the latest order timestamp is 05-07-2001
+    -- we want orders that are only 180 days older than
+    -- 05-07-2001, and anything earlier than this interval
+    -- will be considered old, so 05-07-2001 minus 180 days
+    -- is essentially 11-08-2000, so anything older than
+    -- 11-08-2000 will be an old record. DATEADD is a scalar
+    -- function that takes in the interval we want to subtract
+    -- or add from our given date, in this case we want to add
+    -- or minus 1 day, and the next param is the number to add
+    -- or subtract from the given date, and final param is the 
+    -- given date we want to use to add or subtract a value to
+    $cutoff_ts := (SELECT DATEADD('DAY', -180, $max_ts))
+    DELETE FROM orders
+    WHERE order_ts < :cutoff_ts;
+$$
+```
+
+
+* roles
+
+ACCOUNTADMIN (
+  READ, 
+  LIST, 
+  CREATE, 
+  INSERT, 
+  UPDATE, 
+  DELETE,
+  GRANT, 
+  DB, 
+  SCHEMA, 
+  STAGES, 
+  ROLES,
+  TABLES,
+  VIEWS,
+  PROCEDURES,
+  FUNCTIONS,
+  INTEGRATIONS,
+  FILE FORMATS,
+  EXTERNAL VOLUMES
+) --> DATA_ENGINEER (
+  READ,
+  LIST,
+  CREATE,
+  INSERT,
+  UPDATE,
+  DELETE,
+  DB,
+  SCHEMA,
+  STAGES,
+  TABLES,
+  VIEWS,
+  PROCEDURES,
+  FUNCTIONS,
+  INTEGRATIONS,
+  FILE FORMATS,
+  EXTERNAL VOLUMES
+) --> DATA_ANALYST (
+  READ,
+  LIST,
+  DB,
+  SCHEMA,
+  STAGES,
+  TABLES,
+  VIEWS,
+  PROCEDURES,
+  INTEGRATIONS,
+  EXTERNAL VOLUMES
+)
+
+DATA_ENGINEER --> michaelcueva
+DATA_ENGINEER --> aleksandrsolzhenitsyn
+DATA_ANALYST --> gabriel29820
+
+is easier as opposed to:
+
+ACCOUNTADMIN (with same privileges) --> michaelcueva (
+  READ,
+  LIST,
+  CREATE,
+  INSERT,
+  UPDATE,
+  DELETE,
+  DB,
+  SCHEMA,
+  TABLES,
+  VIEWS,
+  PROCEDURES,
+  FUNCTIONS,
+  INTEGRATIONS,
+  FILE FORMATS,
+  EXTERNAL VOLUMES
+)
+
+ACCOUNTADMIN --> aleksandrsolzhenitsyn (
+  READ,
+  LIST,
+  CREATE,
+  INSERT,
+  UPDATE,
+  DELETE,
+  DB,
+  SCHEMA,
+  TABLES,
+  VIEWS,
+  PROCEDURES,
+  FUNCTIONS,
+  INTEGRATIONS,
+  FILE FORMATS,
+  EXTERNAL VOLUMES
+)
+
+ACCOUNTADMIN --> gabriel29820 (
+  READ,
+  LIST,
+  DB,
+  SCHEMA,
+  STAGES,
+  TABLES,
+  VIEWS,
+  PROCEDURES,
+  INTEGRATIONS,
+  EXTERNAL VOLUMES
+)
 
 ## Reddit, Youtube API
 * 
