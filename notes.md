@@ -1395,6 +1395,123 @@ temporary tables exist until session ends
 
 transient tables exist until they are dropped
 
+* 
+```
+-- cloning
+-- create a sample table
+CREATE OR REPLACE TABLE ops_playground.larry.plant_capacities_copy AS (
+    SELECT * FROM wesm.dbt_jquintos.plant_capacities
+);
+
+SELECT * FROM ops_playground.larry.plant_capacities_copy;
+
+-- say we want a clone of this table
+CREATE OR REPLACE TABLE ops_playground.larry.plant_capacities_copy_clone
+CLONE ops_playground.larry.plant_capacities_copy;
+
+-- if we run this we will see that
+-- plant_capacities_copy has a certain number of 
+-- allocated  bytes while plant_capacities_copy_clone 
+-- has 0 number of allocated bytes. This is because until
+-- we add new data to this cloned table it will remain 0
+-- and if we do decide to add data the size would now be
+-- size of the original table + size of newly added data
+-- e.g. original table is 20000 bytes and clone is 0 bytes
+-- if we add new data of 200 bytes clone will now be 20200
+-- bytes
+SELECT * FROM ops_playground.information_schema.table_storage_metrics; 
+
+-- time travel with cloning, so let's
+-- select our copied table again to ensure it
+-- is out most recent query and save this most
+-- recent query's id in a variable
+SELECT * FROM ops_playground.larry.plant_capacities_copy;
+SET good_data_query_id = LAST_QUERY_ID();
+SELECT $good_data_query_id;
+
+-- lets say our copied table was corrupted with
+-- nulls and zeroes in certain columns
+UPDATE ops_playground.larry.plant_capacities_copy
+SET
+   resource_name = NULL,
+   iemop_registered_capacity = 0,
+   pmax = 0,
+   dc_capacity = 18,
+   updated_at = CURRENT_TIMESTAMP();
+
+-- say we want a clone of this corrupted table too
+CREATE OR REPLACE TABLE ops_playground.larry.plant_capacities_copy_clone
+CLONE ops_playground.larry.plant_capacities_copy;
+
+-- checking our 'corrupted' table
+SELECT * FROM ops_playground.larry.plant_capacities_copy;
+SELECT * FROM ops_playground.larry.plant_capacities_copy_clone;
+
+-- however running this would not allow us to run the timetravel 
+-- statement we need to revert back to the previous state of the 
+-- table as it would raise Statement <saved query id> cannot be used 
+-- to specify time for time travel query.
+
+    
+-- we can however go back to our most recent
+-- uncorrupted table state using the query
+SELECT * FROM ops_playground.larry.plant_capacities_copy BEFORE(STATEMENT => $good_data_query_id);
+
+-- because the corrupted table does not contain
+-- id's we can use to update it with the timetraveled
+-- tables values we can just create or replace the
+-- corrupted table using the values of the timetraveled 
+-- table
+CREATE OR REPLACE TABLE ops_playground.larry.plant_capacities_copy_clone
+CLONE ops_playground.larry.plant_capacities_copy BEFORE(STATEMENT => $good_data_query_id);
+
+CREATE OR REPLACE TABLE ops_playground.larry.plant_capacities_copy AS (
+    SELECT * FROM ops_playground.larry.plant_capacities_copy BEFORE(STATEMENT => $good_data_query_id)
+);
+
+-- we revert back both our table and cloned tables to
+-- its previous state
+SELECT * FROM ops_playground.larry.plant_capacities_copy;
+SELECT * FROM ops_playground.larry.plant_capacities_copy_clone;
+```
+
+* UDFs in snowflake
+```
+-- creating python UDF
+CREATE OR REPLACE FUNCTION foo (str_col VARCHAR, is_parent BOOLEAN)
+RETURNS STRING
+LANGUAGE PYTHON
+RUNTIME_VERSION = '3.11'
+HANDLER = 'foo_py'
+AS
+$$
+def foo_py(str_col, is_parent):
+    if len(str_col) < 5:
+        return "foo"
+
+    elif 5 <= len(str_col) <= 10:
+        return "bar"
+
+    else:
+        return "foobar"
+$$;
+
+
+-- we can pass whole columns to this UDF like pandas
+-- apply functions 
+SELECT FOO(author_display_name, TRUE) FROM stg_youtube_practice;  
+```
+
+```
+CREATE OR REPLACE FUNCTION foo (str_col VARCHAR, comments TABLE)
+RETURNS STRING
+AS
+$$
+
+$$
+```
+
+
 ## Reddit, Youtube API
 * 
 ```
