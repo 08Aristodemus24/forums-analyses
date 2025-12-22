@@ -2014,6 +2014,92 @@ SELECT
     -- pattern below is used to match all parquet files
 FROM @playground.larry.stg_reddit_posts (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet');
 
+-- create tables where copied data will land
+-- using snowpipe
+CREATE OR REPLACE TABLE raw_reddit_posts_comments (
+    post_id VARCHAR(50),
+    post_id_full VARCHAR(50),
+    level VARCHAR(50),
+    comment_id VARCHAR(50),
+    comment_id_full VARCHAR(50),
+    comment_upvotes INTEGER,
+    comment_downvotes INTEGER,
+    comment_created_at TIMESTAMP_NTZ,
+    comment_edited_at TIMESTAMP_NTZ,
+    comment_author_username VARCHAR(50),
+    comment_author_id_full VARCHAR(50),
+    comment_parent_id_full VARCHAR(50),
+    comment_body TEXT,
+    added_at TIMESTAMP_NTZ
+);
+
+CREATE OR REPLACE TABLE raw_reddit_posts (
+    post_title VARCHAR,
+    post_score INTEGER,
+    post_id VARCHAR(50),
+    post_id_full VARCHAR(50),
+    post_url VARCHAR,
+    post_author_username VARCHAR(50),
+    post_author_id_full VARCHAR(50),
+    post_body TEXT,
+    post_created_at TIMESTAMP_NTZ,
+    post_edited_at TIMESTAMP_NTZ,
+    added_at TIMESTAMP_NTZ
+);
+
+
+-- copy the s3 reddit posts comments table into 
+-- the empty reddit posts comments snowflake table
+-- how this will run is if the s3 delta table 
+-- experiences an event of adding new parquet files
+-- then this pipe will run the copy
+CREATE OR REPLACE PIPE acen_ops_playground.larry.reddit_posts_comments_pipe
+AUTO_INGEST = TRUE
+AS 
+COPY INTO acen_ops_playground.larry.raw_reddit_posts_comments
+FROM (
+    SELECT
+        $1:post_id::VARCHAR(50) AS post_id,
+        $1:post_name::VARCHAR(50) AS post_id_full,
+        $1:level::VARCHAR(50) AS level,
+        $1:comment_id::VARCHAR(50) AS comment_id,
+        $1:comment_name::VARCHAR(50) AS comment_id_full,
+        $1:comment_upvotes::INTEGER AS comment_upvotes,
+        $1:comment_downvotes::INTEGER AS comment_downvotes,
+        $1:comment_created_at::VARCHAR::TIMESTAMP_NTZ AS comment_created_at,
+        $1:comment_edited_at::VARCHAR::TIMESTAMP_NTZ AS comment_edited_at,
+        $1:comment_author_name::VARCHAR(50) AS comment_author_username,
+        $1:comment_author_fullname::VARCHAR(50) AS comment_author_id_full,
+        $1:comment_parent_id::VARCHAR(50) AS comment_parent_id_full,
+        $1:comment_body::TEXT AS comment_body,
+        $1:added_at::VARCHAR::TIMESTAMP_NTZ AS added_at
+        -- pattern below is used to match all parquet files
+    FROM @acen_ops_playground.larry.stg_reddit_posts_comments (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet')
+);
+-- DROP PIPE IF EXISTS acen_ops_playground.larry.reddit_posts_comments_pipe;
+
+CREATE OR REPLACE PIPE acen_ops_playground.larry.reddit_posts_pipe
+AUTO_INGEST = TRUE
+AS 
+COPY INTO acen_ops_playground.larry.raw_reddit_posts
+FROM (
+    SELECT
+        $1:post_title::VARCHAR AS post_title,
+        $1:post_score::INTEGER AS post_score,
+        $1:post_id::VARCHAR(50) AS post_id,
+        $1:post_name::VARCHAR(50) AS post_id_full,
+        $1:post_url::VARCHAR AS post_url,
+        $1:post_author_name::VARCHAR(50) AS post_author_username,
+        $1:post_author_fullname::VARCHAR(50) AS post_author_id_full,
+        $1:post_body::TEXT AS post_body,
+        $1:post_created_at::VARCHAR::TIMESTAMP_NTZ AS post_created_at,
+        $1:post_edited_at::VARCHAR::TIMESTAMP_NTZ AS post_edited_at,
+        $1:added_at::VARCHAR::TIMESTAMP_NTZ AS added_at
+        -- pattern below is used to match all parquet files
+    FROM @acen_ops_playground.larry.stg_reddit_posts (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet')
+);
+-- DROP PIPE IF EXISTS acen_ops_playground.larry.reddit_posts_pipe;
+
 ```
 
 ## Reddit, Youtube API
