@@ -1647,6 +1647,375 @@ ACCOUNTADMIN --> gabriel29820 (
   EXTERNAL VOLUMES
 )
 
+* Again like PySpark (Apache Spark) its typical statements are replicated in snowflake through a snowflake point of view:
+- `from pyspark.sql import SparkSession` is to `from snowflake.snowpark import Session`
+- 
+```
+...
+spark_conf = SparkConf()
+spark_conf.setAppName("test")
+spark_conf.set("spark.driver.memory", "14g") 
+spark_conf.set("spark.sql.execution.arrow.maxRecordsPerBatch", "100")
+
+spark_ctxt = SparkContext(conf=spark_conf)
+
+hadoop_conf = spark_ctxt._jsc.hadoopConfiguration()
+hadoop_conf.set("fs.s3a.access.key", credentials["aws_access_key_id"])
+hadoop_conf.set("fs.s3a.secret.key", credentials["aws_secret_access_key"])
+hadoop_conf.set("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+hadoop_conf.set("spark.hadoop.fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider")
+
+spark = SparkSession(spark_ctxt).builder\
+  .getOrCreate()
+...
+```
+
+is to
+
+```
+connection_parameters = {
+  "account": "<your snowflake account>",
+  "user": "<your snowflake user>",
+  "password": "<your snowflake password>",
+  "role": "<your snowflake role>",  # optional
+  "warehouse": "<your snowflake warehouse>",  # optional
+  "database": "<your snowflake database>",  # optional
+  "schema": "<your snowflake schema>",  # optional
+}
+
+snowpark = Session.builder.configs(connection_parameters).create()
+```
+
+- `spark.stop()`/`spark.close()` is to `snowpark.close()`
+- `spark.sql("SELECT * FROM my_table)` is to `snowpark.sql("SELECT * FROM my_table")`
+- 
+```
+train_signals_df = spark.sql("""
+    SELECT 
+        s.signals AS signals, 
+        s.subjectId AS subjectId, 
+        s.rowId AS rowId
+    FROM {train_labels_df} l
+    LEFT JOIN {signals_df} s
+    ON l.subjectId = s.subjectId
+  """, signals_df=signals_df, train_labels_df=train_labels_df)
+```
+
+is to 
+
+-
+```
++------+-----+----------+
+|row_id|value|subject_id|
++------+-----+----------+
+|     0|   10| subject_2|
+|     1|   20| subject_2|
+|     2|   30| subject_2|
+|     3|   40| subject_2|
+|     4|   50| subject_2|
+|     5|   60| subject_2|
+|     6|   70| subject_2|
+|     7|   80| subject_2|
+|     8|   90| subject_2|
+|     9|  100| subject_2|
+|    10|  110| subject_2|
+|    11|  120| subject_2|
+|     0|   10| subject_1|
+|     1|   20| subject_1|
+|     2|   30| subject_1|
+|     3|   40| subject_1|
+|     4|   50| subject_1|
+|     5|   60| subject_1|
+|     6|   70| subject_1|
+|     7|   80| subject_1|
+|     8|   90| subject_1|
+|     9|  100| subject_1|
+|    10|  110| subject_1|
+|    11|  120| subject_1|
+|    12|  130| subject_1|
+|    13|  140| subject_1|
+|    14|  150| subject_1|
+|    15|  160| subject_1|
+|    16|  170| subject_1|
+|    17|  180| subject_1|
+|    18|  190| subject_1|
+|    19|  200| subject_1|
++------+-----+----------+
+```
+
+
+```
+samples_per_win_size = 6
+samples_per_hop_size = 4
+feat_window = Window.partitionBy("subject_id").orderBy("row_id").rowsBetween(Window.currentRow, samples_per_win_size - 1)
+df_3 = df_3.withColumn("freq_std", F.sum("value").over(feat_window))
+```
+
+an implementation of the only including windows after a certain hop size, since we cannot do it directly using spark we can filter out the rows of windows that have not yet made the appropriate hop size using filtering
+```
+cond = ((F.col("row_id") % samples_per_hop_size) == 0)
+df_3 = df_3.where(cond)
+```
+
+```
++------+-----+----------+--------+
+|row_id|value|subject_id|freq_std|
++------+-----+----------+--------+
+|     0|   10| subject_1|     210|
+|     4|   50| subject_1|     450|
+|     8|   90| subject_1|     690|
+|    12|  130| subject_1|     930|
+|    16|  170| subject_1|     740|
+|     0|   10| subject_2|     210|
+|     4|   50| subject_2|     450|
+|     8|   90| subject_2|     420|
++------+-----+----------+--------+
+```
+
+in snowflake we would just do this with our snowpark session we created
+
+- `import pyspark.sql.functions as F` is to `import snowflake.snowpark.functions as F` 
+
+- 
+```
+import pyspark.sql as pyspark
+import pyspark.sql.functions as F
+
+def main(session: pyspark.SparkSession):
+  df = session.read.format("csv")\
+  .option("header", "true")\
+  .option("inferSchema", "true")\
+  .load(INPUT_PATH)
+
+  df = session.sql(f"SELECT col1, col2 FROM {tableName}", tableName=df)
+  df = df.filter(F.col("language") == 'python')
+
+  # Print a sample of the df to standard output.
+  df.show()
+
+  # Return value will appear in the Results tab.
+  return df
+```
+is to
+```
+# The Snowpark package is required for Python Worksheets. 
+# You can add more packages by selecting them using the Packages control and then importing them.
+import snowflake.snowpark as snowpark
+import snowflake.snowpark.functions as F
+
+def main(session: snowpark.Session): 
+  # Your code goes here, inside the "main" handler.
+  tableName = 'information_schema.packages'
+  df = session.sql(f"SELECT * FROM {tableName}")
+  df = df.filter(F.col("language") == 'python')
+
+  # Print a sample of the df to standard output.
+  df.show()
+
+  # Return value will appear in the Results tab.
+  return df
+```
+
+* I actually have the option of using either snowpipe or dbt incremental models to load my delta table files in s3:
+- should I use snowpipe it would imply:
+  - extacting and extracting data using python
+  - checking if there is already an existing file with same schema of the table, if there is none then create the parquet e.g. raw_youtube_videos_0001.parquet, if there is one already existing get the max number suffix of the file which in this case would be 0001 and then add 1 to it so we can create a number suffix for the new file 0002 e.g. raw_youtube_videos_0002.parquet
+  - ```
+    CREATE FILE FORMAT IF NOT EXISTS pff
+      TYPE = PARQUET;
+
+    CREATE OR REPLACE PIPE my_pipe AUTO_INGEST = TRUE AS
+    COPY INTO my_table
+    FROM @sa_ext_stage_integration/raw_reddit_data.parquet
+    FILE_FORMAT = pff
+    ON_ERROR = 'CONTINUE'; -- Or 'SKIP_FILE', 'ABORT_STATEMENT'
+  ```
+
+- should I use dbt incremental models it would imply:
+  - extracting yes data using python but not possibly duplicated rows of data across multiple files
+  - not anymore checking if there is an existing file as this method uses open table formats like delta lake to ensure non duplication of data, and would result in only a single "file" easily maintainable in the data lake as it won't contain the same tables with different rows across different files like `raw_youtube_videos_0001.parquet`, `raw_youtube_videos_0002.parquet`, `raw_youtube_videos_0003.parquet`, ..., `raw_youtube_videos_000N.parquet`.
+  - when ever new data is added to the delta table dbt incremental models can compare the existing table in snowflake against the one in s3 and add/insert or update these rows in snowflake as needed based on some kind of primary/composite key
+  - a zero copy operation as snowflake will essentially make these delta tables a part/extension of its own catalog since snowflake will basically be merely pointing to these tables for potential use in queries. The drawbacks to this of course is in high performance queries compute may slow down because snowflake has to go across towards s3 to retrieve the data
+  - ```
+    -- create external volume 
+    CREATE OR REPLACE EXTERNAL VOLUME forums_analyses_ext_vol
+    STORAGE_LOCATIONS =
+    (
+        (
+            NAME = 'delta-ap-southeast-2'
+            STORAGE_PROVIDER = 'S3'
+            STORAGE_BASE_URL = 's3://forums-analyses-bucket/'
+            STORAGE_AWS_ROLE_ARN = 'arn:aws:iam::<arn number>:role/<role>'
+        )
+    )
+    ALLOW_WRITES = TRUE
+
+    -- create the catalog integration for Delta tables 
+    CREATE CATALOG INTEGRATION IF NOT EXISTS delta_catalog_integration
+    CATALOG_SOURCE = OBJECT_STORE
+    TABLE_FORMAT = DELTA
+    ENABLED = TRUE;
+
+    -- point to the iceberg/delta table
+    CREATE OR REPLACE ICEBERG TABLE raw_reddit_posts_comments
+    CATALOG = delta_catalog_integration
+    EXTERNAL_VOLUME = forums_analyses_ext_vol
+    BASE_LOCATION = 'raw_reddit_posts_comments'
+    AUTO_REFRESH = TRUE;
+  ```
+
+* `snowflake.cortext.summarize()`, `snowflake.cortex.complete()`, `snowflake.cortex.extract_answer()`, `snowflake.cortex.translate()` could be useful in data with text, case on point youtube videos comments, and reddit posts comments
+
+e.g. `SELECT SNOWFLAKE.CORTEX.SUMMARIZE(SNOWFLAKE.CORTEX.COMPLETE(STATEMENT)) AS THOUGHTS_FROM_STATEMENT_SUMMARY FROM STG_REDDIT_POSTS_COMMENTS`
+
+```
+SELECT SNOWFLAKE.CORTEX.COMPLETE(
+    'openai-gpt-4.1',
+        CONCAT('Critique this review in bullet points: <review>', content, '</review>')
+) FROM reviews LIMIT 10;
+```
+
+* like apache spark's/databricks' capability in being able to model machine learning algorithms for data science/ML workloads, snowpark likewise has the exact capability to leverage traditional algorithms for modelling
+
+and what's so great about it is if alam mo na or you already know deeply scikit-learn model training workloads and the like, you'll have no problem with `snowflake.ml`s library as it exactly mimics that of scikit-learns same functions, classes that pertain to feature engineering, data preprocessing, and model training.
+```
+from snowflake.ml.utils.connection_params import SnowflakeLoginOptions
+from snowflake.snowpark import Session, DataFrame
+from snowflake.ml.modeling.preprocessing import StandardScaler
+from snowflake.ml.modeling.impute import SimpleImputer
+from snowflake.ml.modeling.pipeline import Pipeline
+from snowflake.ml.modeling.xgboost import XGBClassifier
+from snowflake.ml.modeling.metrics import accuracy score
+
+# Note: Create session https://docs.snowflake.com/en/developer-guide/snowpark/reference/pyth
+session = Session.builder.configs(SnowflakeLoginOptions()).create()
+
+# Step 1: Create train and test dataframes
+all_data = session.sql("select, IFF (CLASS g. 1.0, 0.0) as LABEL from Gamma_Telescope_0) train_data, test_data = all_data.random_split(weights=[8.9, 8.11], seed=81)
+
+# Step 2: Construct training pipeline with preprocessing and modeling steps 
+FEATURE_COLS = [c for c in train_data.columns if c != "LABEL"]
+LABEL_COLS = ["LABEL"]
+
+pipeline = Pipeline(steps=[
+  ("impute", SimpleImputer(input_cols=FEATURE_COLS, output_cols=FEATURE_COLS)), 
+  ("scaler, StandardScaler(input_cols=FEATURE_COLS, output_cols=FEATURE_COLS), 
+  ("model", XGBClassifier(input_cols=FEATURE_COLS, label_cols LABEL COLS))
+
+# Step 3: Train
+pipeline.fit(train_data)
+
+# Step 4: Evaluate
+predict_on_training_data = pipeline.predict(train_data)
+training_accuracy = accuracy_score(df=predict_on_training_data, y_true_col_names=["LABEL"])
+
+predict_on_test_data = pipeline.predict(test_data)
+eval_accuracy = accuracy_score(df=predict_on_test_data, y_true_col_names=["LABEL", y_pred_c])
+
+print(f"Training accuracy: (training accuracy) \nEval accuracy: (eval_accuracy)")
+```
+
+* Creating external volumes in snowflake to connect to use open table formats in s3 involves the ff:
+```
+-- create external volume 
+CREATE OR REPLACE EXTERNAL VOLUME forums_analyses_ext_vol
+    STORAGE_LOCATIONS =
+    (
+        (
+            NAME = '<some location name of bucket e.g. delta-ap-southeast-2>'
+            STORAGE_PROVIDER = 'S3'
+            STORAGE_BASE_URL = 's3://<name of s3 bucket>/'
+            STORAGE_AWS_ROLE_ARN = 'arn:aws:iam::<arn number>:role/<iam role>'
+        )
+    )
+    ALLOW_WRITES = TRUE
+```
+
+* if ever you encoutner errors converting unix timestamps e.g. 284923848023480000 to datetimes like `Snowflake shows 'Invalid date' in TIMESTAMP_NTZ column`
+
+The solution is to always cast the column to VARCHAR and then to `TIMESTAMP_NTZ`.
+
+this is because some of the unix timestamp values in the staged parquet files can be formatted as integers and some as strings!
+
+Example using a unix timestamp:
+
+`SELECT 1620502461213752::timestamp_ntz`; -> Invalid date
+
+`SELECT 1620502461213752::varchar::timestamp_ntz`; -> 2021-05-08 19:34:21.213
+
+`SELECT '1620502461213752'::timestamp_ntz`; -> 2021-05-08 19:34:21.213
+
+This seems to be because `timestamp_ntz` only accepts integer epoch timestamps in milliseconds (eg. 1620502461213).
+
+However, when the integer is cast to varchar first, then timestamp_ntz correctly interprets the epoch timestamp in microseconds (eg. 1620502461213752). This likely applies to timestamps in nanoseconds as well, although I did not confirm that case.
+
+So it seems that Invalid date is a strange front-end issue for timestamps far in the future, created by misidentifying epoch timestamp units.
+
+* reading delta files in s3 using snowflake without external volumes
+```
+-- showing grants to current user
+SHOW GRANTS TO ROLE DATA_ENGINEER;
+
+CREATE OR REPLACE STORAGE INTEGRATION forums_analyses_si
+    TYPE = EXTERNAL_STAGE
+    STORAGE_PROVIDER = 'S3'
+    ENABLED = TRUE
+    STORAGE_AWS_ROLE_ARN = 'arn:aws:iam::<arn number>:role/<role>'
+    STORAGE_ALLOWED_LOCATIONS = ('s3://forums-analyses-bucket');
+
+DESCRIBE STORAGE INTEGRATION forums_analyses_si;
+
+CREATE FILE FORMAT IF NOT EXISTS playground.larry.pff
+    TYPE = PARQUET;
+
+CREATE OR REPLACE STAGE playground.larry.stg_reddit_posts_comments
+    STORAGE_INTEGRATION = forums_analyses_si
+    URL = 's3://forums-analyses-bucket/raw_reddit_posts_comments/' -- Replace with your S3 bucket and folder path
+    FILE_FORMAT = playground.larry.pff;
+
+CREATE OR REPLACE STAGE playground.larry.stg_reddit_posts
+    STORAGE_INTEGRATION = forums_analyses_si
+    URL = 's3://forums-analyses-bucket/raw_reddit_posts/' -- Replace with your S3 bucket and folder path
+    FILE_FORMAT = playground.larry.pff;
+
+LIST @playground.larry.stg_reddit_posts_comments;
+LIST @playground.larry.stg_reddit_posts;
+
+SELECT
+    $1:post_id::VARCHAR(50) AS post_id,
+    $1:post_name::VARCHAR(50) AS post_id_full,
+    $1:level::VARCHAR(50) AS level,
+    $1:comment_id::VARCHAR(50) AS comment_id,
+    $1:comment_name::VARCHAR(50) AS comment_id_full,
+    $1:comment_upvotes::INTEGER AS comment_upvotes,
+    $1:comment_downvotes::INTEGER AS comment_downvotes,
+    $1:comment_created_at::VARCHAR::TIMESTAMP_NTZ AS comment_created_at,
+    $1:comment_edited_at::VARCHAR::TIMESTAMP_NTZ AS comment_edited_at,
+    $1:comment_author_name::VARCHAR(50) AS comment_author_username,
+    $1:comment_author_fullname::VARCHAR(50) AS comment_author_id_full,
+    $1:comment_parent_id::VARCHAR(50) AS comment_parent_id_full,
+    $1:comment_body::TEXT AS comment_body,
+    $1:added_at::VARCHAR::TIMESTAMP_NTZ AS added_at
+    -- pattern below is used to match all parquet files
+FROM @playground.larry.stg_reddit_posts_comments (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet');
+
+SELECT
+    $1:post_title::VARCHAR AS post_title,
+    $1:post_score::INTEGER AS post_score,
+    $1:post_id::VARCHAR(50) AS post_id,
+    $1:post_name::VARCHAR(50) AS post_id_full,
+    $1:post_url::VARCHAR AS post_url,
+    $1:post_author_name::VARCHAR(50) AS post_author_username,
+    $1:post_author_fullname::VARCHAR(50) AS post_author_id_full,
+    $1:post_body::TEXT AS post_body,
+    $1:post_created_at::VARCHAR::TIMESTAMP_NTZ AS post_created_at,
+    $1:post_edited_at::VARCHAR::TIMESTAMP_NTZ AS post_edited_at,
+    $1:added_at::VARCHAR::TIMESTAMP_NTZ AS added_at
+    -- pattern below is used to match all parquet files
+FROM @playground.larry.stg_reddit_posts (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet');
+
+```
+
 ## Reddit, Youtube API
 * 
 ```
