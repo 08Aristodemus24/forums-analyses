@@ -2053,10 +2053,10 @@ CREATE OR REPLACE TABLE raw_reddit_posts (
 -- how this will run is if the s3 delta table 
 -- experiences an event of adding new parquet files
 -- then this pipe will run the copy
-CREATE OR REPLACE PIPE acen_ops_playground.larry.reddit_posts_comments_pipe
+CREATE OR REPLACE PIPE playground.larry.reddit_posts_comments_pipe
 AUTO_INGEST = TRUE
 AS 
-COPY INTO acen_ops_playground.larry.raw_reddit_posts_comments
+COPY INTO playground.larry.raw_reddit_posts_comments
 FROM (
     SELECT
         $1:post_id::VARCHAR(50) AS post_id,
@@ -2074,14 +2074,14 @@ FROM (
         $1:comment_body::TEXT AS comment_body,
         $1:added_at::VARCHAR::TIMESTAMP_NTZ AS added_at
         -- pattern below is used to match all parquet files
-    FROM @acen_ops_playground.larry.stg_reddit_posts_comments (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet')
+    FROM @playground.larry.stg_reddit_posts_comments (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet')
 );
--- DROP PIPE IF EXISTS acen_ops_playground.larry.reddit_posts_comments_pipe;
+-- DROP PIPE IF EXISTS playground.larry.reddit_posts_comments_pipe;
 
-CREATE OR REPLACE PIPE acen_ops_playground.larry.reddit_posts_pipe
+CREATE OR REPLACE PIPE playground.larry.reddit_posts_pipe
 AUTO_INGEST = TRUE
 AS 
-COPY INTO acen_ops_playground.larry.raw_reddit_posts
+COPY INTO playground.larry.raw_reddit_posts
 FROM (
     SELECT
         $1:post_title::VARCHAR AS post_title,
@@ -2096,11 +2096,85 @@ FROM (
         $1:post_edited_at::VARCHAR::TIMESTAMP_NTZ AS post_edited_at,
         $1:added_at::VARCHAR::TIMESTAMP_NTZ AS added_at
         -- pattern below is used to match all parquet files
-    FROM @acen_ops_playground.larry.stg_reddit_posts (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet')
+    FROM @playground.larry.stg_reddit_posts (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet')
 );
--- DROP PIPE IF EXISTS acen_ops_playground.larry.reddit_posts_pipe;
+-- DROP PIPE IF EXISTS playground.larry.reddit_posts_pipe;
 
+-- we do this to get the value of the notification channel column
+-- as we will need this value for the event notification for s3
+-- bucket so our pipes trigger when certain events in our s3
+-- bucket happen
+SHOW PIPES;
+
+SELECT * FROM playground.larry.raw_reddit_posts_comments;
+SELECT * FROM playground.larry.raw_reddit_posts;
+
+SELECT SYSTEM$PIPE_STATUS('reddit_posts_pipe');
 ```
+
+* ok now I've created staging objects for my delta/iceberg tables since I can't use external volumes because of my privileges set by our admin, I have however been able to select the raw_reddit_posts and comments data I have and have created a snow pipe for it so that when a new delta file is written in s3 I expect for the pipe to auto ingest this new parquet file in the delta folder, however I am facing the fact that even after insertion and updating of records in my delta tables, I find my pipe does not auto ingest these delta table parquets
+
+Since you have already set up the STORAGE INTEGRATION and the PIPE with AUTO_INGEST = TRUE, you have completed the "Snowflake side" of the handshake. However, Snowpipe is not psychic. Even with AUTO_INGEST enabled, Snowflake won't know a file has landed in S3 unless S3 explicitly "tells" it.
+
+The reason your pipe isn't ingesting data is almost certainly because the S3 Event Notifications (the "handshake") haven't been configured on the AWS side.
+
+1. The Missing Link: S3 Event Notifications
+When you set AUTO_INGEST = TRUE, Snowflake creates an SQS (Simple Queue Service) Queue specifically for that pipe. You must tell S3 to send a "New Object Created" message to that specific queue.
+
+How to find your SQS ARN: Run this in Snowflake:
+
+SQL
+
+SHOW PIPES;
+Look for the column notification_channel. It will look something like: `arn:aws:sqs:us-east-1:1234567890:sf-snowpipe-ABC123....`
+
+What to do in AWS Console:
+
+Go to your S3 bucket (forums-analyses-bucket).
+
+Go to Properties > Event notifications > Create event notification.
+
+Event types: Select "All object create events" (s3:ObjectCreated:*).
+
+Destination: Select SQS Queue.
+
+SQS Queue ARN: Paste the notification_channel ARN you got from Snowflake.
+
+2. Can Pipes handle Delta Table folders?
+To answer your specific question: Yes, Snowpipe works with Parquet files inside Delta folders, but with a big warning.
+
+Snowpipe treats every .parquet file in that folder as a standalone file.
+
+The Good: When your Delta table writes a new part-000...parquet file, S3 sends a notification, and Snowpipe ingests it.
+
+The Bad: Delta Tables are versioned. If you update a record, Delta doesn't edit the file; it writes a new parquet file and updates the _delta_log to say "ignore the old one."
+
+The Result: Since Snowpipe doesn't read the _delta_log, it will ingest the old file AND the new file. You will have duplicates in your raw_reddit_posts table.
+
+3. Troubleshooting "Stuck" Pipes
+If you've set up the S3 notification and it's still not working, use these "Admin" commands to see where the "pipe" is leaking:
+
+Check if the pipe is actually "Running":
+
+SQL
+
+SELECT SYSTEM$PIPE_STATUS('playground.larry.reddit_posts_pipe');
+Look for executionState: RUNNING. If it says STOPPED_MISSING_PIPE, you might have a permission issue.
+
+Check for errors in the last hour:
+
+SQL
+
+SELECT * FROM TABLE(VALIDATE_PIPE_LOAD(
+  PIPE_NAME => 'playground.larry.reddit_posts_pipe',
+  START_TIME => DATEADD(HOUR, -1, CURRENT_TIMESTAMP())
+));
+💡 Recommendation for your ACEN Workflow
+Since you are a full-timer now, you want to build robust pipelines. Because Delta Tables produce multiple versions of files, you should treat your raw_reddit_posts table as a Landing/Staging table and use a dbt Incremental model with a unique_key to filter out the duplicates that Snowpipe will inevitably bring in.
+
+One final check: Ensure your IAM Role (forums-analyses-ext-int-role) has s3:GetBucketLocation and s3:ListBucket permissions, or Snowpipe won't be able to "verify" the files exist when the notification hits.
+
+Would you like me to show you how to check the S3 side to see if the notifications are actually being sent to Snowflake?
 
 ## Reddit, Youtube API
 * 
