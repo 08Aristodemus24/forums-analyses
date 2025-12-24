@@ -2176,6 +2176,35 @@ One final check: Ensure your IAM Role (forums-analyses-ext-int-role) has s3:GetB
 
 Would you like me to show you how to check the S3 side to see if the notifications are actually being sent to Snowflake?
 
+* sometimes you won't always have the privilege to have a password to your account in snowflake. Sometimes your company will only issue you an account username and account identifier that you can use as input to sign in to this issued account. What you do is just enter the account identifier e.g. `<SOMECOMPANYNAME>-<SOMECOMPANYNAME>` and you'll be prompted to enter the issued username to you which in this case could be an email e.g. <someemail.name@company.com> which serves as your username instead of typically a non email formatted username like `AUDIEMURPHY1089`. 
+
+so to work with your dbt project using your company issued account you can still preserve your `profiles.yml`s private keys but only change your account identifier and username
+```
+dbt_fundamentals:
+  outputs:
+    dev:
+      account: AYALA-ACEN
+      database: ACEN_OPS_PLAYGROUND
+      private_key_passphrase: <your private key password>
+      private_key_path: C:/path/to/your/private/key/rsa_key.p8
+      role: DATA_ENGINEER
+      schema: LARRY
+      threads: 4
+      type: snowflake
+      user: <someemail.name@company.com>
+      warehouse: <warehouse name your company uses for learning e.g. COMPUTE_WH>
+  target: dev
+```
+and to grant dbt to work on your companies snowflake warehouse programmatically we use again our issued username
+```
+SELECT CURRENT_USER();
+
+-- GRANT MODIFY PROGRAMMATIC AUTHENTICATION METHODS ON USER AKUSLAYER3000 TO ROLE ACCOUNTADMIN;
+GRANT MODIFY PROGRAMMATIC AUTHENTICATION METHODS ON USER "<someemail.name@company.com>" TO ROLE <your accounts issued role>;
+
+ALTER USER "<someemail.name@company.com>" SET RSA_PUBLIC_KEY='<the public key you made e.g. MIIBI...>';
+```
+
 ## Reddit, Youtube API
 * 
 ```

@@ -526,15 +526,18 @@ if __name__ == "__main__":
     # python fetch_youtube_data.py --bucket_name ../../include/data --object_name raw_youtube_videos_comments --kind comments --local
     # python fetch_youtube_data.py --bucket_name forums-analyses-bucket --object_name raw_youtube_videos --kind videos
     # python fetch_youtube_data.py --bucket_name ../../include/data --object_name raw_youtube_videos --kind videos --local
+
+    # python fetch_youtube_data.py --bucket_name forums-analyses-bucket
+    # python fetch_youtube_data.py --bucket_name ../../include/data --local
+
     # parse arguments
     parser = ArgumentParser()
     parser.add_argument("--bucket_name", type=str, default="forums-analyses-bucket", help="represents the name of provisioned bucket in s3")
-    parser.add_argument("--object_name", type=str, default="raw_youtube_videos_comments", help="represents the name of provisioned object/filename in s3")
+    # parser.add_argument("--object_name", type=str, default="raw_youtube_videos_comments", help="represents the name of provisioned object/filename in s3")
     parser.add_argument("--folder_name", type=str, default="", help="represents the name of folder containing the object/filename in s3 bucket")
     parser.add_argument("--search_query", type=str, default="Kpop Demon Hunters", help="represents the query of what videos, channels, or playlist to \
                         search in youtube to scrape transcripts, statistics, comments, and replies of youtube videos")
-    parser.add_argument("--kind", type=str, default="videos", help="represents the kind of data to scrape on youtube can be video statistics, snippets or comments from the video")
-    # parser.add_argument
+    # parser.add_argument("--kind", type=str, default="videos", help="represents the kind of data to scrape on youtube can be video statistics, snippets or comments from the video")
     parser.add_argument("--limit", type=int, default=1, help="represents the limit to the number of pages to keep requesting for results in youtube api")
     parser.add_argument("--local", action="store_true", help="represents if the bucket name and object is a local path to the delta file if user decides not to write in s3")
     args = parser.parse_args()
@@ -559,29 +562,28 @@ if __name__ == "__main__":
     # searches videos and returns the list of video ids
     video_ids = search_videos(youtube, args.search_query, args.limit)
 
-    # extracts comments from list of youtube videos
-    if args.kind == "comments":
-        extract_videos_comments(
-            youtube=youtube, 
-            video_ids=video_ids, 
-            limit=args.limit, 
-            aws_creds=aws_creds, 
-            bucket_name=args.bucket_name, 
-            folder_name=args.folder_name, 
-            object_name=args.object_name, 
-            is_local=args.local, 
-            upsert_func=upsert_videos_comments
-        )
+    # extract videos comments
+    extract_videos_comments(
+        youtube=youtube, 
+        video_ids=video_ids, 
+        limit=args.limit, 
+        aws_creds=aws_creds, 
+        bucket_name=args.bucket_name, 
+        folder_name=args.folder_name, 
+        object_name="raw_youtube_videos_comments", 
+        is_local=args.local, 
+        upsert_func=upsert_videos_comments
+    )
 
-    elif args.kind == "videos":
-        extract_videos(
-            youtube=youtube, 
-            video_ids=video_ids, 
-            limit=args.limit, 
-            aws_creds=aws_creds, 
-            bucket_name=args.bucket_name, 
-            folder_name=args.folder_name, 
-            object_name=args.object_name, 
-            is_local=args.local, 
-            upsert_func=upsert_videos
-        )
+    # extract videos
+    extract_videos(
+        youtube=youtube, 
+        video_ids=video_ids, 
+        limit=args.limit, 
+        aws_creds=aws_creds, 
+        bucket_name=args.bucket_name, 
+        folder_name=args.folder_name, 
+        object_name="raw_youtube_videos", 
+        is_local=args.local, 
+        upsert_func=upsert_videos
+    )
