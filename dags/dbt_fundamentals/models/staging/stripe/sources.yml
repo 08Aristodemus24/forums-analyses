@@ -2,8 +2,8 @@ version: 2
 
 sources:
   - name: stripe
-    database: SNOWFLAKE_LEARNING_DB
-    schema: PUBLIC
+    database: ACEN_OPS_PLAYGROUND
+    schema: LARRY
     tables:
       - name: payments
         # loaded_at_field: _batched_at

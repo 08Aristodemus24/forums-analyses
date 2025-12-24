@@ -2,8 +2,8 @@ version: 2
 
 sources:
   - name: jaffle_shop
-    database: SNOWFLAKE_LEARNING_DB
-    schema: PUBLIC
+    database: ACEN_OPS_PLAYGROUND
+    schema: LARRY
     tables:
       - name: orders
       - name: customers
