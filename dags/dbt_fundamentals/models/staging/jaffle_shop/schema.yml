@@ -20,3 +20,10 @@ models:
           # this tests if the the column in table doesn't contain any nulls 
           - not_null
           - unique
+
+      - name: status
+        description: "status of order"
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["placed", "shipped", "completed", "return_pending", "returned"]

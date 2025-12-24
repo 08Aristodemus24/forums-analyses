@@ -10,3 +10,11 @@ models:
           # this tests if the the column in table doesn't contain any nulls 
           - not_null
           - unique
+
+      - name: payment_method
+        description: "payment method used"
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["credit_card", "coupon", "bank_transfer", "gift_card"]
+        
