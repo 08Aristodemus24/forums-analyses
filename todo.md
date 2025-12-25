@@ -58,3 +58,6 @@
 
 * need to know how to 
 
+# improvements:
+* one problem I really do see with this architecture is the collection/extraction of reddit data and youtube data creates a bottle neck from the extraction process itself in that data collected first before it is ever written as a delta table in s3. The main problem with this is that if collection fails then thousands of potentially collected data prior to failing may be lost and irrecoverable, wasting time or even worse compute credits in the process, 
+
