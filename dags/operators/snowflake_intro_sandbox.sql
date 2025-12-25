@@ -604,10 +604,14 @@ SELECT COUNT(*) FROM acen_ops_playground.larry.raw_reddit_posts;
 SELECT COUNT(*) FROM acen_ops_playground.larry.raw_youtube_videos_comments;
 SELECT COUNT(*) FROM acen_ops_playground.larry.raw_youtube_videos;
 
+-- check for duplicates in youtube videos comments
 SELECT
-    * 
+    COUNT(*),
+    comment_id,
+    video_id 
 FROM acen_ops_playground.larry.raw_youtube_videos_comments
-ORDER BY added_at DESC
+GROUP BY ALL
+HAVING COUNT(*) > 1
 LIMIT 500;
 
 -- check for duplicates in youtube videos
@@ -617,6 +621,8 @@ SELECT
 FROM acen_ops_playground.larry.raw_youtube_videos
 GROUP BY ALL
 HAVING COUNT(*) > 1;
+
+SELECT * FROM acen_ops_playground.larry.raw_youtube_videos LIMIT 10;
 
 
 SELECT SYSTEM$PIPE_STATUS('reddit_posts_pipe');
