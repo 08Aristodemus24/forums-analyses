@@ -11,6 +11,7 @@ from typing import Callable
 
 from deltalake import DeltaTable, write_deltalake
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 from argparse import ArgumentParser
 
 
@@ -332,38 +333,45 @@ def extract_videos(
         
         for item in response["items"]:
             # pprint.pprint(item)
-            videos.append({
-                "video_id": item.get("id"),
+            try: 
+                video_id = item.get("id")
+                made_for_kids = item.get("status")\
+                    .get("madeForKids")
+                videos.append({
+                    "video_id": video_id,
 
-                # PT3M19S to time delta is 3m19s
-                "duration": item.get("contentDetails")
-                    .get("duration"),
-                "channel_id": item.get("snippet")\
-                    .get("channelId"),
-                "channel_title": item.get("snippet")\
-                    .get("channelTitle"),
-                "video_title": item.get("snippet")\
-                    .get("title"),
-                "video_description": item.get("snippet")\
-                    .get("description"),
-                "video_tags": item.get("snippet")\
-                    .get("tags"),
-                "comment_count": int(item.get("statistics")\
-                    .get("commentCount")),
-                "favorite_count": int(item.get("statistics")\
-                    .get("favoriteCount")),
-                "like_count": int(item.get("statistics")\
-                    .get("likeCount")),
-                "view_count": int(item.get("statistics")
-                    .get("viewCount")),
-                "made_for_kids": item.get("status")\
-                    .get("madeForKids"),
+                    # PT3M19S to time delta is 3m19s
+                    "duration": item.get("contentDetails")
+                        .get("duration"),
+                    "channel_id": item.get("snippet")\
+                        .get("channelId"),
+                    "channel_title": item.get("snippet")\
+                        .get("channelTitle"),
+                    "video_title": item.get("snippet")\
+                        .get("title"),
+                    "video_description": item.get("snippet")\
+                        .get("description"),
+                    "video_tags": item.get("snippet")\
+                        .get("tags"),
+                    "comment_count": int(item.get("statistics")\
+                        .get("commentCount")),
+                    "favorite_count": int(item.get("statistics")\
+                        .get("favoriteCount")),
+                    "like_count": int(item.get("statistics")\
+                        .get("likeCount")),
+                    "view_count": int(item.get("statistics")\
+                        .get("viewCount")),
+                    "made_for_kids": made_for_kids,
 
-                # 2025-06-23T22:30:00Z
-                "published_at": dt.datetime.strptime(item.get("snippet")
-                    .get("publishedAt"), "%Y-%m-%dT%H:%M:%SZ"),
-                "added_at": dt.datetime.now()
-            })
+                    # 2025-06-23T22:30:00Z
+                    "published_at": dt.datetime.strptime(item.get("snippet")
+                        .get("publishedAt"), "%Y-%m-%dT%H:%M:%SZ"),
+                    "added_at": dt.datetime.now()
+                })
+            except HttpError as e:
+                logger.warning(f"error `{e}` has occured from videoId {video_id}.")
+                logger.warning(f"error occured may be due to the fact that made for kids flag is {made_for_kids}")
+                logger.warning("Appending empty comment still...")
 
         next_page_token = response.get("nextPageToken")
         if not next_page_token:
@@ -407,109 +415,135 @@ def extract_videos_comments(
     :param upsert_func: Description
     """
 
+    
     # define comments where all comments in videos will be
     # stored
     comments = []
     for video_id in video_ids:
-        params = {
-            "part": ",".join(["snippet", "replies"]),
-            "videoId": video_id,
-            "maxResults": 100
-        }
-        
-        next_page_token = None
-        request = youtube.commentThreads().list(**params)
-
-        for _ in range(limit):
-            response = request.execute()
+        try: 
+            params = {
+                "part": ",".join(["snippet", "replies"]),
+                "videoId": video_id,
+                "maxResults": 100
+            }
             
-            for item in response["items"]:
-                # append top level comment statistics
-                comments.append({
-                    "level": "comment",
-                    "video_id": item.get("snippet")\
-                        .get("topLevelComment")\
-                        .get("snippet")\
-                        .get("videoId"),
-                    "comment_id": item.get("id"),
-                    "author_channel_id": item.get("snippet")\
-                        .get("topLevelComment")\
-                        .get("snippet")\
-                        .get("authorChannelId")\
-                        .get("value"),
-                    "channel_id_where_comment_was_made": item.get("snippet")\
-                        .get("topLevelComment")\
-                        .get("snippet")\
-                        .get("channelId"),
-                    "parent_comment_id": None,
-                    "text_original": item.get("snippet")\
-                        .get("topLevelComment")\
-                        .get("snippet")\
-                        .get("textOriginal"),
-                    "text_display": item.get("snippet")\
-                        .get("topLevelComment")\
-                        .get("snippet")\
-                        .get("textDisplay"),
-                    "published_at": item.get("snippet")\
-                        .get("topLevelComment")\
-                        .get("snippet")\
-                        .get("publishedAt"),
-                    "updated_at": item.get("snippet")\
-                        .get("topLevelComment")\
-                        .get("snippet")\
-                        .get("updatedAt"),
-                    "like_count": item.get("snippet")\
-                        .get("topLevelComment")\
-                        .get("snippet")\
-                        .get("likeCount"),
-                    "author_display_name": item.get("snippet")\
-                        .get("topLevelComment")\
-                        .get("snippet")\
-                        .get("authorDisplayName"),
-                    "author_channel_url": item.get("snippet")\
-                        .get("topLevelComment")\
-                        .get("snippet")\
-                        .get("authorChannelUrl"),
-                    "added_at": dt.datetime.now()
-                })
+            next_page_token = None
+            request = youtube.commentThreads().list(**params)
 
-                # if replies key does not exist in items then 
-                # that means there are no replies to the top 
-                # level comment thereby not running the loop
-                if item.get("replies"):
-                    for reply in item.get("replies").get("comments"):
-                        comments.append({
-                            "level": "reply",
-                            "video_id": reply.get("snippet")\
-                                .get("videoId"),
-                            "comment_id": reply.get("id"),
-                            "author_channel_id": reply.get("snippet")\
-                                .get("authorChannelId")\
-                                .get("value"),
-                            "channel_id_where_comment_was_made": reply.get("snippet")\
-                                .get("channelId"),
-                            "parent_comment_id": reply.get("snippet")\
-                                .get("parentId"),
-                            "text_original": reply.get("snippet")\
-                                .get("textOriginal"),
-                            "text_display": reply.get("snippet")\
-                                .get("textDisplay"),
-                            "published_at": reply.get("snippet")\
-                                .get("publishedAt"),
-                            "updated_at": reply.get("snippet")\
-                                .get("updatedAt"),
-                            "like_count": reply.get("snippet")\
-                                .get("likeCount"),
-                            "author_display_name": reply.get("snippet")\
-                                .get("authorDisplayName"),
-                            "author_channel_url": reply.get("snippet")\
-                                .get("authorChannelUrl"),
-                            "added_at": dt.datetime.now()
-                        })
+            for _ in range(limit):
+                response = request.execute()
+                
+                for item in response["items"]:
+                    # append top level comment statistics
+                    comments.append({
+                        "level": "comment",
+                        "video_id": item.get("snippet")\
+                            .get("topLevelComment")\
+                            .get("snippet")\
+                            .get("videoId"),
+                        "comment_id": item.get("id"),
+                        "author_channel_id": item.get("snippet")\
+                            .get("topLevelComment")\
+                            .get("snippet")\
+                            .get("authorChannelId")\
+                            .get("value"),
+                        "channel_id_where_comment_was_made": item.get("snippet")\
+                            .get("topLevelComment")\
+                            .get("snippet")\
+                            .get("channelId"),
+                        "parent_comment_id": None,
+                        "text_original": item.get("snippet")\
+                            .get("topLevelComment")\
+                            .get("snippet")\
+                            .get("textOriginal"),
+                        "text_display": item.get("snippet")\
+                            .get("topLevelComment")\
+                            .get("snippet")\
+                            .get("textDisplay"),
+                        "published_at": item.get("snippet")\
+                            .get("topLevelComment")\
+                            .get("snippet")\
+                            .get("publishedAt"),
+                        "updated_at": item.get("snippet")\
+                            .get("topLevelComment")\
+                            .get("snippet")\
+                            .get("updatedAt"),
+                        "like_count": item.get("snippet")\
+                            .get("topLevelComment")\
+                            .get("snippet")\
+                            .get("likeCount"),
+                        "author_display_name": item.get("snippet")\
+                            .get("topLevelComment")\
+                            .get("snippet")\
+                            .get("authorDisplayName"),
+                        "author_channel_url": item.get("snippet")\
+                            .get("topLevelComment")\
+                            .get("snippet")\
+                            .get("authorChannelUrl"),
+                        "added_at": dt.datetime.now()
+                    })
 
-            next_page_token = response.get("nextPageToken")
-            if not next_page_token:
-                break
+                    # if replies key does not exist in items then 
+                    # that means there are no replies to the top 
+                    # level comment thereby not running the loop
+                    if item.get("replies"):
+                        for reply in item.get("replies").get("comments"):
+                            comments.append({
+                                "level": "reply",
+                                "video_id": reply.get("snippet")\
+                                    .get("videoId"),
+                                "comment_id": reply.get("id"),
+                                "author_channel_id": reply.get("snippet")\
+                                    .get("authorChannelId")\
+                                    .get("value"),
+                                "channel_id_where_comment_was_made": reply.get("snippet")\
+                                    .get("channelId"),
+                                "parent_comment_id": reply.get("snippet")\
+                                    .get("parentId"),
+                                "text_original": reply.get("snippet")\
+                                    .get("textOriginal"),
+                                "text_display": reply.get("snippet")\
+                                    .get("textDisplay"),
+                                "published_at": reply.get("snippet")\
+                                    .get("publishedAt"),
+                                "updated_at": reply.get("snippet")\
+                                    .get("updatedAt"),
+                                "like_count": reply.get("snippet")\
+                                    .get("likeCount"),
+                                "author_display_name": reply.get("snippet")\
+                                    .get("authorDisplayName"),
+                                "author_channel_url": reply.get("snippet")\
+                                    .get("authorChannelUrl"),
+                                "added_at": dt.datetime.now()
+                            })
+
+                next_page_token = response.get("nextPageToken")
+                if not next_page_token:
+                    break
+
+        except HttpError as e:
+            logger.warning(f"error `{e}` has occured from videoId {video_id}.")
+            logger.warning("Appending empty comment still...")
+
+            # append empty comment
+            comments.append({
+                "level": "comment",
+                "video_id": video_id,
+                "comment_id": None,
+                "author_channel_id": None,
+                "channel_id_where_comment_was_made": None,
+                "parent_comment_id": None,
+                "text_original": None,
+                "text_display": None,
+                "published_at": None,
+                "updated_at": None,
+                "like_count": None,
+                "author_display_name": None,
+                "author_channel_url": None,
+                "added_at": dt.datetime.now()
+            })    
+
+    
         
     pprint.pprint(comments)
     logger.info(f"comments count: {len(comments)}")
@@ -565,6 +599,7 @@ if __name__ == "__main__":
     # extract videos comments
     extract_videos_comments(
         youtube=youtube, 
+        # video_ids=["-8AHcNRfERI"],
         video_ids=video_ids, 
         limit=args.limit, 
         aws_creds=aws_creds, 
@@ -578,7 +613,8 @@ if __name__ == "__main__":
     # extract videos
     extract_videos(
         youtube=youtube, 
-        video_ids=video_ids, 
+        # video_ids=["-8AHcNRfERI"], 
+        video_ids=video_ids,
         limit=args.limit, 
         aws_creds=aws_creds, 
         bucket_name=args.bucket_name, 
@@ -587,3 +623,63 @@ if __name__ == "__main__":
         is_local=args.local, 
         upsert_func=upsert_videos
     )
+
+# $1:level::VARCHAR(50) AS level,
+# $1:video_id::VARCHAR(50) AS video_id,
+# $1:comment_id::VARCHAR(50) AS comment_id,
+# $1:author_channel_id::VARCHAR(50) AS author_channel_id,
+# $1:channel_id_where_comment_was_made::VARCHAR(50) AS channel_id_where_comment_was_made,
+# $1:parent_comment_id::VARCHAR(50) AS parent_comment_id,
+# $1:text_original::TEXT AS text_original,
+# $1:text_display::TEXT AS text_display,
+# $1:published_at::VARCHAR::TIMESTAMP_NTZ AS published_at,
+# $1:updated_at::VARCHAR::TIMESTAMP_NTZ AS updated_at,
+# $1:like_count::INTEGER AS like_count,
+# $1:author_display_name::VARCHAR(250) AS author_display_name,
+# $1:author_channel_url::VARCHAR AS author_channel_url,
+# $1:added_at::VARCHAR::TIMESTAMP_NTZ AS added_at
+
+# level VARCHAR(50),
+# video_id VARCHAR(50),
+# comment_id VARCHAR(50),
+# author_channel_id VARCHAR(50),
+# channel_id_where_comment_was_made VARCHAR(50),
+# parent_comment_id VARCHAR(50),
+# text_original TEXT,
+# text_display TEXT,
+# published_at TIMESTAMP_NTZ,
+# updated_at TIMESTAMP_NTZ,
+# like_count INTEGER,
+# author_display_name VARCHAR(250),
+# author_channel_url VARCHAR,
+# added_at TIMESTAMP_NTZ,
+
+# $1:video_id::VARCHAR(50) AS video_id,
+# $1:duration::VARCHAR(50) AS duration,
+# $1:channel_id::VARCHAR(50) AS channel_id,
+# $1:channel_title::VARCHAR(250) AS channel_title,
+# $1:video_title::VARCHAR AS video_title,
+# $1:video_description::TEXT AS video_description,
+# $1:video_tags::ARRAY AS video_tags,
+# $1:comment_count::INTEGER AS comment_count,
+# $1:favorite_count::INTEGER AS favorite_count,
+# $1:like_count::INTEGER AS like_count,
+# $1:view_count::INTEGER AS view_count,
+# $1:made_for_kids::BOOLEAN AS made_for_kids,
+# $1:published_at::VARCHAR::TIMESTAMP_NTZ AS published_at,
+# $1:added_at::VARCHAR::TIMESTAMP_NTZ AS added_at
+
+# video_id VARCHAR(50),
+# duration VARCHAR(50),
+# channel_id VARCHAR(50),
+# channel_title VARCHAR(250),
+# video_title VARCHAR,
+# video_description TEXT,
+# video_tags ARRAY,
+# comment_count INTEGER,
+# favorite_count INTEGER,
+# like_count INTEGER,
+# view_count INTEGER,
+# made_for_kids BOOLEAN,
+# published_at TIMESTAMP_NTZ,
+# added_at TIMESTAMP_NTZ,

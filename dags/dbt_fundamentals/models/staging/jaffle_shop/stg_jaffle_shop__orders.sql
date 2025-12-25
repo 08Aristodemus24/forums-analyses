@@ -19,6 +19,8 @@ WITH jaffle_shop_orders AS (
 
 SELECT *    
 FROM jaffle_shop_orders
+
+-- this is a comment for jinja template
 {# {% if is_incremental() %}
 WHERE dbt_load_timestamp > (SELECT MAX(dbt_load_timestamp) FROM {{ this }})
 {% endif %} #}
