@@ -30,7 +30,12 @@ def add_connections(connections: dict):
 
 def read_private_key():
     """
+    reads private key file given path and encodes it to
+    base 64 then decodes it to utf-8 for later use in
+    connecting to snowflake as it is required to be 
+    encoded to base 64 and then decoded to utf-8
     """
+    
     with open("/usr/local/airflow/rsa_key.p8", "rb") as key_file:
         private_key_content = base64.b64encode(key_file.read()).decode("utf-8")
     
