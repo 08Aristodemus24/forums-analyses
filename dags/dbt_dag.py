@@ -69,48 +69,37 @@ def forums_analyses_dag():
             --limit 100"
     )
 
-    fetch_raw_youtube_videos_comments = BashOperator(
-        task_id="fetch_raw_youtube_videos_comments",
+    fetch_raw_youtube_data = BashOperator(
+        task_id="fetch_raw_youtube_data",
         bash_command=f"python {AIRFLOW_HOME}/operators/fetch_youtube_data.py \
             --bucket_name forums-analyses-bucket \
-            --object_name raw_youtube_videos_comments \
-            --kind comments \
-            --limit 50"
+            --limit 250"
     )
 
-    fetch_raw_youtube_videos = BashOperator(
-        task_id="fetch_raw_youtube_videos",
-        bash_command=f"python {AIRFLOW_HOME}/operators/fetch_youtube_data.py \
-            --bucket_name forums-analyses-bucket \
-            --object_name raw_youtube_videos \
-            --kind videos \
-            --limit 500"
-    )
+    # load_data_from_s3 = SnowflakeSqlApiOperator(
+    #     task_id="load_data_from_s3",
+    #     snowflake_conn_id="fa_snowflake_conn",
+    #     sql="/operators/load_data_from_s3.sql",
+    #     statement_count=10
+    # )
 
-    load_data_from_s3 = SnowflakeSqlApiOperator(
-        task_id="load_data_from_s3",
-        snowflake_conn_id="fa_snowflake_conn",
-        sql="/operators/load_data_from_s3.sql",
-        statement_count=10
-    )
-
-    transform_data = DbtTaskGroup(
-        group_id="transform_data",
-        project_config=ProjectConfig(DBT_PROJECT_PATH),
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path=DBT_EXE_PATH),
-        operator_args={
-            "vars": '{"my_name": {{ params.my_name }} }',
-        },
-        default_args={"retries": 2},
-    )
+    # transform_data = DbtTaskGroup(
+    #     group_id="transform_data",
+    #     project_config=ProjectConfig(DBT_PROJECT_PATH),
+    #     profile_config=profile_config,
+    #     execution_config=ExecutionConfig(dbt_executable_path=DBT_EXE_PATH),
+    #     operator_args={
+    #         "vars": '{"my_name": {{ params.my_name }} }',
+    #     },
+    #     default_args={"retries": 2},
+    # )
 
     [
-        # fetch_raw_reddit_posts_comments, 
-        # fetch_raw_reddit_posts, 
-        fetch_raw_youtube_videos_comments, 
-        fetch_raw_youtube_videos
-    ] >> load_data_from_s3
-    load_data_from_s3 >> transform_data
+        fetch_raw_reddit_posts_comments, 
+        fetch_raw_reddit_posts, 
+        fetch_raw_youtube_data
+    ] 
+    # >> load_data_from_s3
+    # load_data_from_s3 >> transform_data
 
 forums_analyses_dag()
