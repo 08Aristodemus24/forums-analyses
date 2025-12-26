@@ -622,6 +622,11 @@ FROM acen_ops_playground.larry.raw_youtube_videos
 GROUP BY ALL
 HAVING COUNT(*) > 1;
 
+SELECT 
+    *
+FROM acen_ops_playground.larry.raw_youtube_videos_comments
+WHERE comment_id = 'Ugxg_icY1-vLqVV2gJV4AaABAg';
+
 SELECT * FROM acen_ops_playground.larry.raw_youtube_videos LIMIT 10;
 
 
