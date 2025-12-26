@@ -39,9 +39,59 @@
 * 
 
 # setting up youtube api data extractor
-* setup search of videos of a certain topic
-* use the searched video ids to get statistics, snippet, etc.
-* in each video id setup request for getting the comment threads from each video
+* <s>setup search of videos of a certain topic</s>
+* <s>use the searched video ids to get statistics, snippet, etc.</s>
+* <s>in each video id setup request for getting the comment threads from each video</s>
+* I know now why
+```
+-- check for duplicates in youtube videos comments
+SELECT
+    COUNT(*),
+    comment_id,
+    video_id 
+FROM acen_ops_playground.larry.raw_youtube_videos_comments
+GROUP BY ALL
+HAVING COUNT(*) > 1
+LIMIT 500;
+```
+kept returning duplicates of particular comment ids like 'Ugxg_icY1-vLqVV2gJV4AaABAg' even if there was a different timestamp e.g. 
+[comment, 5QIQ5QHqDbw, Ugxg_icY1-vLqVV2gJV4AaABAg, UC2negEr32z8nhZ5cPxCxJMg, UCNqFDjYTexJDET3rPDrmJKg, null, Your. Idol, Your. Idol, 2025-12-24 18:14:39.000, 2025-12-24 18:14:39.000, 0, @OLAOLUWAKIITANALIMABIOLA, http://www.youtube.com/@OLAOLUWAKIITANALIMABIOLA, 2025-12-25 02:18:53.336] and [comment, 5QIQ5QHqDbw, Ugxg_icY1-vLqVV2gJV4AaABAg, UC2negEr32z8nhZ5cPxCxJMg, UCNqFDjYTexJDET3rPDrmJKg, null, Your. Idol, Your. Idol, 2025-12-24 18:14:39.000, 2025-12-24 18:14:39.000, 0, @OLAOLUWAKIITANALIMABIOLA, http://www.youtube.com/@OLAOLUWAKIITANALIMABIOLA, 2025-12-25 02:18:53.720]
+
+it is because my scraper 
+
+```
+# define comments where all comments in videos will be
+# stored
+comments = []
+for video_id in video_ids:
+        try: 
+            params = {
+                "part": ",".join(["snippet", "replies"]),
+                "videoId": video_id,
+                "maxResults": 100
+            }
+            
+            next_page_token = None
+            request = youtube.commentThreads().list(**params)
+
+            for _ in range(limit):
+                response = request.execute()
+                
+                for item in response["items"]:
+                    # append top level comment statistics
+                    comments.append({
+                        "level": "comment",
+                
+                ...
+
+                next_page_token = response.get("nextPageToken")
+                if not next_page_token:
+                    break
+...
+
+so the reason whhy there are duplicates is not because delta tables failed to not insert a duplicate record/comment of the same key which in this case is comment_id, but that your scraper before records were even written to your delta tables was already duplicating these records, and mind you delta table does not actually deduplicate duplicate records that have not yet been written to it. So even though
+[comment, 5QIQ5QHqDbw, Ugxg_icY1-vLqVV2gJV4AaABAg, UC2negEr32z8nhZ5cPxCxJMg, UCNqFDjYTexJDET3rPDrmJKg, null, Your. Idol, Your. Idol, 2025-12-24 18:14:39.000, 2025-12-24 18:14:39.000, 0, @OLAOLUWAKIITANALIMABIOLA, http://www.youtube.com/@OLAOLUWAKIITANALIMABIOLA, 2025-12-25 02:18:53.336] and [comment, 5QIQ5QHqDbw, Ugxg_icY1-vLqVV2gJV4AaABAg, UC2negEr32z8nhZ5cPxCxJMg, UCNqFDjYTexJDET3rPDrmJKg, null, Your. Idol, Your. Idol, 2025-12-24 18:14:39.000, 2025-12-24 18:14:39.000, 0, @OLAOLUWAKIITANALIMABIOLA, http://www.youtube.com/@OLAOLUWAKIITANALIMABIOLA, 2025-12-25 02:18:53.720]
+are duplicate records with different timestamps delta table still writes these as essentially new rows as the comment_id key does not yet exist in the existing delta table
 
 # IBM Interview Prep
 * need to know how to build macros
