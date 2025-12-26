@@ -624,8 +624,51 @@ HAVING COUNT(*) > 1;
 
 SELECT 
     *
-FROM acen_ops_playground.larry.raw_youtube_videos_comments
-WHERE comment_id = 'Ugxg_icY1-vLqVV2gJV4AaABAg';
+FROM (
+    SELECT 
+        *
+    FROM acen_ops_playground.larry.raw_youtube_videos_comments
+
+    MINUS
+
+    SELECT
+        *
+    FROM acen_ops_playground.larry.raw_youtube_videos_comments
+    GROUP BY 
+        level, 
+        video_id, 
+        comment_id, 
+        author_channel_id, 
+        channel_id_where_comment_was_made,
+        parent_comment_id,
+        text_original,
+        text_display,
+        published_at,
+        updated_at,
+        like_count,
+        author_display_name,
+        author_channel_url
+    HAVING COUNT(
+        level, 
+        video_id, 
+        comment_id, 
+        author_channel_id, 
+        channel_id_where_comment_was_made,
+        parent_comment_id,
+        text_original,
+        text_display,
+        published_at,
+        updated_at,
+        like_count,
+        author_display_name,
+        author_channel_url
+    ) > 1
+)
+ORDER BY comment_id;
+
+SELECT * FROM VALUES(1), (2), (3)
+MINUS
+SELECT * FROM VALUES(2), (3), (4);
 
 SELECT * FROM acen_ops_playground.larry.raw_youtube_videos LIMIT 10;
 
