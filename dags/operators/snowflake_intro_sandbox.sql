@@ -626,5 +626,20 @@ SELECT * FROM VALUES(1), (2), (3)
 MINUS
 SELECT * FROM VALUES(2), (3), (4);
 
+SELECT
+    * 
+FROM acen_ops_playground.larry.raw_youtube_videos_comments
+LIMIT 100;
+
+SELECT 
+    *
+FROM acen_ops_playground.larry.raw_youtube_videos_comments 
+WHERE 
+level IN ('') AND
+EXTRACT(YEAR FROM published_at) BETWEEN 2020 AND 2025
+LIMIT 433;
 
 SELECT SYSTEM$PIPE_STATUS('reddit_posts_pipe');
+SELECT SYSTEM$PIPE_STATUS('reddit_posts_comments_pipe');
+SELECT SYSTEM$PIPE_STATUS('youtube_videos_pipe');
+SELECT SYSTEM$PIPE_STATUS('youtube_videos_comments_pipe');
