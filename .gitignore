@@ -20,6 +20,9 @@
 *.ppk
 *.pub
 
+# do not commit private keys in photos
+/figures & images/dbt cloud/
+
 .git
 .env
 .DS_Store
