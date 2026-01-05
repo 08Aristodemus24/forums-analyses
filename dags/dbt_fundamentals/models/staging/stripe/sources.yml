@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: stripe
-    database: ACEN_OPS_PLAYGROUND
+    database: DEV_PLAYGROUND
     schema: LARRY
     tables:
       - name: payments

@@ -2183,12 +2183,12 @@ so to work with your dbt project using your company issued account you can still
 dbt_fundamentals:
   outputs:
     dev:
-      account: AYALA-ACEN
-      database: ACEN_OPS_PLAYGROUND
+      account: <account id in snowsight ui e.g. MYCOMPANY-SUBCOMPANY>
+      database: <name of db e.g. DEV_PLAYGROUND>
       private_key_passphrase: <your private key password>
       private_key_path: C:/path/to/your/private/key/rsa_key.p8
-      role: DATA_ENGINEER
-      schema: LARRY
+      role: <role in your account that has enough grants e.g. DATA_ENGINEER>
+      schema: <name of schema e.g. LARRY>
       threads: 4
       type: snowflake
       user: <someemail.name@company.com>

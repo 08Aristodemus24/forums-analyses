@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: jaffle_shop
-    database: ACEN_OPS_PLAYGROUND
+    database: DEV_PLAYGROUND
     schema: LARRY
     tables:
       - name: orders
