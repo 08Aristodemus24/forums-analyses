@@ -15,7 +15,7 @@ def get_raw_youtube_videos_comments(levels: list, start_year: int=2020, end_year
     sql = f"""
         SELECT
             *
-        FROM acen_ops_playground.larry.raw_youtube_videos_comments
+        FROM dev_playground.larry.raw_youtube_videos_comments
         WHERE
             level IN ({levels}) AND
             YEAR(published_at) BETWEEN {start_year} AND {end_year}

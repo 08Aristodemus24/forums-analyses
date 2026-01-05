@@ -1,8 +1,8 @@
-USE acen_ops_playground;
+USE dev_playground;
 
 CREATE SCHEMA IF NOT EXISTS larry;
 
-USE acen_ops_playground.larry;
+USE dev_playground.larry;
 
 -- working with unstructured data
 WITH my_comment_table AS (
@@ -149,15 +149,15 @@ SELECT * FROM replies;
 
 -- cloning
 -- create a sample table
-CREATE OR REPLACE TABLE acen_ops_playground.larry.acen_plant_capacities_copy AS (
+CREATE OR REPLACE TABLE dev_playground.larry.acen_plant_capacities_copy AS (
     SELECT * FROM wesm.dbt_jquintos.acen_plant_capacities
 );
 
-SELECT * FROM acen_ops_playground.larry.acen_plant_capacities_copy;
+SELECT * FROM dev_playground.larry.acen_plant_capacities_copy;
 
 -- say we want a clone of this table
-CREATE OR REPLACE TABLE acen_ops_playground.larry.acen_plant_capacities_copy_clone
-CLONE acen_ops_playground.larry.acen_plant_capacities_copy;
+CREATE OR REPLACE TABLE dev_playground.larry.acen_plant_capacities_copy_clone
+CLONE dev_playground.larry.acen_plant_capacities_copy;
 
 -- if we run this we will see that
 -- acen_plant_capacities_copy has a certain number of 
@@ -169,19 +169,19 @@ CLONE acen_ops_playground.larry.acen_plant_capacities_copy;
 -- e.g. original table is 20000 bytes and clone is 0 bytes
 -- if we add new data of 200 bytes clone will now be 20200
 -- bytes
-SELECT * FROM acen_ops_playground.information_schema.table_storage_metrics; 
+SELECT * FROM dev_playground.information_schema.table_storage_metrics; 
 
 -- time travel with cloning, so let's
 -- select our copied table again to ensure it
 -- is out most recent query and save this most
 -- recent query's id in a variable
-SELECT * FROM acen_ops_playground.larry.acen_plant_capacities_copy;
+SELECT * FROM dev_playground.larry.acen_plant_capacities_copy;
 SET good_data_query_id = LAST_QUERY_ID();
 SELECT $good_data_query_id;
 
 -- lets say our copied table was corrupted with
 -- nulls and zeroes in certain columns
-UPDATE acen_ops_playground.larry.acen_plant_capacities_copy
+UPDATE dev_playground.larry.acen_plant_capacities_copy
 SET
    resource_name = NULL,
    iemop_registered_capacity = 0,
@@ -190,12 +190,12 @@ SET
    updated_at = CURRENT_TIMESTAMP();
 
 -- say we want a clone of this corrupted table too
-CREATE OR REPLACE TABLE acen_ops_playground.larry.acen_plant_capacities_copy_clone
-CLONE acen_ops_playground.larry.acen_plant_capacities_copy;
+CREATE OR REPLACE TABLE dev_playground.larry.acen_plant_capacities_copy_clone
+CLONE dev_playground.larry.acen_plant_capacities_copy;
 
 -- checking our 'corrupted' table
-SELECT * FROM acen_ops_playground.larry.acen_plant_capacities_copy;
-SELECT * FROM acen_ops_playground.larry.acen_plant_capacities_copy_clone;
+SELECT * FROM dev_playground.larry.acen_plant_capacities_copy;
+SELECT * FROM dev_playground.larry.acen_plant_capacities_copy_clone;
 
 -- however running this would not allow us to run the timetravel 
 -- statement we need to revert back to the previous state of the 
@@ -205,24 +205,24 @@ SELECT * FROM acen_ops_playground.larry.acen_plant_capacities_copy_clone;
     
 -- we can however go back to our most recent
 -- uncorrupted table state using the query
-SELECT * FROM acen_ops_playground.larry.acen_plant_capacities_copy BEFORE(STATEMENT => $good_data_query_id);
+SELECT * FROM dev_playground.larry.acen_plant_capacities_copy BEFORE(STATEMENT => $good_data_query_id);
 
 -- because the corrupted table does not contain
 -- id's we can use to update it with the timetraveled
 -- tables values we can just create or replace the
 -- corrupted table using the values of the timetraveled 
 -- table
-CREATE OR REPLACE TABLE acen_ops_playground.larry.acen_plant_capacities_copy_clone
-CLONE acen_ops_playground.larry.acen_plant_capacities_copy BEFORE(STATEMENT => $good_data_query_id);
+CREATE OR REPLACE TABLE dev_playground.larry.acen_plant_capacities_copy_clone
+CLONE dev_playground.larry.acen_plant_capacities_copy BEFORE(STATEMENT => $good_data_query_id);
 
-CREATE OR REPLACE TABLE acen_ops_playground.larry.acen_plant_capacities_copy AS (
-    SELECT * FROM acen_ops_playground.larry.acen_plant_capacities_copy BEFORE(STATEMENT => $good_data_query_id)
+CREATE OR REPLACE TABLE dev_playground.larry.acen_plant_capacities_copy AS (
+    SELECT * FROM dev_playground.larry.acen_plant_capacities_copy BEFORE(STATEMENT => $good_data_query_id)
 );
 
 -- we revert back both our table and cloned tables to
 -- its previous state
-SELECT * FROM acen_ops_playground.larry.acen_plant_capacities_copy;
-SELECT * FROM acen_ops_playground.larry.acen_plant_capacities_copy_clone;
+SELECT * FROM dev_playground.larry.acen_plant_capacities_copy;
+SELECT * FROM dev_playground.larry.acen_plant_capacities_copy_clone;
 
 
 
@@ -244,7 +244,7 @@ CREATE OR REPLACE TABLE stg_youtube_practice (
     AUTHOR_CHANNEL_URL VARCHAR(255)
 );
 
-INSERT INTO acen_ops_playground.larry.stg_youtube_practice (
+INSERT INTO dev_playground.larry.stg_youtube_practice (
     LEVEL,
     VIDEO_ID,
     COMMENT_ID,
@@ -287,7 +287,7 @@ VALUES
 ('comment', 'SIm2W9TtzR0', 'C_ID_110', 'U_BIZ_012', 'UCaizTs-t-jXjj8H0-S3ATYA', NULL, 'What is the date format in Snowflake by default?', 'What is the date format in Snowflake by default?', '2025-12-19 15:00:00', '2025-12-19 15:00:00', 2, '@new_coder', 'http://youtube.com/@new_coder'),
 ('reply', 'SIm2W9TtzR0', 'R_ID_210', 'U_SQL_007', 'UCaizTs-t-jXjj8H0-S3ATYA', 'C_ID_110', 'Usually YYYY-MM-DD.', 'Usually YYYY-MM-DD.', '2025-12-19 15:30:00', '2025-12-19 15:30:00', 1, '@data_engineer', 'http://youtube.com/@data_engineer');
 
-SELECT * FROM acen_ops_playground.larry.stg_youtube_practice;
+SELECT * FROM dev_playground.larry.stg_youtube_practice;
 
 -- creating python UDF
 CREATE OR REPLACE FUNCTION foo (str_col VARCHAR, is_parent BOOLEAN)
@@ -325,36 +325,36 @@ CREATE OR REPLACE STORAGE INTEGRATION forums_analyses_si
 
 DESCRIBE STORAGE INTEGRATION forums_analyses_si;
 
-CREATE FILE FORMAT IF NOT EXISTS acen_ops_playground.larry.pff
+CREATE FILE FORMAT IF NOT EXISTS dev_playground.larry.pff
     TYPE = PARQUET;
 
-CREATE OR REPLACE STAGE acen_ops_playground.larry.stg_reddit_posts_comments
+CREATE OR REPLACE STAGE dev_playground.larry.stg_reddit_posts_comments
     STORAGE_INTEGRATION = forums_analyses_si
     URL = 's3://forums-analyses-bucket/raw_reddit_posts_comments/' -- Replace with your S3 bucket and folder path
-    FILE_FORMAT = acen_ops_playground.larry.pff;
+    FILE_FORMAT = dev_playground.larry.pff;
 
-CREATE OR REPLACE STAGE acen_ops_playground.larry.stg_reddit_posts
+CREATE OR REPLACE STAGE dev_playground.larry.stg_reddit_posts
     STORAGE_INTEGRATION = forums_analyses_si
     URL = 's3://forums-analyses-bucket/raw_reddit_posts/' -- Replace with your S3 bucket and folder path
-    FILE_FORMAT = acen_ops_playground.larry.pff;
+    FILE_FORMAT = dev_playground.larry.pff;
 
-CREATE OR REPLACE STAGE acen_ops_playground.larry.stg_youtube_videos_comments
+CREATE OR REPLACE STAGE dev_playground.larry.stg_youtube_videos_comments
     STORAGE_INTEGRATION = forums_analyses_si
     URL = 's3://forums-analyses-bucket/raw_youtube_videos_comments/' -- Replace with your S3 bucket and folder path
-    FILE_FORMAT = acen_ops_playground.larry.pff;
+    FILE_FORMAT = dev_playground.larry.pff;
 
-CREATE OR REPLACE STAGE acen_ops_playground.larry.stg_youtube_videos
+CREATE OR REPLACE STAGE dev_playground.larry.stg_youtube_videos
     STORAGE_INTEGRATION = forums_analyses_si
     URL = 's3://forums-analyses-bucket/raw_youtube_videos/' -- Replace with your S3 bucket and folder path
-    FILE_FORMAT = acen_ops_playground.larry.pff;
+    FILE_FORMAT = dev_playground.larry.pff;
 
--- DROP STAGE IF EXISTS acen_ops_playground.larry.stg_reddit_posts;
--- DROP STAGE IF EXISTS acen_ops_playground.larry.stg_reddit_posts_comments;
+-- DROP STAGE IF EXISTS dev_playground.larry.stg_reddit_posts;
+-- DROP STAGE IF EXISTS dev_playground.larry.stg_reddit_posts_comments;
 
-LIST @acen_ops_playground.larry.stg_reddit_posts_comments;
-LIST @acen_ops_playground.larry.stg_reddit_posts;
-LIST @acen_ops_playground.larry.stg_youtube_videos_comments;
-LIST @acen_ops_playground.larry.stg_youtube_videos;
+LIST @dev_playground.larry.stg_reddit_posts_comments;
+LIST @dev_playground.larry.stg_reddit_posts;
+LIST @dev_playground.larry.stg_youtube_videos_comments;
+LIST @dev_playground.larry.stg_youtube_videos;
 
 SELECT
     $1:post_id::VARCHAR(50) AS post_id,
@@ -372,7 +372,7 @@ SELECT
     $1:comment_body::TEXT AS comment_body,
     $1:added_at::VARCHAR::TIMESTAMP_NTZ AS added_at
     -- pattern below is used to match all parquet files
-FROM @acen_ops_playground.larry.stg_reddit_posts_comments (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet');
+FROM @dev_playground.larry.stg_reddit_posts_comments (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet');
 
 SELECT
     $1:post_title::VARCHAR AS post_title,
@@ -387,7 +387,7 @@ SELECT
     $1:post_edited_at::VARCHAR::TIMESTAMP_NTZ AS post_edited_at,
     $1:added_at::VARCHAR::TIMESTAMP_NTZ AS added_at
     -- pattern below is used to match all parquet files
-FROM @acen_ops_playground.larry.stg_reddit_posts (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet');
+FROM @dev_playground.larry.stg_reddit_posts (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet');
 
 SELECT
     $1:level::VARCHAR(50) AS level,
@@ -405,7 +405,7 @@ SELECT
     $1:author_channel_url::VARCHAR AS author_channel_url,
     $1:added_at::VARCHAR::TIMESTAMP_NTZ AS added_at
     -- pattern below is used to match all parquet files
-FROM @acen_ops_playground.larry.stg_youtube_videos_comments (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet');
+FROM @dev_playground.larry.stg_youtube_videos_comments (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet');
 
 SELECT
     $1:video_id::VARCHAR(50) AS video_id,
@@ -423,7 +423,7 @@ SELECT
     $1:published_at::VARCHAR::TIMESTAMP_NTZ AS published_at,
     $1:added_at::VARCHAR::TIMESTAMP_NTZ AS added_at
     -- pattern below is used to match all parquet files
-FROM @acen_ops_playground.larry.stg_youtube_videos (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet');
+FROM @dev_playground.larry.stg_youtube_videos (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet');
 
 -- create tables where copied data will land
 -- using snowpipe
@@ -498,10 +498,10 @@ CREATE OR REPLACE TABLE raw_youtube_videos (
 -- how this will run is if the s3 delta table 
 -- experiences an event of adding new parquet files
 -- then this pipe will run the copy
-CREATE OR REPLACE PIPE acen_ops_playground.larry.reddit_posts_comments_pipe
+CREATE OR REPLACE PIPE dev_playground.larry.reddit_posts_comments_pipe
 AUTO_INGEST = TRUE
 AS 
-COPY INTO acen_ops_playground.larry.raw_reddit_posts_comments
+COPY INTO dev_playground.larry.raw_reddit_posts_comments
 FROM (
     SELECT
         $1:post_id::VARCHAR(50) AS post_id,
@@ -519,14 +519,14 @@ FROM (
         $1:comment_body::TEXT AS comment_body,
         $1:added_at::VARCHAR::TIMESTAMP_NTZ AS added_at
         -- pattern below is used to match all parquet files
-    FROM @acen_ops_playground.larry.stg_reddit_posts_comments (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet')
+    FROM @dev_playground.larry.stg_reddit_posts_comments (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet')
 );
--- DROP PIPE IF EXISTS acen_ops_playground.larry.reddit_posts_comments_pipe;
+-- DROP PIPE IF EXISTS dev_playground.larry.reddit_posts_comments_pipe;
 
-CREATE OR REPLACE PIPE acen_ops_playground.larry.reddit_posts_pipe
+CREATE OR REPLACE PIPE dev_playground.larry.reddit_posts_pipe
 AUTO_INGEST = TRUE
 AS 
-COPY INTO acen_ops_playground.larry.raw_reddit_posts
+COPY INTO dev_playground.larry.raw_reddit_posts
 FROM (
     SELECT
         $1:post_title::VARCHAR AS post_title,
@@ -541,14 +541,14 @@ FROM (
         $1:post_edited_at::VARCHAR::TIMESTAMP_NTZ AS post_edited_at,
         $1:added_at::VARCHAR::TIMESTAMP_NTZ AS added_at
         -- pattern below is used to match all parquet files
-    FROM @acen_ops_playground.larry.stg_reddit_posts (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet')
+    FROM @dev_playground.larry.stg_reddit_posts (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet')
 );
--- DROP PIPE IF EXISTS acen_ops_playground.larry.reddit_posts_pipe;
+-- DROP PIPE IF EXISTS dev_playground.larry.reddit_posts_pipe;
 
-CREATE OR REPLACE PIPE acen_ops_playground.larry.youtube_videos_comments_pipe
+CREATE OR REPLACE PIPE dev_playground.larry.youtube_videos_comments_pipe
 AUTO_INGEST = TRUE
 AS 
-COPY INTO acen_ops_playground.larry.raw_youtube_videos_comments
+COPY INTO dev_playground.larry.raw_youtube_videos_comments
 FROM (
     SELECT
         $1:level::VARCHAR(50) AS level,
@@ -566,13 +566,13 @@ FROM (
         $1:author_channel_url::VARCHAR AS author_channel_url,
         $1:added_at::VARCHAR::TIMESTAMP_NTZ AS added_at
         -- pattern below is used to match all parquet files
-    FROM @acen_ops_playground.larry.stg_youtube_videos_comments (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet')
+    FROM @dev_playground.larry.stg_youtube_videos_comments (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet')
 );
 
-CREATE OR REPLACE PIPE acen_ops_playground.larry.youtube_videos_pipe
+CREATE OR REPLACE PIPE dev_playground.larry.youtube_videos_pipe
 AUTO_INGEST = TRUE
 AS 
-COPY INTO acen_ops_playground.larry.raw_youtube_videos
+COPY INTO dev_playground.larry.raw_youtube_videos
 FROM (
     SELECT
         $1:video_id::VARCHAR(50) AS video_id,
@@ -590,7 +590,7 @@ FROM (
         $1:published_at::VARCHAR::TIMESTAMP_NTZ AS published_at,
         $1:added_at::VARCHAR::TIMESTAMP_NTZ AS added_at
         -- pattern below is used to match all parquet files
-    FROM @acen_ops_playground.larry.stg_youtube_videos (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet')
+    FROM @dev_playground.larry.stg_youtube_videos (FILE_FORMAT => 'pff', PATTERN => '.*\.parquet')
 );
 
 -- we do this to get the value of the notification channel column
@@ -599,17 +599,17 @@ FROM (
 -- bucket happen
 SHOW PIPES;
 
-SELECT COUNT(*) FROM acen_ops_playground.larry.raw_reddit_posts_comments;
-SELECT COUNT(*) FROM acen_ops_playground.larry.raw_reddit_posts;
-SELECT COUNT(*) FROM acen_ops_playground.larry.raw_youtube_videos_comments;
-SELECT COUNT(*) FROM acen_ops_playground.larry.raw_youtube_videos;
+SELECT COUNT(*) FROM dev_playground.larry.raw_reddit_posts_comments;
+SELECT COUNT(*) FROM dev_playground.larry.raw_reddit_posts;
+SELECT COUNT(*) FROM dev_playground.larry.raw_youtube_videos_comments;
+SELECT COUNT(*) FROM dev_playground.larry.raw_youtube_videos;
 
 -- check for duplicates in youtube videos comments
 SELECT
     COUNT(*),
     comment_id,
     video_id 
-FROM acen_ops_playground.larry.raw_youtube_videos_comments
+FROM dev_playground.larry.raw_youtube_videos_comments
 GROUP BY ALL
 HAVING COUNT(*) > 1
 LIMIT 500;
@@ -618,7 +618,7 @@ LIMIT 500;
 SELECT 
     COUNT(*),
     video_id
-FROM acen_ops_playground.larry.raw_youtube_videos
+FROM dev_playground.larry.raw_youtube_videos
 GROUP BY ALL
 HAVING COUNT(*) > 1;
 
@@ -628,12 +628,12 @@ SELECT * FROM VALUES(2), (3), (4);
 
 SELECT
     * 
-FROM acen_ops_playground.larry.raw_youtube_videos_comments
+FROM dev_playground.larry.raw_youtube_videos_comments
 LIMIT 100;
 
 SELECT 
     *
-FROM acen_ops_playground.larry.raw_youtube_videos_comments 
+FROM dev_playground.larry.raw_youtube_videos_comments 
 WHERE 
 level IN ('') AND
 EXTRACT(YEAR FROM published_at) BETWEEN 2020 AND 2025
