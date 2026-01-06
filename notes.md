@@ -3934,6 +3934,13 @@ Locking (Avoid Where Possible): In extremely complex projects where two people m
 1. we can run `git filter-repo --sensitive-data-removal --invert-paths --path "<path/to/repo e.g. figures & images/dbt cloud>"`
 2. after a specific directory or file/s has been removed we can run git push --force --mirror origin to make those changes
 
+## Data Warehousing
+* Types of Grains/Granularity Levels
+- Atomic/Transaction Level: The most detailed, representing individual events (e.g., one line item on a sales order).
+- Daily/Snapshot Granularity: Data aggregated to a single day (e.g., daily sales totals).
+- Monthly/Periodic Snapshots: Aggregations for a month (e.g., monthly balances).
+- High-Level/Summary: Coarse grains for broad trends (e.g., quarterly or yearly totals). 
+
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
 * configuring external stage in snowflake and aws: https://docs.snowflake.com/en/user-guide/data-load-s3-config-storage-integration
