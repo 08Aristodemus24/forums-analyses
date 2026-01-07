@@ -93,6 +93,12 @@ so the reason whhy there are duplicates is not because delta tables failed to no
 [comment, 5QIQ5QHqDbw, Ugxg_icY1-vLqVV2gJV4AaABAg, UC2negEr32z8nhZ5cPxCxJMg, UCNqFDjYTexJDET3rPDrmJKg, null, Your. Idol, Your. Idol, 2025-12-24 18:14:39.000, 2025-12-24 18:14:39.000, 0, @OLAOLUWAKIITANALIMABIOLA, http://www.youtube.com/@OLAOLUWAKIITANALIMABIOLA, 2025-12-25 02:18:53.336] and [comment, 5QIQ5QHqDbw, Ugxg_icY1-vLqVV2gJV4AaABAg, UC2negEr32z8nhZ5cPxCxJMg, UCNqFDjYTexJDET3rPDrmJKg, null, Your. Idol, Your. Idol, 2025-12-24 18:14:39.000, 2025-12-24 18:14:39.000, 0, @OLAOLUWAKIITANALIMABIOLA, http://www.youtube.com/@OLAOLUWAKIITANALIMABIOLA, 2025-12-25 02:18:53.720]
 are duplicate records with different timestamps delta table still writes these as essentially new rows as the comment_id key does not yet exist in the existing delta table
 
+* there are still duplicates that have not been deleted in manual delete transaction I did
+level | video id | comment id | author channel id | channel id where comment was made | parent comment id | text original | text display | published at | updated at | like count | author display name | author channel uri | added at
+comment	Ug_pv5-r1js	null	null	null	null	null	null	null	null	null	null	null	2025-12-24 15:36:08.911
+comment	Ug_pv5-r1js	null	null	null	null	null	null	null	null	null	null	null	2025-12-25 02:15:10.721
+comment	Ug_pv5-r1js	null	null	null	null	null	null	null	null	null	null	null	2025-12-24 15:16:10.152
+
 # IBM Interview Prep
 * need to know how to build macros
 
