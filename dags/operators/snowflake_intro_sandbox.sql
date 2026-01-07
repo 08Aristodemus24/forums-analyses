@@ -602,7 +602,9 @@ SHOW PIPES;
 SELECT COUNT(*) FROM dev_playground.larry.raw_reddit_posts_comments;
 SELECT COUNT(*) FROM dev_playground.larry.raw_reddit_posts;
 SELECT COUNT(*) FROM dev_playground.larry.raw_youtube_videos_comments;
+SELECT COUNT(*) FROM forums_analyses_db.forums_analyses_bronze.raw_youtube_videos_comments;
 SELECT COUNT(*) FROM dev_playground.larry.raw_youtube_videos;
+SELECT COUNT(*) FROM forums_analyses_db.forums_analyses_bronze.raw_youtube_videos;
 
 -- check for duplicates in youtube videos comments
 SELECT
@@ -613,6 +615,13 @@ FROM dev_playground.larry.raw_youtube_videos_comments
 GROUP BY ALL
 HAVING COUNT(*) > 1
 LIMIT 500;
+
+SELECT
+    *
+FROM forums_analyses_db.forums_analyses_bronze.raw_youtube_videos_comments
+WHERE comment_id IS NULL
+ORDER BY video_id;
+
 
 -- check for duplicates in youtube videos
 SELECT 

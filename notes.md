@@ -3632,6 +3632,114 @@ sometimes `snowflake_grant_privileges_to_account_role.fa_database_allowed_roles`
 
 then just run `terraform apply --var-file=credentials.tfvars -auto-approve`
 
+* dealing with a revoking privileges from account role error
+``` 
+snowflake_grant_privileges_to_account_role.fa_schema_allowed_roles: Destroying... [id="ACCOUNTADMIN"|true|true|ALL|OnSchema|OnSchema|"FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"]
+snowflake_storage_integration.forums_analyses_si: Destroying... [id=FORUMS_ANALYSES_SI]
+snowflake_grant_privileges_to_account_role.fa_database_allowed_roles: Destroying... [id="ACCOUNTADMIN"|true|true|ALL|OnAccountObject|DATABASE|"FORUMS_ANALYSES_DB"]
+snowflake_external_volume.forums_analyses_ext_vol: Destroying... [id=FORUMS_ANALYSES_EXT_VOL]
+snowflake_storage_integration.forums_analyses_si: Destruction complete after 2s
+snowflake_external_volume.forums_analyses_ext_vol: Destruction complete after 2s
+╷
+│ Error: An error occurred when revoking privileges from account role
+│
+│ Id: "ACCOUNTADMIN"|true|true|ALL|OnSchema|OnSchema|"FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"
+│ Account role name: "ACCOUNTADMIN"
+│ Error: [errors.go:23] object does not exist or not authorized
+╵
+╷
+│ Error: An error occurred when revoking privileges from account role
+│
+│ Id: "ACCOUNTADMIN"|true|true|ALL|OnAccountObject|DATABASE|"FORUMS_ANALYSES_DB"
+│ Account role name: "ACCOUNTADMIN"
+│ Error: [errors.go:23] object does not exist or not authorized
+╵
+
+(tech-interview) C:\Users\LARRY\Documents\Scripts\data-engineering-path\forums-analyses\infra>terraform state list
+data.aws_caller_identity.current
+data.aws_iam_policy_document.forums_analyses_bucket_access_policy
+aws_iam_policy.forum_analyses_ext_int_policy
+aws_iam_role.forum_analyses_ext_int_role
+aws_iam_role_policy_attachment.faei_role_policy_attachment
+aws_s3_bucket.forums_analyses_bucket
+aws_s3_bucket_policy.forums_analyses_bucket_access_policy
+aws_s3_bucket_public_access_block.example
+snowflake_grant_privileges_to_account_role.fa_database_allowed_roles
+snowflake_grant_privileges_to_account_role.fa_schema_allowed_roles
+
+(tech-interview) C:\Users\LARRY\Documents\Scripts\data-engineering-path\forums-analyses\infra>terraform state rm snowflake_grant_privileges_to_account_role.fa_database_allowed_roles
+Removed snowflake_grant_privileges_to_account_role.fa_database_allowed_roles
+Successfully removed 1 resource instance(s).
+
+(tech-interview) C:\Users\LARRY\Documents\Scripts\data-engineering-path\forums-analyses\infra>terraform state rm snowflake_grant_privileges_to_account_role.fa_schema_allowed_roles
+Removed snowflake_grant_privileges_to_account_role.fa_schema_allowed_roles
+Successfully removed 1 resource instance(s).
+
+(tech-interview) C:\Users\LARRY\Documents\Scripts\data-engineering-path\forums-analyses\infra>terraform state rm snowflake_database.forums_analyses_db
+╷
+│ Error: Invalid target address
+│
+│ No matching objects found. To view the available instances, use "terraform state list". Please modify the address to
+│ reference a specific instance.
+╵
+
+
+(tech-interview) C:\Users\LARRY\Documents\Scripts\data-engineering-path\forums-analyses\infra>terraform state list
+data.aws_caller_identity.current
+data.aws_iam_policy_document.forums_analyses_bucket_access_policy
+aws_iam_policy.forum_analyses_ext_int_policy
+aws_iam_role.forum_analyses_ext_int_role
+aws_iam_role_policy_attachment.faei_role_policy_attachment
+aws_s3_bucket.forums_analyses_bucket
+aws_s3_bucket_policy.forums_analyses_bucket_access_policy
+aws_s3_bucket_public_access_block.example
+```
+
+I totally feel your frustration. Moving to a new Snowflake account is like moving into a new house but your moving company (Terraform) thinks all your furniture is already there and is trying to move it around.
+
+The reason it won't "just start from scratch" is that Terraform’s state file is a record of what it thinks exists. Because you are using the same state file for a brand-new Snowflake account, Terraform sees the grants in its memory, tries to talk to the new Snowflake account to "sync" them, and Snowflake basically says, "I don't know what you're talking about, that database doesn't exist."
+
+Since your state file also contains AWS resources (S3 buckets, IAM roles) that probably do still exist, DO NOT delete your terraform.tfstate file. If you do, you'll lose track of your AWS stuff too.
+
+Here is how to surgically wipe the Snowflake memory so you can start fresh.
+
+The Fix: Surgically Remove Snowflake from State
+You need to tell Terraform to "forget" the Snowflake resources without touching the AWS ones. Run these commands in your terminal:
+
+Bash
+
+# 1. Forget the database grant
+terraform state rm snowflake_grant_privileges_to_account_role.fa_database_allowed_roles
+
+# 2. Forget the schema grant
+terraform state rm snowflake_grant_privileges_to_account_role.fa_schema_allowed_roles
+
+# 3. Forget the database (though your JSON shows it's empty, run it to be safe)
+terraform state rm snowflake_database.forums_analyses_db
+What this does: It deletes those specific entries from your .json state file. It doesn't try to "revoke" anything in Snowflake. It just clears Terraform's memory.
+
+Why the error is happening (Visualized)
+When you run terraform apply now, Terraform sees:
+
+State: "I have no record of a Snowflake database or grants."
+
+Code: "User wants a Snowflake database and grants."
+
+Action: It will issue a CREATE command instead of a REVOKE or UPDATE command.
+
+One Last Check: Your Provider Configuration
+Since you are on a new 120-day trial account, your Snowflake account URL/ID has changed. Make sure your provider "snowflake" block or your environment variables (SNOWFLAKE_ACCOUNT, etc.) are updated with the new account locator (the random string in your new URL).
+
+If you don't update this, Terraform will keep trying to log into your old expired account.
+
+Summary of Next Steps
+Run the terraform state rm commands listed above.
+
+Verify your new account credentials are in your .env or provider block.
+
+Run terraform plan — it should now show + create for all your Snowflake objects instead of errors.
+
+**main thing is to remove everything surgically in the terraform.tfstate json file using `terraform state rm <existing object from terraform state list>`**
 
 ## Data Engineering 
 * Using delta over parquet

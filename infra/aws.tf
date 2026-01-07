@@ -93,11 +93,11 @@ resource "aws_iam_policy" "forum_analyses_ext_int_policy" {
         "Resource" : [
           "arn:aws:s3:::forums-analyses-bucket"
         ]
-        "Condition": {
-          "StringLike": {
-              "s3:prefix": [
-                "*"
-              ]
+        "Condition" : {
+          "StringLike" : {
+            "s3:prefix" : [
+              "*"
+            ]
           }
         }
       }
