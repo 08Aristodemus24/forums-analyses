@@ -3939,7 +3939,9 @@ Locking (Avoid Where Possible): In extremely complex projects where two people m
 - Atomic/Transaction Level: The most detailed, representing individual events (e.g., one line item on a sales order).
 - Daily/Snapshot Granularity: Data aggregated to a single day (e.g., daily sales totals).
 - Monthly/Periodic Snapshots: Aggregations for a month (e.g., monthly balances).
-- High-Level/Summary: Coarse grains for broad trends (e.g., quarterly or yearly totals). 
+- High-Level/Summary: Coarse grains for broad trends (e.g., quarterly or yearly totals).
+
+* Observability involves using telemetry, alerts, and notifications to monitor pipeline health so data engineers can respond quickly when problems occur.
 
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
