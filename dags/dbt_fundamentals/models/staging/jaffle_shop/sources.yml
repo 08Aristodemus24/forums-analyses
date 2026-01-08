@@ -2,8 +2,8 @@ version: 2
 
 sources:
   - name: jaffle_shop
-    database: DEV_PLAYGROUND
-    schema: LARRY
+    database: FORUMS_ANALYSES_DB
+    schema: FORUMS_ANALYSES_BRONZE
     tables:
       - name: orders
       - name: customers

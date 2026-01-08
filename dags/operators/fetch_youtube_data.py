@@ -596,19 +596,19 @@ if __name__ == "__main__":
     # searches videos and returns the list of video ids
     video_ids = search_videos(youtube, args.search_query, args.limit)
 
-    # extract videos comments
-    extract_videos_comments(
-        youtube=youtube, 
-        # video_ids=["-8AHcNRfERI"],
-        video_ids=video_ids, 
-        limit=args.limit, 
-        aws_creds=aws_creds, 
-        bucket_name=args.bucket_name, 
-        folder_name=args.folder_name, 
-        object_name="raw_youtube_videos_comments", 
-        is_local=args.local, 
-        upsert_func=upsert_videos_comments
-    )
+    # # extract videos comments
+    # extract_videos_comments(
+    #     youtube=youtube, 
+    #     # video_ids=["-8AHcNRfERI"],
+    #     video_ids=video_ids, 
+    #     limit=args.limit, 
+    #     aws_creds=aws_creds, 
+    #     bucket_name=args.bucket_name, 
+    #     folder_name=args.folder_name, 
+    #     object_name="raw_youtube_videos_comments", 
+    #     is_local=args.local, 
+    #     upsert_func=upsert_videos_comments
+    # )
 
     # extract videos
     extract_videos(

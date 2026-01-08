@@ -2,8 +2,8 @@ version: 2
 
 sources:
   - name: stripe
-    database: DEV_PLAYGROUND
-    schema: LARRY
+    database: FORUMS_ANALYSES_DB
+    schema: FORUMS_ANALYSES_BRONZE
     tables:
       - name: payments
         # loaded_at_field: _batched_at

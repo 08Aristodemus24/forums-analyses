@@ -2205,6 +2205,172 @@ GRANT MODIFY PROGRAMMATIC AUTHENTICATION METHODS ON USER "<someemail.name@compan
 ALTER USER "<someemail.name@company.com>" SET RSA_PUBLIC_KEY='<the public key you made e.g. MIIBI...>';
 ```
 
+* Ok I am testing it with my iceberg tables that ingest data from my s3 bucket that are basically delta files. I am getting this error while creating a stream on my iceberg table caleld raw_youtube_videos:
+
+`Streams on External Tables or Iceberg tables with an external catalog must have INSERT_ONLY set to true.`
+
+This error occurs because Snowflake treats Iceberg Tables (with external catalogs) and External Tables differently than native Snowflake tables.
+
+When data lives in your S3 bucket (external to Snowflake), Snowflake cannot perfectly track the "before" and "after" states of a row if it gets updated or deleted in the source files. Because of this metadata limitation, it forces you to use an Append-only model for change tracking.
+
+The Fix: Add APPEND_ONLY = TRUE
+You need to explicitly tell Snowflake that this stream will only track new rows being added to the Iceberg table.
+
+Run this corrected SQL:
+```
+CREATE OR REPLACE STREAM raw_youtube_videos_stream 
+ON ICEBERG TABLE raw_youtube_videos
+APPEND_ONLY = TRUE;
+```
+(Note: While the error message says INSERT_ONLY, the actual keyword in the SQL syntax for streams is APPEND_ONLY = TRUE. They mean the same thing in this context.)
+
+Why Snowflake forces this on Iceberg/External Tables
+In a standard Snowflake table, Snowflake owns the micro-partitions. It knows exactly when a row is deleted or updated because it rewrites the partition.
+
+With Iceberg/External tables:
+
+Metadata vs. Data: Snowflake is often just reading the metadata (the Iceberg Manifest files) in your S3 bucket.
+
+Tracking Complexity: Tracking a DELETE or an UPDATE in an external file requires a massive amount of overhead to compare the "old" file vs the "new" file.
+
+The "Insert-Only" Guarantee: By setting APPEND_ONLY = TRUE, the stream essentially says: "I will only notify you when new records appear in the metadata. I am going to ignore any rows that were deleted or changed in the S3 files."
+
+How to handle Updates/Deletes in your pipeline
+Since your stream will now only "see" new rows, you might be wondering how to handle data that changed or was deleted in your S3 Delta files.
+
+If your "Delta files" in S3 actually contain updates (e.g., a video's view count changed), your pipeline logic downstream needs to handle the de-duplication:
+
+The Stream will capture the "new version" of the row.
+
+Your Task/SQL should use a QUALIFY or ROW_NUMBER() logic to pick the latest version based on a timestamp, or use a MERGE statement to overwrite the old record in your "Bronze" or "Silver" internal Snowflake table.
+
+
+
+* stream objects vs dynamic tables in snowflake:
+
+is it a fair assessment that stream objects in snowflake are event while dynamic tables are time driven meaning if after a certain time period or interval only then does it make the change to the table using SQL logic regardless if the table this logic uses downstream has changed or not
+
+That is a spot-on assessment. You’ve correctly identified the fundamental shift in how Snowflake handles data movement between these two objects.
+
+In the Snowflake world, we often call this the difference between Imperative (Streams) and Declarative (Dynamic Tables) pipelines.
+
+1. Streams: The "Event" Ledger
+A Stream is essentially a bookmark (CDC - Change Data Capture). It doesn't move data; it just records that an "event" happened (Insert, Update, or Delete).
+
+Behavior: It sits there silently until you—the engineer—decide to do something with it.
+
+The Trigger: To actually change a downstream table, you usually pair a Stream with a Task. While Tasks are often scheduled, you can now set them to trigger only when the stream has data (making it truly event-driven).
+
+Workload: You have to write the manual MERGE or INSERT logic.
+
+2. Dynamic Tables: The "Time-Driven" State
+A Dynamic Table is declarative. You don't tell Snowflake how to move the data; you tell it what the data should look like and how fresh it needs to be.
+
+Behavior: The Target Lag (e.g., TARGET_LAG = '1 minute') is the heartbeat.
+
+The Trigger: Snowflake’s automated process wakes up based on that time interval.
+
+Your Logic: It looks at your SQL query, checks the upstream tables, and says, "To reach the state defined in this query within the 1-minute lag I was promised, I need to go pull these new rows now."
+
+Comparison at a Glance
+Feature	Streams (+ Tasks)	Dynamic Tables
+Philosophy	"Something happened, now go run this code."	"This is what the table should look like; keep it fresh."
+Driving Force	Events (DML changes in source).	Time (Target Lag).
+Logic	Manual INSERT / MERGE statements.	A single SELECT statement.
+Complexity	High (you manage the plumbing).	Low (Snowflake manages the plumbing).
+Use Case	Complex ETL, Row-level logic, non-SQL tasks.	Standard Joins, Aggregations, Kimball-style Fact/Dim.
+The Nuance: "Regardless if the table has changed"
+You mentioned: "...only then does it make the change... regardless if the table... has changed or not."
+
+There is one small technical distinction there:
+
+If the source table HAS NOT changed: Snowflake is smart enough to realize there is no work to do. It won't waste credits re-processing the same data just because the time interval hit. It essentially checks the metadata, sees no new "offset," and goes back to sleep.
+
+If the source table HAS changed: It will only pull those changes once the Time (Target Lag) interval is reached. Even if you have 1 million new rows, the Dynamic Table will ignore them until its next scheduled "refresh" window.
+
+Why this matters for your Star Schema
+If you are building those Additive/Non-Additive facts we talked about earlier:
+
+Dynamic Tables are amazing for Aggregate Facts (e.g., a "Daily Sales Summary"). You just write the SUM(Sales) query, set a lag of 1 hour, and Snowflake ensures your summary table stays current without you writing complex Merge scripts.
+
+Now that you're setting up your infra again in the new account, would you like me to show you the Terraform code for a Dynamic Table so you don't have to manually manage the grants and tasks?
+
+* task objects in snowflake
+```
+USE ROLE accountadmin;
+USE WAREHOUSE compute_wh;
+USE DATABASE tasty_bytes;
+
+-- Task that runs executes every minute
+CREATE OR REPLACE TASK tasty_bytes.raw_pos.process_orders_header_sproc
+WAREHOUSE = 'COMPUTE_WH'
+SCHEDULE = 'USING CRON * * * * * UTC'
+AS
+CALL tasty_bytes.raw_pos.process_order_headers_stream();
+
+-- Activate the task to run
+ALTER TASK tasty_bytes.raw_pos.process_orders_header_sproc RESUME;
+
+-- Query the table
+SELECT * FROM tasty_bytes.raw_pos.daily_sales_hamburg_t;
+
+-- Insert some dummy data into ORDER_HEADER
+INSERT INTO tasty_bytes.raw_pos.order_header (
+    ORDER_ID, 
+    TRUCK_ID, 
+    LOCATION_ID, 
+    CUSTOMER_ID, 
+    DISCOUNT_ID, 
+    SHIFT_ID, 
+    SHIFT_START_TIME, 
+    SHIFT_END_TIME, 
+    ORDER_CHANNEL, 
+    ORDER_TS, 
+    SERVED_TS, 
+    ORDER_CURRENCY, 
+    ORDER_AMOUNT, 
+    ORDER_TAX_AMOUNT, 
+    ORDER_DISCOUNT_AMOUNT, 
+    ORDER_TOTAL
+) VALUES (
+    123456789,                     -- ORDER_ID
+    101,                           -- TRUCK_ID
+    4494,                          -- LOCATION_ID
+    null,                          -- CUSTOMER_ID
+    null,                          -- DISCOUNT_ID
+    123456789,                     -- SHIFT_ID
+    '08:00:00',                    -- SHIFT_START_TIME
+    '16:00:00',                    -- SHIFT_END_TIME
+    null,                          -- ORDER_CHANNEL
+    '2024-01-12 12:30:45',         -- ORDER_TS
+    null,                          -- SERVED_TS
+    'USD',                         -- ORDER_CURRENCY
+    22.00,                         -- ORDER_AMOUNT
+    null,                          -- ORDER_TAX_AMOUNT
+    null,                          -- ORDER_DISCOUNT_AMOUNT
+    24.50                          -- ORDER_TOTAL
+);
+
+-- Wait 1 minute before running this, query the table once more
+SELECT * FROM tasty_bytes.raw_pos.daily_sales_hamburg_t;
+
+-- Suspend the task
+ALTER TASK tasty_bytes.raw_pos.process_orders_header_sproc SUSPEND;
+
+
+-- Optional: recreate the task such that it executes every 24 hours
+-- CREATE OR REPLACE TASK tasty_bytes.raw_pos.process_orders_header_sproc
+-- SCHEDULE = 'USING CRON 0 0 * * * UTC'
+-- AS
+-- CALL tasty_bytes.raw_pos.process_order_headers_stream();
+
+-- Optional: Start the task
+-- ALTER TASK tasty_bytes.raw_pos.process_orders_header_sproc RESUME;
+
+-- Required: Stop the task if you started it using the command directly above this one
+-- ALTER TASK tasty_bytes.raw_pos.process_orders_header_sproc SUSPEND;
+```
+
 ## Reddit, Youtube API
 * 
 ```
@@ -3740,6 +3906,17 @@ Verify your new account credentials are in your .env or provider block.
 Run terraform plan — it should now show + create for all your Snowflake objects instead of errors.
 
 **main thing is to remove everything surgically in the terraform.tfstate json file using `terraform state rm <existing object from terraform state list>`**
+
+
+* when you encounter a request `returned Internal Server Error for API route and version http://%2F%2F.%2Fpipe%2Fdocker_engine/v1.24/images/create?fromImage=alexmyg%2Fandropytool&tag=latest, check if the server supports the requested API version` assuming Astro CLI, WSL, and Docker Desktop are all installed in your system through `winget install -e --id Astronomer.Astro`, `wsl --update`, and docker desktop's installer, sometimes we might get something like this, this is just mainly due to docker's engine not being able to fully start up yet. So just wait for it and it should run
+
+a thing to note that it is imperative that WSL is installed in your system as this is what docker directly uses for containerizing applications with a linux environment, and there can be other distributions that may be installed like Podman etc., but overall when wsl --list is ran or wsl --list --running to see what windows subsystem for linux distributions are being used in your running container it will by default show 
+```
+Windows Subsystem for Linux Distributions:
+docker-desktop (Default)
+```
+
+
 
 ## Data Engineering 
 * Using delta over parquet
