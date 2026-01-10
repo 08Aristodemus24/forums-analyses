@@ -2391,30 +2391,7 @@ role = "<your accounts role e.g. ACCOUNTADMIN>"
 
 we can explicitly add a connection through snowflake cli by running `snow connection add` which will prompt you to add values to the ff. fields to be stored in your `connections.toml` file in the aforementioned directory
 
-* you might even ecnounter this error `Invalid connection configuration. 250001: 250001: Could not connect to Snowflake backend after 2 attempt(s)`, even after you've set both your config.toml and connections.toml to:
-```
-default_connection_name = "test"
-
-[cli]
-ignore_new_version_warning = false
-
-[cli.logs]
-save_logs = true
-path = "C:\\Users\\larry.cueva\\.snowflake\\logs"
-level = "info"
-```
-
-```
-[test]
-account = "test-test"
-user = "test"
-password = "flsdajfl;as"
-database = "test"
-schema = "test"
-warehouse = "test"
-role = "accountadmin"
-```
-
+* 
 ## Reddit, Youtube API
 * 
 ```
@@ -3959,6 +3936,49 @@ a thing to note that it is imperative that WSL is installed in your system as th
 Windows Subsystem for Linux Distributions:
 docker-desktop (Default)
 ```
+
+* another potential error while running `dbt build` or any dbt command is 
+```
+WARNING:snowflake.connector.vendored.urllib3.connectionpool:Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'SSLError(SSLError("bad handshake: Error([('SSL routines', '', 'certificate verify failed')])"))': /session/v1/login-request?request_id=908fd4be-d9b6-4b44-8794-a2850981fe57&databaseName=FORUMS_ANALYSES_DB&schemaName=FORUMS_ANALYSES_BRONZE&warehouse=COMPUTE_WH&roleName=ACCOUNTADMIN&request_guid=5b2c886e-e0fd-4c1b-9157-8aeb550515f9
+
+Runtime Error
+  Database error while listing schemas in database "FORUMS_ANALYSES_DB"
+  Database Error
+    250001: Could not connect to Snowflake backend after 11 attempt(s).Aborting
+    Verify that the hostnames and port numbers in SYSTEM$ALLOWLIST are added to your firewall's allowed list.
+    To further troubleshoot your connection you may reference the following article: https://docs.snowflake.com/en/user-guide/client-connectivity-troubleshooting/overview.
+```
+
+
+Typically, the error indicates there is a proxy which is intercepting Snowflake's SSL certificate and replacing with their own. The best way to resolve this is to ensure the certificate is trusted in the proxy and/or the environment variables are configured as per our documentation so that the Snowflake certificate can pass through.
+
+The error is often resolved by network configuration adjustments. Please confirm with your network/firewall teams if there is proxy and/or SSL proxy in place. One common issue is attributed to security intercepting Snowflake's SSL certificate and replacing with their own. The documentation here has more information using a proxy with SnowSQL. The Snowflake documentation links along with the certificate error details are useful to pass along to a network engineer who can whitelist at least the below URLs (documentation here confirming the whitelisting requirements) in order to resolve the SnowSQL connection issue.
+
+another similar error to this that you might even ecnounter is this: `Invalid connection configuration. 250001: 250001: Could not connect to Snowflake backend after 2 attempt(s)`, even after you've set both your config.toml and connections.toml to:
+```
+default_connection_name = "test"
+
+[cli]
+ignore_new_version_warning = false
+
+[cli.logs]
+save_logs = true
+path = "C:\\Users\\larry.cueva\\.snowflake\\logs"
+level = "info"
+```
+
+```
+[test]
+account = "test-test"
+user = "test"
+password = "flsdajfl;as"
+database = "test"
+schema = "test"
+warehouse = "test"
+role = "accountadmin"
+```
+
+According to gemini:
 
 
 
