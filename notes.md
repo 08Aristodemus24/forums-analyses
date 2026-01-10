@@ -2371,6 +2371,50 @@ ALTER TASK tasty_bytes.raw_pos.process_orders_header_sproc SUSPEND;
 -- ALTER TASK tasty_bytes.raw_pos.process_orders_header_sproc SUSPEND;
 ```
 
+
+* when we want to specify default connections for snowflake cli we need to define a connections.toml file which snowflake cli usually creates upon instlalation in `/Users/<main user>/.snowflake/` directory
+```
+default_connection_name="data_eng_devops_with_snowflake"
+
+[somename]
+account = "somename"
+user = "<your login name>"
+authenticator = "externalbrowconnections.ser"
+
+[data_eng_devops_with_snowflake]
+account = "<ORGNAME>-<COMPANYNAME>"
+user = "<your login name>"
+password = "<your login password>"
+authenticator = "snowflake"
+role = "<your accounts role e.g. ACCOUNTADMIN>"
+```
+
+we can explicitly add a connection through snowflake cli by running `snow connection add` which will prompt you to add values to the ff. fields to be stored in your `connections.toml` file in the aforementioned directory
+
+* you might even ecnounter this error `Invalid connection configuration. 250001: 250001: Could not connect to Snowflake backend after 2 attempt(s)`, even after you've set both your config.toml and connections.toml to:
+```
+default_connection_name = "test"
+
+[cli]
+ignore_new_version_warning = false
+
+[cli.logs]
+save_logs = true
+path = "C:\\Users\\larry.cueva\\.snowflake\\logs"
+level = "info"
+```
+
+```
+[test]
+account = "test-test"
+user = "test"
+password = "flsdajfl;as"
+database = "test"
+schema = "test"
+warehouse = "test"
+role = "accountadmin"
+```
+
 ## Reddit, Youtube API
 * 
 ```
