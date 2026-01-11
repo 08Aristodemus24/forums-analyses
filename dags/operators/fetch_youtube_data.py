@@ -12,7 +12,7 @@ from typing import Callable
 from deltalake import DeltaTable, write_deltalake
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from argparse import ArgumentParser
+from argparse import ArgumentParser, ArgumentTypeError
 
 
 def setup_logging():
@@ -228,6 +228,9 @@ def search_videos(youtube, query: str, limit: int):
         "part": ",".join(["snippet"]),
         "q": query,
         "order": "viewCount",
+        # max results can only be 50 videos per request
+        # so place limit checks here to only accept values
+        # between 0 and 50 inclusively
         "maxResults": limit,
         # can be video, channel, or playlist
         # this can be useful if were trying to widen
@@ -430,10 +433,22 @@ def extract_videos_comments(
             next_page_token = None
             request = youtube.commentThreads().list(**params)
 
-            for _ in range(limit):
+            count = 0
+            # for _ in range(limit):
+            """work around for this is to determine the 
+            comment count of the video before hand
+            
+            the reason why we may get duplicates is if
+            where at a certain video and it only has say
+            50 comments and we place our limit to go beyond
+            it say 250 then we may essentially keep using
+            request execute over 200 times more"""
+            while True:
                 response = request.execute()
                 
                 for item in response["items"]:
+                    print(f"count is at {count} for item: ")
+                    pprint.pprint(item)
                     # append top level comment statistics
                     comments.append({
                         "level": "comment",
@@ -521,11 +536,18 @@ def extract_videos_comments(
                 if not next_page_token:
                     break
 
+                count += 1
+
         except HttpError as e:
             logger.warning(f"error `{e}` has occured from videoId {video_id}.")
             logger.warning("Appending empty comment still...")
 
-            # append empty comment
+            # append empty comment, as we know this comes from a 
+            # made for kids video, however this can still be prone to 
+            # duplicates, since the comment scraper can potentially
+            # use the same video, raise an error because of lack 
+            # of stats trigger the except block and append a duplicate
+            # empty comment  
             comments.append({
                 "level": "comment",
                 "video_id": video_id,
@@ -555,6 +577,29 @@ def extract_videos_comments(
 
     write_delta_to_bucket(aws_creds, videos_comments_table, bucket_name, object_name, folder_name, is_local, upsert_func)
 
+
+def restricted_int(min_val, max_val):
+    """
+    Returns a function to be used as a type in argparse.
+    The function checks if an integer is within a specified range.
+    """
+
+    def int_checker(arg_value):
+        try:
+            value = int(arg_value)
+        except ValueError:
+            raise ArgumentTypeError(f"'{arg_value}' not a valid integer")
+        
+        # checks if value is outside the range of min and max
+        # value e.g. if value is -1 or 250 in the min and max
+        # of 1 and 50 then this will raise an error
+        if (value < min_val) or (value > max_val):
+            raise ArgumentTypeError(f"Value must be between {min_val} and {max_val} inclusive")
+        return value
+    
+    return int_checker
+
+
 if __name__ == "__main__":
     # python fetch_youtube_data.py --bucket_name forums-analyses-bucket --object_name raw_youtube_videos_comments --kind comments
     # python fetch_youtube_data.py --bucket_name ../../include/data --object_name raw_youtube_videos_comments --kind comments --local
@@ -572,7 +617,7 @@ if __name__ == "__main__":
     parser.add_argument("--search_query", type=str, default="Kpop Demon Hunters", help="represents the query of what videos, channels, or playlist to \
                         search in youtube to scrape transcripts, statistics, comments, and replies of youtube videos")
     # parser.add_argument("--kind", type=str, default="videos", help="represents the kind of data to scrape on youtube can be video statistics, snippets or comments from the video")
-    parser.add_argument("--limit", type=int, default=1, help="represents the limit to the number of pages to keep requesting for results in youtube api")
+    parser.add_argument("--limit", type=restricted_int(1, 50), default=1 , help="represents the limit to the number of pages to keep requesting for results in youtube api")
     parser.add_argument("--local", action="store_true", help="represents if the bucket name and object is a local path to the delta file if user decides not to write in s3")
     args = parser.parse_args()
 
@@ -593,36 +638,37 @@ if __name__ == "__main__":
     # this case `https://www.youtube.com/watch?v=SIm2W9TtzR0`
     youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
     
-    # searches videos and returns the list of video ids
-    video_ids = search_videos(youtube, args.search_query, args.limit)
+    # # searches videos and returns the list of video ids
+    # video_ids = search_videos(youtube, args.search_query, args.limit)
 
-    # # extract videos comments
-    # extract_videos_comments(
-    #     youtube=youtube, 
-    #     # video_ids=["-8AHcNRfERI"],
-    #     video_ids=video_ids, 
-    #     limit=args.limit, 
-    #     aws_creds=aws_creds, 
-    #     bucket_name=args.bucket_name, 
-    #     folder_name=args.folder_name, 
-    #     object_name="raw_youtube_videos_comments", 
-    #     is_local=args.local, 
-    #     upsert_func=upsert_videos_comments
-    # )
-
-    # extract videos
-    extract_videos(
+    # extract videos comments
+    extract_videos_comments(
         youtube=youtube, 
-        # video_ids=["-8AHcNRfERI"], 
-        video_ids=video_ids,
+        # testing for youtube, and youtube kids videos
+        video_ids=["IzFmtJ0L9jY", "DAIS7kINiwU", "oDSEGkT6J-0"],
+        # video_ids=video_ids, 
         limit=args.limit, 
         aws_creds=aws_creds, 
         bucket_name=args.bucket_name, 
         folder_name=args.folder_name, 
-        object_name="raw_youtube_videos", 
+        object_name="raw_youtube_videos_comments", 
         is_local=args.local, 
-        upsert_func=upsert_videos
+        upsert_func=upsert_videos_comments
     )
+
+    # # extract videos
+    # extract_videos(
+    #     youtube=youtube, 
+    #     # video_ids=["-8AHcNRfERI"], 
+    #     video_ids=video_ids,
+    #     limit=args.limit, 
+    #     aws_creds=aws_creds, 
+    #     bucket_name=args.bucket_name, 
+    #     folder_name=args.folder_name, 
+    #     object_name="raw_youtube_videos", 
+    #     is_local=args.local, 
+    #     upsert_func=upsert_videos
+    # )
 
 # $1:level::VARCHAR(50) AS level,
 # $1:video_id::VARCHAR(50) AS video_id,

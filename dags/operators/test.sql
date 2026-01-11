@@ -9,3 +9,7 @@ SELECT
 FROM raw_youtube_videos_comments
 GROUP BY ALL
 HAVING COUNT(*) > 1;
+
+SELECT
+    *
+FROM raw_youtube_videos;
