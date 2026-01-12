@@ -4381,36 +4381,6 @@ PR Templates: Require developers to document what files they changed in the PR t
 
 Locking (Avoid Where Possible): In extremely complex projects where two people must edit the same high-risk configuration file, some teams resort to file-locking mechanisms, but this generally slows down development and is usually unnecessary with good practices 1-3.
 
-<<<<<<< HEAD
-* schema evolution or adding new columns in existing delta lake table will be inevitable, that's why you jave to set mergeSchema in spark to true, or set merge_schema to true in delta-rs when using pyarrow tables
-
-* dbt build both builds the tables in the DWH and runs and builds the necessary tests, seeds, and snapshots in our project while dbt run is only confined to building tables in the DWH and dbt test is confined to only running the tests of our models without building or materializing our models in the DWH. 
-
-* on the other hand we can actually select which specific models to run/build/test by using the --select flag and specifying our model and even specify also if models upstream or downstream to it should also be run, built, or tested using `dbt <mode e.g. run, build, or test> --select +<model name>` (to run the model and all models that depend on it upstream) and `dbt <mode e.g. run, build, or test> --select +<model name>+` (to run the model and all models that precede it downstream) 
-
-* snowpark library you can understand as actually just using a spark dataframe and spark user capabilities but utilizing the distributed compute of snowflake
-```
-# Import python packages
-import streamlit as st
-import pandas as pd
-
-# Snowpark
-from snowflake.snowpark.context import get_active_session
-import snowflake.snowpark.functions as F
-
-# Cortex Functions
-import snowflake.cortex  as cortex
-
-session = get_active_session()
-
-# Understand the sentiment of customer review using Cortex Sentiment
-reviews_df = session.table('truck_reviews')
-
-reviews_df = reviews_df.withColumn('SENTIMENT', cortex.sentiment(F.col('REVIEW')))
-
-reviews_df.select(["REVIEW","SENTIMENT"]).show(15, max_width = 100)
-```
-=======
 * to remove file/s in a commit history in remote repo we can use the git-repo-filter library. Assuming this is installed via git clone https://github.com/newren/git-filter-repo and adding the repository in our PATH environment variable either in our system or user:
 1. we can run `git filter-repo --sensitive-data-removal --invert-paths --path "<path/to/repo e.g. figures & images/dbt cloud>"`
 2. after a specific directory or file/s has been removed we can run git push --force --mirror origin to make those changes
@@ -4423,7 +4393,6 @@ reviews_df.select(["REVIEW","SENTIMENT"]).show(15, max_width = 100)
 - High-Level/Summary: Coarse grains for broad trends (e.g., quarterly or yearly totals).
 
 * Observability involves using telemetry, alerts, and notifications to monitor pipeline health so data engineers can respond quickly when problems occur.
->>>>>>> a3540f2c5cbe8742452e56e2a517db2266997974
 
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
