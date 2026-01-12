@@ -4353,40 +4353,6 @@ final command would be `git add -f <path to file can be absolute or relative>`
 `SELECT SYSTEM$VERIFY_EXTERNAL_VOLUME('forums_analyses_ext_vol');` will not run successfully
 `SELECT SYSTEM$VERIFY_EXTERNAL_VOLUME('"forums_analyses_ext_vol"');` will run successfully
 
-<<<<<<< HEAD
-Feature Branching: Every new feature, fix, or task must be developed in its own dedicated branch (like your fa-dev branch). This isolates changes and prevents developers from interfering with each other's work on the main branch.
-
-Keep master/main Clean: The main branch should always be stable and ready for deployment. All merges into it should be done via Pull Requests (PRs) after passing automated tests.
-
-2. Reduce the Scope of Work (Small PRs) 📏
-This is the single most effective conflict prevention measure.
-
-Commit Frequently, Merge Early: Don't work on a single feature for weeks. Break down large tasks into the smallest possible, working increments. A Pull Request (PR) that changes only 10-20 files is far less likely to conflict than one that changes 100.
-
-Isolate Logic: When possible, have one developer own a specific component or dbt model (dim_customers) and another own a different, separate model (fct_orders). Conflicts only occur when different branches modify the same lines in the same file.
-
-3. Synchronize Frequently (Rebase vs. Merge) 🔄
-If a long-lived feature branch exists, it must regularly pull updates from the main branch to ensure it isn't drifting too far.
-
-Pull Before Starting: Always run git pull origin master before creating your new feature branch.
-
-Rebase Frequently: Use git rebase master from your feature branch instead of merging master into your feature branch.
-
-Merge: Creates a new merge commit, preserving history but often adding unnecessary complexity.
-
-Rebase (Recommended): Moves your entire branch to the tip of master. This results in a cleaner, linear history and forces you to resolve any conflicts locally and immediately, preventing a messy conflict when the feature is ready to merge back into master.
-
-4. Use Code Review and Automation 🤖
-Code Ownership: Establish guidelines on which teams or individuals own which directories or models. Conflicts in areas with clear ownership are easier to resolve.
-
-PR Templates: Require developers to document what files they changed in the PR template. This allows reviewers to preemptively identify potential areas of conflict with other ongoing branches.
-
-Locking (Avoid Where Possible): In extremely complex projects where two people must edit the same high-risk configuration file, some teams resort to file-locking mechanisms, but this generally slows down development and is usually unnecessary with good practices 1-3.
-
-* to remove file/s in a commit history in remote repo we can use the git-repo-filter library. Assuming this is installed via git clone https://github.com/newren/git-filter-repo and adding the repository in our PATH environment variable either in our system or user:
-1. we can run `git filter-repo --sensitive-data-removal --invert-paths --path "<path/to/repo e.g. figures & images/dbt cloud>"`
-2. after a specific directory or file/s has been removed we can run git push --force --mirror origin to make those changes
-=======
 ```
 CREATE OR REPLACE ICEBERG TABLE raw_reddit_posts_comments
     CATALOG = delta_catalog_integration
@@ -4396,13 +4362,9 @@ CREATE OR REPLACE ICEBERG TABLE raw_reddit_posts_comments
 WARNING: `002003 (02000): SQL compilation error:
 External volume 'FORUMS_ANALYSES_EXT_VOL' does not exist or not authorized.` has occured.
 ```
->>>>>>> fa-dev
 
 even if `forums_analyses_ext_vol` already exists
 
-<<<<<<< HEAD
-* Observability involves using telemetry, alerts, and notifications to monitor pipeline health so data engineers can respond quickly when problems occur.
-=======
 ```
 LIST @sa_ext_stage_integration
 WARNING: `003167 (42601): Error assuming AWS_ROLE:
@@ -4530,7 +4492,6 @@ as the policy document instead of just
 sometimes `snowflake_grant_privileges_to_account_role.fa_database_allowed_roles` may raise a object does not exist or not authorized. Just make sure to create the snowflake resources and objects first before adding the line in your terraform file that grants privileges to your user to these objects
 
 then just run `terraform apply --var-file=credentials.tfvars -auto-approve`
->>>>>>> fa-dev
 
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
