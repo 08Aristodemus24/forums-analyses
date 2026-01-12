@@ -59,6 +59,7 @@ reformated_dates AS (
 )
 -- Final output with core attributes derived from the date
 SELECT
+    date_actual,
     date_id,
     calendar_year,
     CASE 
@@ -76,6 +77,7 @@ SELECT
         WHEN calendar_month_num = 12 THEN 'December'
         ELSE NULL
     END As calendar_month,
+    calendar_day,
     day_of_week,
     is_weekend
 FROM reformated_dates
