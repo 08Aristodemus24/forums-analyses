@@ -12,8 +12,10 @@ do-sleep:
 # in sequence to run is to run a script inside a running airflow container
 # that will setup our airflow connections in the container from our 
 # local machine  
+
+# docker exec forums-analyses_00fc64-api-server-1 python /usr/local/airflow/include/scripts/setup_conn.py
 setup-conn:
-	docker exec forums-analyses_00fc64-api-server-1 python /usr/local/airflow/include/scripts/setup_conn.py
+	docker exec forums-analyses_8585f6-api-server-1 python /usr/local/airflow/include/scripts/setup_conn.py
 
 up: start-containers do-sleep setup-conn
 

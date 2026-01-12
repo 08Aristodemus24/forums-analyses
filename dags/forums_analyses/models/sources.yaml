@@ -4,4 +4,26 @@ sources:
     schema: FORUMS_ANALYSES_BRONZE
     tables:
       - name: raw_reddit_posts_comments
+        config:
+          loaded_at_field: added_at
+          freshness: # changed to config in v1.9
+            warn_after:
+              count: 15
+              period: day
+            error_after:
+              count: 30
+              # our interval can be day, hour, or minute 
+              period: day
+            
       - name: raw_reddit_posts
+        config:
+          loaded_at_field: added_at
+          freshness: # changed to config in v1.9
+            warn_after:
+              count: 15
+              period: day
+            error_after:
+              count: 30
+              # our interval can be day, hour, or minute 
+              period: day
+          

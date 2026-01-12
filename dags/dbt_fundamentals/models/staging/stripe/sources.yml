@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: stripe
+    database: FORUMS_ANALYSES_DB
+    schema: FORUMS_ANALYSES_BRONZE
+    tables:
+      - name: payments
+        # loaded_at_field: _batched_at
+        # freshness:
+        #   warn_after: {count: 12, period: hour}
+        #   error_after: {count: 24, period: hour}
