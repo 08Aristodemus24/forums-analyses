@@ -13,3 +13,8 @@ HAVING COUNT(*) > 1;
 SELECT
     *
 FROM raw_youtube_videos;
+
+SELECT
+    *
+FROM raw_youtube_videos_comments
+LIMIT 10;
