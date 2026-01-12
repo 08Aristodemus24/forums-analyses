@@ -852,6 +852,13 @@ Tests can be run against your current project using a range of commands:
 
 dbt test --select source:*
 
+* deploying pipelines in dbt cloud
+ 
+make sure when you make changes in the development branch that you build them successfully first
+then commit 
+then merge changes in master branch as the job pulls from the master branch
+when anything unmerged in the master branch runs it may create models that raise errors like the ones previously worked on already in the development branch
+
 ## Snowflake
 * How we can connect to snowflake using dbt:
 to avoid any `invalid JWT error` and `listing databases in snowflake` errors using dbt we need to make sure to input hte right credentials in our profiles.yaml in our dbt project
