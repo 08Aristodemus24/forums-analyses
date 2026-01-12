@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: stg_reddit_posts_comments
-    description: "raw reddit posts comments from s3"
+    description: "staging stable reddit posts comments from raw table in s3"
     columns:
       - name: post_id_full
         description: "one of primary keys for this table"
@@ -25,7 +25,7 @@ models:
         data_tests:
           - accepted_values:
               arguments:
-                values: ["reply", "level"]
+                values: ["reply", "comment"]
           
     data_tests:
       - dbt_utils.unique_combination_of_columns:
@@ -38,11 +38,52 @@ models:
 
 
   - name: stg_reddit_posts
-    description: "raw reddit posts from s3"
+    description: "staging table of reddit posts from raw table in s3"
     columns:
       - name: post_id_full
         description: "The primary key for this table"
         data_tests:
           # this tests if the the column in table doesn't contain any nulls 
+          - not_null
+          - unique
+
+  - name: stg_youtube_videos_comments
+    description: "staging table of youtube videos comments from raw table in s3"
+    columns:
+      - name: video_id
+        description: "one of primary keys for this table"
+        data_tests:
+          # this tests if the the column in table doesn't contain any nulls 
+          - not_null
+        
+      # - name: comment_id
+      #   description: "one of primary keys for this table but sometimes this can be null because of youtube video being set to kids thus having no comments"
+      #   data_tests:
+      #     - not_null
+
+      # - name: comment_parent_id
+      #   description: "one of primary keys for this table"
+      #   data_tests:
+      #     - not_null
+
+      - name: level
+        description: "accepted values of level column"
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["reply", "comment"]
+      
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - video_id
+              - comment_id
+
+  - name: stg_youtube_videos
+    description: "the primary key for this table"
+    columns:
+      - name: video_id
+        data_tests:
           - not_null
           - unique

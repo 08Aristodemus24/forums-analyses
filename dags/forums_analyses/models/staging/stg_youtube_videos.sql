@@ -8,20 +8,22 @@
 }}
 
 WITH youtube_videos AS (
-    video_id,
-    duration AS video_duration,
-    channel_id AS videos_channel_id,
-    channel_title AS channel_name,
-    video_title,
-    video_description,
-    video_tags,
-    comment_count,
-    favorite_count,
-    like_count,
-    view_count,
-    made_for_kids,
-    published_at AS video_created_at,
-    added_at
+    SELECT
+        video_id,
+        duration AS video_duration,
+        channel_id AS videos_channel_id,
+        channel_title AS channel_name,
+        video_title,
+        video_description,
+        video_tags,
+        comment_count,
+        favorite_count,
+        like_count,
+        view_count,
+        made_for_kids,
+        published_at AS video_created_at,
+        added_at
+    FROM {{ source('forums_data', 'raw_youtube_videos') }}
 )
 
 SELECT *

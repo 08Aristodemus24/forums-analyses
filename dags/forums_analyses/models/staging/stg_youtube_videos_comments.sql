@@ -14,7 +14,7 @@ WITH youtube_videos_comments AS (
         comment_id,
         author_channel_id AS comment_author_id_full,
         channel_id_where_comment_was_made AS videos_channel_id,
-        parent_comment_id,
+        parent_comment_id AS comment_parent_id,
         text_original AS comment_body,
         -- text_display,
         published_at AS comment_created_at,
@@ -23,6 +23,7 @@ WITH youtube_videos_comments AS (
         REPLACE(author_display_name, '@', '') AS comment_author_username,
         author_channel_url,
         added_at
+    FROM {{ source('forums_data', 'raw_youtube_videos_comments') }}
 )
 
 SELECT *

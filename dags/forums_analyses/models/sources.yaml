@@ -26,4 +26,7 @@ sources:
               count: 30
               # our interval can be day, hour, or minute 
               period: day
+
+      - name: raw_youtube_videos_comments
+      - name: raw_youtube_videos
           
