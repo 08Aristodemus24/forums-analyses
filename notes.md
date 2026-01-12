@@ -4493,6 +4493,13 @@ sometimes `snowflake_grant_privileges_to_account_role.fa_database_allowed_roles`
 
 then just run `terraform apply --var-file=credentials.tfvars -auto-approve`
 
+* removing sensitive files, images that may end up in commit history 
+1. git filter-repo --sensitive-data-removal --invert-paths --path "figures & images/dbt cloud/"
+2. git push --force --mirror origin
+
+this is to remove any sensitive files that may have ended up in our commit history
+
+
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
 * configuring external stage in snowflake and aws: https://docs.snowflake.com/en/user-guide/data-load-s3-config-storage-integration
