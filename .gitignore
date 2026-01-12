@@ -12,11 +12,16 @@
 /infra/credentials.tfvars
 /.env
 
+/dags/operators/grant_auth_methods.sql
+
 # do not commit private keys
 *.p8
 *.pem
 *.ppk
 *.pub
+
+# do not commit private keys in photos
+/figures & images/dbt cloud/
 
 .git
 .env

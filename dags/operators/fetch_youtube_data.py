@@ -1,0 +1,731 @@
+import os
+import pprint
+import logging
+import pyarrow as pa
+import datetime as dt
+import isodate
+
+from dotenv import load_dotenv
+from pathlib import Path
+from typing import Callable
+
+from deltalake import DeltaTable, write_deltalake
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+from argparse import ArgumentParser, ArgumentTypeError
+
+
+def setup_logging():
+    logger = logging.getLogger('SGX_Downloader')
+    logger.setLevel(logging.DEBUG) # Catch everything at the logger level
+
+    # 2. Console/Stream Handler (for user feedback)
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO) # Only show INFO, ERROR, CRITICAL
+    console_formatter = logging.Formatter('%(levelname)s: %(message)s')
+    console_handler.setFormatter(console_formatter)
+    logger.addHandler(console_handler)
+
+    return logger
+
+# setup logger
+global logger
+logger = setup_logging()
+logger.info("Script started.") # Will appear on console and file
+logger.debug("Attempting to extract forum data.") # Will only appear in the file'
+
+def upsert_videos_comments(delta_table: DeltaTable, df: pa.Table):
+    """
+    updates old youtube comment records and inserts
+    new youtube comment records in the existing delta 
+    table using the data in the source table 
+    """
+
+    try:
+        delta_table.merge(
+            df,
+            predicate="target.comment_id = source.comment_id",
+            source_alias="source",
+            target_alias="target",
+            merge_schema=True
+        ).when_matched_update(
+            updates={
+                # these are not included as these are the composite keys
+                # that are not by good practice supposed to be updated
+                "level" : "source.level",
+                # "video_id" : "source.video_id",
+                # "comment_id" : "source.comment_id",
+                "author_channel_id" : "source.author_channel_id",
+                "channel_id_where_comment_was_made" : "source.channel_id_where_comment_was_made",
+                "parent_comment_id" : "source.parent_comment_id",
+                "text_original" : "source.text_original",
+                "text_display" : "source.text_display",
+                # "published_at" : "source.published_at",
+                "updated_at" : "source.updated_at",
+                "like_count" : "source.like_count",
+                "author_display_name" : "source.author_display_name",
+                "author_channel_url" : "source.author_channel_url",
+
+                "added_at": "source.added_at", 
+            }, 
+            # this tells delta to only update a record if the new record
+            # does indeed have changed its column values when compared to the
+            # current record
+            predicate="""
+                (source.level IS DISTINCT FROM target.level) OR    
+                (source.author_channel_id IS DISTINCT FROM target.author_channel_id) OR
+                (source.channel_id_where_comment_was_made IS DISTINCT FROM target.channel_id_where_comment_was_made) OR
+                (source.parent_comment_id IS DISTINCT FROM target.parent_comment_id) OR
+                (source.text_original IS DISTINCT FROM target.text_original) OR
+                (source.text_display IS DISTINCT FROM target.text_display) OR
+                (source.updated_at > target.updated_at) OR
+                (source.like_count IS DISTINCT FROM target.like_count) OR
+                (source.author_display_name IS DISTINCT FROM target.author_display_name) OR
+                (source.author_channel_url IS DISTINCT FROM target.author_channel_url) OR
+                
+                (source.added_at IS DISTINCT FROM target.added_at)
+            """
+            
+            # (source.video_id IS DISTINCT FROM target.video_id) OR
+            # (source.comment_id IS DISTINCT FROM target.comment_id) OR
+            # (source.published_at IS DISTINCT FROM target.published_at) OR
+        ).when_not_matched_insert_all()\
+        .execute()
+
+    except Exception as e:
+        # this runs if no table exists in s3 bucket
+        logger.warning(f"`{e}` occured during delta upsert")
+
+def upsert_videos(delta_table: DeltaTable, df: pa.Table):
+    """
+    updates old video records and inserts new video
+    records in the existing delta table using the
+    data in the source table 
+    """
+
+    try:
+        delta_table.merge(
+            df,
+            predicate="target.video_id = source.video_id",
+            source_alias="source",
+            target_alias="target",
+            merge_schema=True
+        ).when_matched_update(
+            updates={
+                # these are not included as these are the composite keys
+                # that are not by good practice supposed to be updated
+                # "video_id": "source.video_id",
+                "duration": "source.duration",
+                "channel_id": "source.channel_id",
+                "channel_title": "source.channel_title",
+                "video_title": "source.video_title",
+                "video_description": "source.video_description",
+                "video_tags": "source.video_tags",
+                "comment_count": "source.comment_count",
+                "favorite_count": "source.favorite_count",
+                "like_count": "source.like_count",
+                "view_count": "source.view_count",
+                "made_for_kids": "source.made_for_kids",
+                # "published_at": "source.published_at"
+                "added_at": "source.added_at", 
+            }, 
+            # this tells delta to only update a record if the new record
+            # does indeed have changed its column values when compared to the
+            # current record
+            predicate="""
+                (source.duration IS DISTINCT FROM target.duration) OR
+                (source.channel_id IS DISTINCT FROM target.channel_id) OR
+                (source.channel_title IS DISTINCT FROM target.channel_title) OR
+                (source.video_title IS DISTINCT FROM target.video_title) OR
+                (source.video_description IS DISTINCT FROM target.video_description) OR 
+                (source.video_tags IS DISTINCT FROM target.video_tags) OR 
+                (source.comment_count IS DISTINCT FROM target.comment_count) OR 
+                (source.favorite_count IS DISTINCT FROM target.favorite_count) OR 
+                (source.like_count IS DISTINCT FROM target.like_count) OR 
+                (source.view_count IS DISTINCT FROM target.view_count) OR
+                (source.made_for_kids IS DISTINCT FROM target.made_for_kids) OR
+                
+                (source.added_at IS DISTINCT FROM target.added_at)
+            """
+            # "source.published_at IS DISTINCT FROM target.published_at OR"
+        ).when_not_matched_insert_all()\
+        .execute()
+
+    except Exception as e:
+        # this runs if no table exists in s3 bucket
+        logger.warning(f"`{e}` occured during delta upsert")
+
+def write_delta_to_bucket(
+    aws_creds: dict[str, str], 
+    df: pa.Table, 
+    bucket_name: str, 
+    object_name: str, 
+    folder_name: str, 
+    is_local: bool, 
+    upsert_func: Callable
+):
+    """
+    writes a pyarrow dataframe to an s3 bucket in delta format. 
+    What we want here is to check if an existing parquet with reddit
+    data already exists in s3, 
+    
+    As opposed to a scheme where if in s3 there is no current parquet
+    and then creating a parquet with object id indicating its the first, 
+    and if there is already create a parquet with the object id with 
+    the highest or max number, we use a delta lake format  
+    """
+
+    try:    
+        # if alternative/local path is not provided 
+        # modify the delta path if there is no alternative path
+        # The URI points to the S3 bucket and folder where the Delta table lives
+        DELTA_PATH = os.path.join("s3://", bucket_name, folder_name, object_name).replace("\\", "/") if not is_local else os.path.join(bucket_name, folder_name, object_name).replace("\\", "/")
+        
+        # create delta table from path and load the
+        #  delta table if it already exists
+        delta_table = DeltaTable(DELTA_PATH, storage_options=aws_creds) if not is_local else DeltaTable(DELTA_PATH)
+
+        # create a delta directory if it is local
+        if not "s3" in DELTA_PATH:
+            DELTA_DIR, _ = DELTA_PATH.rsplit("/", 1)
+            os.makedirs(DELTA_DIR, exist_ok=True)
+        
+        # Table exists, so APPEND the new data
+        logger.info(f"Delta table found at {DELTA_PATH}") 
+        logger.info(f"Inserting new and updated rows...")
+        
+        # update old records and insert new records 
+        upsert_func(delta_table, df)
+        
+    except Exception as e:
+        # this runs if no table exists in s3 bucket
+        logger.warning(f"`{e}` occured during delta update")
+        logger.warning(f"No Delta table found.")
+        logger.info(f"Creating new table with {df.num_rows} rows...")
+
+        # delta table is written in s3 bucket with given
+        # credentials and path
+        write_deltalake(
+            DELTA_PATH, 
+            df, 
+            # Use overwrite (or error) to create the initial table
+            mode="overwrite", 
+        )
+
+def search_videos(youtube, query: str, limit: int):
+    """
+    searches for youtube videos by sending a request '
+    to youtube api  
+    
+    fileDetails, processingDetails, and suggestion parts of a youtube video
+    can only be accessed by owner of the video, so if you want to access
+    it you won't but if you do want to access your own videos these parts
+    can be accessed using OAuth2 credentials
+    """
+
+    # we will make a search first to retrieve a list of videos
+    params = {
+        "part": ",".join(["snippet"]),
+        "q": query,
+        "order": "viewCount",
+        # max results can only be 50 videos per request
+        # so place limit checks here to only accept values
+        # between 0 and 50 inclusively
+        "maxResults": limit,
+        # can be video, channel, or playlist
+        # this can be useful if were trying to widen
+        # pool of data sources,but keep it simple for
+        # now
+        "type": "video"
+    }
+
+    next_page_token = None
+    logger.info(f"beginning search of youtube videos from query {query}...")
+    request = youtube.search().list(**params)
+
+    video_ids = []
+    for _ in range(limit):
+        response = request.execute()
+        
+        # loop through search results video ids and collect
+        for item in response["items"]:
+            id = item.get("id", {})
+            video_id = id.get("videoId")
+            video_ids.append(video_id)
+
+        next_page_token = response.get("nextPageToken")
+        if not next_page_token:
+            break
+    
+    # get only the unique video ids as some may be duplicated
+    video_ids = list(set(video_ids))
+    logger.info(f"collected {query} related video ids.")
+
+    return video_ids
+
+def extract_videos(
+    youtube, 
+    video_ids: list[str], 
+    limit: int, 
+    aws_creds: dict[str, str], 
+    bucket_name: str, 
+    folder_name: str, 
+    object_name: str, 
+    is_local: bool, 
+    upsert_func: Callable
+):
+    """
+    Docstring for extract_videos
+    
+    :param youtube: Description
+    :param video_ids: Description
+    :param limit: Description
+    :param aws_creds: Description
+    :param bucket_name: Description
+    :param folder_name: Description
+    :param object_name: Description
+    :param is_local: Description
+    :param upsert_func: Description
+    """
+
+    params = {
+        "part": ",".join([
+            "contentDetails", 
+
+            # "fileDetails",
+            "id",
+            "liveStreamingDetails",
+
+            # we don't this localizations too much 
+            # "localizations",
+
+            # we don't this paidProductPlacementDetails too much 
+            # "paidProductPlacementDetails",
+
+            # we don't this player too much 
+            # "player",
+
+            # "processingDetails",
+
+            # we don't this recordingDetails too much 
+            # "recordingDetails",
+
+            "snippet",
+            "statistics",
+            "status",
+
+            # "suggestions",
+
+            # we don't need topicDetails too much
+            "topicDetails"
+        ]),
+        # The id parameter specifies a comma-separated 
+        # list of the YouTube video ID(s) for the resource(s) 
+        # that are being retrieved. In a video resource, 
+        # the id property specifies the video's ID.
+        "id": ",".join(video_ids)
+    }
+    
+    videos = []
+    next_page_token = None
+    logger.info(f"beginning retrieval of youtube videos details from list of video ids...")
+    request = youtube.videos().list(**params)
+
+    while True:
+        response = request.execute()
+        
+        for item in response["items"]:
+            # pprint.pprint(item)
+            try: 
+                video_id = item.get("id")
+                made_for_kids = item.get("status")\
+                    .get("madeForKids")
+                videos.append({
+                    "video_id": video_id,
+
+                    # PT3M19S to time delta is 3m19s
+                    "duration": item.get("contentDetails")
+                        .get("duration"),
+                    "channel_id": item.get("snippet")\
+                        .get("channelId"),
+                    "channel_title": item.get("snippet")\
+                        .get("channelTitle"),
+                    "video_title": item.get("snippet")\
+                        .get("title"),
+                    "video_description": item.get("snippet")\
+                        .get("description"),
+                    "video_tags": item.get("snippet")\
+                        .get("tags"),
+                    "comment_count": int(item.get("statistics")\
+                        .get("commentCount")),
+                    "favorite_count": int(item.get("statistics")\
+                        .get("favoriteCount")),
+                    "like_count": int(item.get("statistics")\
+                        .get("likeCount")),
+                    "view_count": int(item.get("statistics")\
+                        .get("viewCount")),
+                    "made_for_kids": made_for_kids,
+
+                    # 2025-06-23T22:30:00Z
+                    "published_at": dt.datetime.strptime(item.get("snippet")
+                        .get("publishedAt"), "%Y-%m-%dT%H:%M:%SZ"),
+                    "added_at": dt.datetime.now()
+                })
+            except HttpError as e:
+                logger.warning(f"error `{e}` has occured from videoId {video_id}.")
+                logger.warning(f"error occured may be due to the fact that made for kids flag is {made_for_kids}")
+                logger.warning("Appending empty comment still...")
+
+        next_page_token = response.get("nextPageToken")
+        if not next_page_token:
+            break
+    
+    # Quota impact: A call to this method has a quota cost of 1 unit.
+    logger.info(f"retrieval of youtube videos details done.")
+    
+    pprint.pprint(videos)
+    logger.info(f"videos count: {len(videos)}")
+
+    # convert the list of dictionaries/records to pyarrow 
+    # table from scraped data
+    videos_table = pa.Table.from_pylist(videos)
+    logger.info(f"videos table shape:{videos_table.shape}")
+
+    write_delta_to_bucket(aws_creds, videos_table, bucket_name, object_name, folder_name, is_local, upsert_func)
+
+def extract_videos_comments(
+    youtube, 
+    video_ids: list[str], 
+    limit: int, 
+    aws_creds: dict, 
+    bucket_name: str, 
+    folder_name: str, 
+    object_name: str, 
+    is_local: bool, 
+    upsert_func: Callable
+):
+    """
+    Docstring for extract_videos_comments
+    
+    :param youtube: Description
+    :param video_ids: Description
+    :param limit: Description
+    :param aws_creds: Description
+    :param bucket_name: Description
+    :param folder_name: Description
+    :param object_name: Description
+    :param is_local: Description
+    :param upsert_func: Description
+    """
+
+    
+    # define comments where all comments in videos will be
+    # stored
+    comments = []
+    for video_id in video_ids:
+        try: 
+            params = {
+                "part": ",".join(["snippet", "replies"]),
+                "videoId": video_id,
+                "maxResults": 100
+            }
+            
+            next_page_token = None
+            request = youtube.commentThreads().list(**params)
+
+            count = 0
+            # for _ in range(limit):
+            """work around for this is to determine the 
+            comment count of the video before hand
+            
+            the reason why we may get duplicates is if
+            where at a certain video and it only has say
+            50 comments and we place our limit to go beyond
+            it say 250 then we may essentially keep using
+            request execute over 200 times more"""
+            while True:
+                response = request.execute()
+                
+                for item in response["items"]:
+                    print(f"count is at {count} for item: ")
+                    pprint.pprint(item)
+                    # append top level comment statistics
+                    comments.append({
+                        "level": "comment",
+                        "video_id": item.get("snippet")\
+                            .get("topLevelComment")\
+                            .get("snippet")\
+                            .get("videoId"),
+                        "comment_id": item.get("id"),
+                        "author_channel_id": item.get("snippet")\
+                            .get("topLevelComment")\
+                            .get("snippet")\
+                            .get("authorChannelId")\
+                            .get("value"),
+                        "channel_id_where_comment_was_made": item.get("snippet")\
+                            .get("topLevelComment")\
+                            .get("snippet")\
+                            .get("channelId"),
+                        "parent_comment_id": None,
+                        "text_original": item.get("snippet")\
+                            .get("topLevelComment")\
+                            .get("snippet")\
+                            .get("textOriginal"),
+                        "text_display": item.get("snippet")\
+                            .get("topLevelComment")\
+                            .get("snippet")\
+                            .get("textDisplay"),
+                        "published_at": item.get("snippet")\
+                            .get("topLevelComment")\
+                            .get("snippet")\
+                            .get("publishedAt"),
+                        "updated_at": item.get("snippet")\
+                            .get("topLevelComment")\
+                            .get("snippet")\
+                            .get("updatedAt"),
+                        "like_count": item.get("snippet")\
+                            .get("topLevelComment")\
+                            .get("snippet")\
+                            .get("likeCount"),
+                        "author_display_name": item.get("snippet")\
+                            .get("topLevelComment")\
+                            .get("snippet")\
+                            .get("authorDisplayName"),
+                        "author_channel_url": item.get("snippet")\
+                            .get("topLevelComment")\
+                            .get("snippet")\
+                            .get("authorChannelUrl"),
+                        "added_at": dt.datetime.now()
+                    })
+
+                    # if replies key does not exist in items then 
+                    # that means there are no replies to the top 
+                    # level comment thereby not running the loop
+                    if item.get("replies"):
+                        for reply in item.get("replies").get("comments"):
+                            comments.append({
+                                "level": "reply",
+                                "video_id": reply.get("snippet")\
+                                    .get("videoId"),
+                                "comment_id": reply.get("id"),
+                                "author_channel_id": reply.get("snippet")\
+                                    .get("authorChannelId")\
+                                    .get("value"),
+                                "channel_id_where_comment_was_made": reply.get("snippet")\
+                                    .get("channelId"),
+                                "parent_comment_id": reply.get("snippet")\
+                                    .get("parentId"),
+                                "text_original": reply.get("snippet")\
+                                    .get("textOriginal"),
+                                "text_display": reply.get("snippet")\
+                                    .get("textDisplay"),
+                                "published_at": reply.get("snippet")\
+                                    .get("publishedAt"),
+                                "updated_at": reply.get("snippet")\
+                                    .get("updatedAt"),
+                                "like_count": reply.get("snippet")\
+                                    .get("likeCount"),
+                                "author_display_name": reply.get("snippet")\
+                                    .get("authorDisplayName"),
+                                "author_channel_url": reply.get("snippet")\
+                                    .get("authorChannelUrl"),
+                                "added_at": dt.datetime.now()
+                            })
+
+                next_page_token = response.get("nextPageToken")
+                if not next_page_token:
+                    break
+
+                count += 1
+
+        except HttpError as e:
+            logger.warning(f"error `{e}` has occured from videoId {video_id}.")
+            logger.warning("Appending empty comment still...")
+
+            # append empty comment, as we know this comes from a 
+            # made for kids video, however this can still be prone to 
+            # duplicates, since the comment scraper can potentially
+            # use the same video, raise an error because of lack 
+            # of stats trigger the except block and append a duplicate
+            # empty comment  
+            comments.append({
+                "level": "comment",
+                "video_id": video_id,
+                "comment_id": None,
+                "author_channel_id": None,
+                "channel_id_where_comment_was_made": None,
+                "parent_comment_id": None,
+                "text_original": None,
+                "text_display": None,
+                "published_at": None,
+                "updated_at": None,
+                "like_count": None,
+                "author_display_name": None,
+                "author_channel_url": None,
+                "added_at": dt.datetime.now()
+            })    
+
+    
+        
+    pprint.pprint(comments)
+    logger.info(f"comments count: {len(comments)}")
+
+    # convert the list of dictionaries/records to pyarrow 
+    # table from scraped data
+    videos_comments_table = pa.Table.from_pylist(comments)
+    logger.info(f"videos comments and replies table shape:{videos_comments_table.shape}")
+
+    write_delta_to_bucket(aws_creds, videos_comments_table, bucket_name, object_name, folder_name, is_local, upsert_func)
+
+
+def restricted_int(min_val, max_val):
+    """
+    Returns a function to be used as a type in argparse.
+    The function checks if an integer is within a specified range.
+    """
+
+    def int_checker(arg_value):
+        try:
+            value = int(arg_value)
+        except ValueError:
+            raise ArgumentTypeError(f"'{arg_value}' not a valid integer")
+        
+        # checks if value is outside the range of min and max
+        # value e.g. if value is -1 or 250 in the min and max
+        # of 1 and 50 then this will raise an error
+        if (value < min_val) or (value > max_val):
+            raise ArgumentTypeError(f"Value must be between {min_val} and {max_val} inclusive")
+        return value
+    
+    return int_checker
+
+
+if __name__ == "__main__":
+    # python fetch_youtube_data.py --bucket_name forums-analyses-bucket --object_name raw_youtube_videos_comments --kind comments
+    # python fetch_youtube_data.py --bucket_name ../../include/data --object_name raw_youtube_videos_comments --kind comments --local
+    # python fetch_youtube_data.py --bucket_name forums-analyses-bucket --object_name raw_youtube_videos --kind videos
+    # python fetch_youtube_data.py --bucket_name ../../include/data --object_name raw_youtube_videos --kind videos --local
+
+    # python fetch_youtube_data.py --bucket_name forums-analyses-bucket
+    # python fetch_youtube_data.py --bucket_name ../../include/data --local
+
+    # parse arguments
+    parser = ArgumentParser()
+    parser.add_argument("--bucket_name", type=str, default="forums-analyses-bucket", help="represents the name of provisioned bucket in s3")
+    # parser.add_argument("--object_name", type=str, default="raw_youtube_videos_comments", help="represents the name of provisioned object/filename in s3")
+    parser.add_argument("--folder_name", type=str, default="", help="represents the name of folder containing the object/filename in s3 bucket")
+    parser.add_argument("--search_query", type=str, default="Kpop Demon Hunters", help="represents the query of what videos, channels, or playlist to \
+                        search in youtube to scrape transcripts, statistics, comments, and replies of youtube videos")
+    # parser.add_argument("--kind", type=str, default="videos", help="represents the kind of data to scrape on youtube can be video statistics, snippets or comments from the video")
+    parser.add_argument("--limit", type=restricted_int(1, 50), default=1 , help="represents the limit to the number of pages to keep requesting for results in youtube api")
+    parser.add_argument("--local", action="store_true", help="represents if the bucket name and object is a local path to the delta file if user decides not to write in s3")
+    args = parser.parse_args()
+
+    # load env variables
+    env_dir = Path('../../').resolve()
+    load_dotenv(os.path.join(env_dir, '.env'))
+
+    # get env variables
+    aws_creds = {
+        "access_key": os.environ.get("AWS_ACCESS_KEY_ID"),
+        "secret_key": os.environ.get("AWS_SECRET_ACCESS_KEY"),
+        "region": os.environ.get("AWS_REGION_NAME"),
+    }
+    YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY")
+
+    # youtube url when this is built will be
+    # `https://www.youtube.com/watch?v=<video id>` or in 
+    # this case `https://www.youtube.com/watch?v=SIm2W9TtzR0`
+    youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
+    
+    # # searches videos and returns the list of video ids
+    # video_ids = search_videos(youtube, args.search_query, args.limit)
+
+    # extract videos comments
+    extract_videos_comments(
+        youtube=youtube, 
+        # testing for youtube, and youtube kids videos
+        video_ids=["IzFmtJ0L9jY", "DAIS7kINiwU", "oDSEGkT6J-0"],
+        # video_ids=video_ids, 
+        limit=args.limit, 
+        aws_creds=aws_creds, 
+        bucket_name=args.bucket_name, 
+        folder_name=args.folder_name, 
+        object_name="raw_youtube_videos_comments", 
+        is_local=args.local, 
+        upsert_func=upsert_videos_comments
+    )
+
+    # # extract videos
+    # extract_videos(
+    #     youtube=youtube, 
+    #     # video_ids=["-8AHcNRfERI"], 
+    #     video_ids=video_ids,
+    #     limit=args.limit, 
+    #     aws_creds=aws_creds, 
+    #     bucket_name=args.bucket_name, 
+    #     folder_name=args.folder_name, 
+    #     object_name="raw_youtube_videos", 
+    #     is_local=args.local, 
+    #     upsert_func=upsert_videos
+    # )
+
+# $1:level::VARCHAR(50) AS level,
+# $1:video_id::VARCHAR(50) AS video_id,
+# $1:comment_id::VARCHAR(50) AS comment_id,
+# $1:author_channel_id::VARCHAR(50) AS author_channel_id,
+# $1:channel_id_where_comment_was_made::VARCHAR(50) AS channel_id_where_comment_was_made,
+# $1:parent_comment_id::VARCHAR(50) AS parent_comment_id,
+# $1:text_original::TEXT AS text_original,
+# $1:text_display::TEXT AS text_display,
+# $1:published_at::VARCHAR::TIMESTAMP_NTZ AS published_at,
+# $1:updated_at::VARCHAR::TIMESTAMP_NTZ AS updated_at,
+# $1:like_count::INTEGER AS like_count,
+# $1:author_display_name::VARCHAR(250) AS author_display_name,
+# $1:author_channel_url::VARCHAR AS author_channel_url,
+# $1:added_at::VARCHAR::TIMESTAMP_NTZ AS added_at
+
+# level VARCHAR(50),
+# video_id VARCHAR(50),
+# comment_id VARCHAR(50),
+# author_channel_id VARCHAR(50),
+# channel_id_where_comment_was_made VARCHAR(50),
+# parent_comment_id VARCHAR(50),
+# text_original TEXT,
+# text_display TEXT,
+# published_at TIMESTAMP_NTZ,
+# updated_at TIMESTAMP_NTZ,
+# like_count INTEGER,
+# author_display_name VARCHAR(250),
+# author_channel_url VARCHAR,
+# added_at TIMESTAMP_NTZ,
+
+# $1:video_id::VARCHAR(50) AS video_id,
+# $1:duration::VARCHAR(50) AS duration,
+# $1:channel_id::VARCHAR(50) AS channel_id,
+# $1:channel_title::VARCHAR(250) AS channel_title,
+# $1:video_title::VARCHAR AS video_title,
+# $1:video_description::TEXT AS video_description,
+# $1:video_tags::ARRAY AS video_tags,
+# $1:comment_count::INTEGER AS comment_count,
+# $1:favorite_count::INTEGER AS favorite_count,
+# $1:like_count::INTEGER AS like_count,
+# $1:view_count::INTEGER AS view_count,
+# $1:made_for_kids::BOOLEAN AS made_for_kids,
+# $1:published_at::VARCHAR::TIMESTAMP_NTZ AS published_at,
+# $1:added_at::VARCHAR::TIMESTAMP_NTZ AS added_at
+
+# video_id VARCHAR(50),
+# duration VARCHAR(50),
+# channel_id VARCHAR(50),
+# channel_title VARCHAR(250),
+# video_title VARCHAR,
+# video_description TEXT,
+# video_tags ARRAY,
+# comment_count INTEGER,
+# favorite_count INTEGER,
+# like_count INTEGER,
+# view_count INTEGER,
+# made_for_kids BOOLEAN,
+# published_at TIMESTAMP_NTZ,
+# added_at TIMESTAMP_NTZ,

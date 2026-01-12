@@ -8,7 +8,7 @@ from airflow.providers.snowflake.operators.snowflake import SnowflakeSqlApiOpera
 from cosmos import DbtDag, DbtTaskGroup, ProjectConfig, ProfileConfig, ExecutionConfig
 from cosmos.profiles import SnowflakeUserPasswordProfileMapping, SnowflakeEncryptedPrivateKeyFilePemProfileMapping
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 DBT_PROJECT_PATH = Path("/usr/local/airflow/dags/forums_analyses")
@@ -42,6 +42,12 @@ BASE_DIR = Path(AIRFLOW_HOME).resolve().parent
     start_date=datetime(2023, 8, 1),
     schedule=None,
     catchup=False,
+    default_args={
+        'owner': 'airflow',
+        'retries': 3,
+        'retry_delay': timedelta(seconds=60),
+        'retry_exponential_backoff': True,
+    },
     params={"my_name": "dbt_snowflake_dag"},
 )
 def forums_analyses_dag():
@@ -63,11 +69,18 @@ def forums_analyses_dag():
             --limit 100"
     )
 
+    # fetch_raw_youtube_data = BashOperator(
+    #     task_id="fetch_raw_youtube_data",
+    #     bash_command=f"python {AIRFLOW_HOME}/operators/fetch_youtube_data.py \
+    #         --bucket_name forums-analyses-bucket \
+    #         --limit 250"
+    # )
+
     load_data_from_s3 = SnowflakeSqlApiOperator(
         task_id="load_data_from_s3",
         snowflake_conn_id="fa_snowflake_conn",
         sql="/operators/load_data_from_s3.sql",
-        statement_count=8
+        statement_count=10
     )
 
     transform_data = DbtTaskGroup(
@@ -81,7 +94,11 @@ def forums_analyses_dag():
         default_args={"retries": 2},
     )
 
-    [fetch_raw_reddit_posts_comments, fetch_raw_reddit_posts] >> load_data_from_s3
+    [
+        fetch_raw_reddit_posts_comments, 
+        fetch_raw_reddit_posts, 
+        # fetch_raw_youtube_data
+    ] >> load_data_from_s3
     load_data_from_s3 >> transform_data
 
 forums_analyses_dag()

@@ -227,7 +227,7 @@ def write_delta_to_bucket(
             mode="overwrite", 
         )
 
-def get_all_replies(replies, kwargs):
+def get_all_replies(replies: list, kwargs: dict):
     reply_data = []
     for reply in replies:
         if isinstance(reply, CommentForest):
@@ -266,7 +266,16 @@ def get_all_replies(replies, kwargs):
 
     return reply_data
 
-def extract_posts_comments(subreddit: Subreddit, limit: int, bucket_name, folder_name, object_name, is_local, upsert_func):
+def extract_posts_comments(
+    subreddit: Subreddit,
+    limit: int,
+    aws_creds: dict[str, str],
+    bucket_name: str,
+    folder_name: str,
+    object_name: str,
+    is_local: bool,
+    upsert_func: Callable
+):
     """
     extracts all comments and replies from a given post
     in a subreddit then structured into a pyarrow table
@@ -330,7 +339,16 @@ def extract_posts_comments(subreddit: Subreddit, limit: int, bucket_name, folder
     write_delta_to_bucket(aws_creds, post_comments_table, bucket_name, object_name, folder_name, is_local, upsert_func)
 
 
-def extract_posts(subreddit: Subreddit, limit: int, bucket_name, folder_name, object_name, is_local, upsert_func):
+def extract_posts(
+    subreddit: Subreddit, 
+    limit: int, 
+    aws_creds: dict[str, str], 
+    bucket_name: str, 
+    folder_name: str, 
+    object_name: str, 
+    is_local: bool, 
+    upsert_func: Callable
+):
     """
     extracts all comments and replies from a given post
     in a subreddit then structured into a pyarrow table
@@ -381,7 +399,7 @@ if __name__ == "__main__":
     parser.add_argument("--object_name", type=str, default="raw_reddit_posts_comments", help="represents the name of provisioned object/filename in s3")
     parser.add_argument("--folder_name", type=str, default="", help="represents the name of folder containing the object/filename in s3 bucket")
     parser.add_argument("--subreddit_name", type=str, default="KpopDemonHunters", help="represents the subreddit to scrape posts comments in")
-    parser.add_argument("--kind", type=str, default="post", help="represents the kind of data to scrape on reddit can be post or comment")
+    parser.add_argument("--kind", type=str, default="posts", help="represents the kind of data to scrape on reddit can be post or comment")
     parser.add_argument("--limit", type=int, default=1, help="represents the limit to the number of posts to scrape on reddit")
     parser.add_argument("--local", action="store_true", help="represents if the bucket name and object is a local path to the delta file if user decides not to write in s3")
     args = parser.parse_args()
@@ -421,6 +439,7 @@ if __name__ == "__main__":
         extract_posts(
             subreddit, 
             limit=args.limit, 
+            aws_creds=aws_creds,
             bucket_name=args.bucket_name, 
             folder_name=args.folder_name, 
             object_name=args.object_name, 
@@ -431,6 +450,7 @@ if __name__ == "__main__":
         extract_posts_comments(
             subreddit, 
             limit=args.limit, 
+            aws_creds=aws_creds,
             bucket_name=args.bucket_name, 
             folder_name=args.folder_name, 
             object_name=args.object_name, 

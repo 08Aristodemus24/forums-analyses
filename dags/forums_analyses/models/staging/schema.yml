@@ -5,10 +5,27 @@ models:
     description: "raw reddit posts comments from s3"
     columns:
       - name: post_id_full
-        description: "The primary key for this table"
+        description: "one of primary keys for this table"
         data_tests:
           # this tests if the the column in table doesn't contain any nulls 
           - not_null
+        
+      - name: comment_id_full
+        description: "one of primary keys for this table"
+        data_tests:
+          - not_null
+
+      - name: comment_parent_id_full
+        description: "one of primary keys for this table"
+        data_tests:
+          - not_null
+
+      - name: level
+        description: "accepted values of level column"
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["reply", "level"]
           
     data_tests:
       - dbt_utils.unique_combination_of_columns:
@@ -28,3 +45,4 @@ models:
         data_tests:
           # this tests if the the column in table doesn't contain any nulls 
           - not_null
+          - unique

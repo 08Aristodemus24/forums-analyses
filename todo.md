@@ -38,10 +38,66 @@
     |- what we could do is build an intermediate table that determines the sentiment of posts and comments using snowflake cortex ai
 * 
 
+# setting up youtube api data extractor
+* <s>setup search of videos of a certain topic</s>
+* <s>use the searched video ids to get statistics, snippet, etc.</s>
+* <s>in each video id setup request for getting the comment threads from each video</s>
+* I know now why
+```
+-- check for duplicates in youtube videos comments
+SELECT
+    COUNT(*),
+    comment_id,
+    video_id 
+FROM acen_ops_playground.larry.raw_youtube_videos_comments
+GROUP BY ALL
+HAVING COUNT(*) > 1
+LIMIT 500;
+```
+kept returning duplicates of particular comment ids like 'Ugxg_icY1-vLqVV2gJV4AaABAg' even if there was a different timestamp e.g. 
+[comment, 5QIQ5QHqDbw, Ugxg_icY1-vLqVV2gJV4AaABAg, UC2negEr32z8nhZ5cPxCxJMg, UCNqFDjYTexJDET3rPDrmJKg, null, Your. Idol, Your. Idol, 2025-12-24 18:14:39.000, 2025-12-24 18:14:39.000, 0, @OLAOLUWAKIITANALIMABIOLA, http://www.youtube.com/@OLAOLUWAKIITANALIMABIOLA, 2025-12-25 02:18:53.336] and [comment, 5QIQ5QHqDbw, Ugxg_icY1-vLqVV2gJV4AaABAg, UC2negEr32z8nhZ5cPxCxJMg, UCNqFDjYTexJDET3rPDrmJKg, null, Your. Idol, Your. Idol, 2025-12-24 18:14:39.000, 2025-12-24 18:14:39.000, 0, @OLAOLUWAKIITANALIMABIOLA, http://www.youtube.com/@OLAOLUWAKIITANALIMABIOLA, 2025-12-25 02:18:53.720]
 
+it is because my scraper 
 
-# setting up medium api data extractor
-* https://mediumapi.com/ 
+```
+# define comments where all comments in videos will be
+# stored
+comments = []
+for video_id in video_ids:
+        try: 
+            params = {
+                "part": ",".join(["snippet", "replies"]),
+                "videoId": video_id,
+                "maxResults": 100
+            }
+            
+            next_page_token = None
+            request = youtube.commentThreads().list(**params)
+
+            for _ in range(limit):
+                response = request.execute()
+                
+                for item in response["items"]:
+                    # append top level comment statistics
+                    comments.append({
+                        "level": "comment",
+                
+                ...
+
+                next_page_token = response.get("nextPageToken")
+                if not next_page_token:
+                    break
+...
+
+so the reason whhy there are duplicates is not because delta tables failed to not insert a duplicate record/comment of the same key which in this case is comment_id, but that your scraper before records were even written to your delta tables was already duplicating these records, and mind you delta table does not actually deduplicate duplicate records that have not yet been written to it. So even though
+[comment, 5QIQ5QHqDbw, Ugxg_icY1-vLqVV2gJV4AaABAg, UC2negEr32z8nhZ5cPxCxJMg, UCNqFDjYTexJDET3rPDrmJKg, null, Your. Idol, Your. Idol, 2025-12-24 18:14:39.000, 2025-12-24 18:14:39.000, 0, @OLAOLUWAKIITANALIMABIOLA, http://www.youtube.com/@OLAOLUWAKIITANALIMABIOLA, 2025-12-25 02:18:53.336] and [comment, 5QIQ5QHqDbw, Ugxg_icY1-vLqVV2gJV4AaABAg, UC2negEr32z8nhZ5cPxCxJMg, UCNqFDjYTexJDET3rPDrmJKg, null, Your. Idol, Your. Idol, 2025-12-24 18:14:39.000, 2025-12-24 18:14:39.000, 0, @OLAOLUWAKIITANALIMABIOLA, http://www.youtube.com/@OLAOLUWAKIITANALIMABIOLA, 2025-12-25 02:18:53.720]
+are duplicate records with different timestamps delta table still writes these as essentially new rows as the comment_id key does not yet exist in the existing delta table
+
+* there are still duplicates that have not been deleted in manual delete transaction I did
+level | video id | comment id | author channel id | channel id where comment was made | parent comment id | text original | text display | published at | updated at | like count | author display name | author channel uri | added at
+comment	Ug_pv5-r1js	null	null	null	null	null	null	null	null	null	null	null	2025-12-24 15:36:08.911
+comment	Ug_pv5-r1js	null	null	null	null	null	null	null	null	null	null	null	2025-12-25 02:15:10.721
+comment	Ug_pv5-r1js	null	null	null	null	null	null	null	null	null	null	null	2025-12-24 15:16:10.152
 
 # IBM Interview Prep
 * need to know how to build macros
@@ -57,3 +113,7 @@
 - https://www.youtube.com/watch?v=nHsWKHkc8No&t=272s
 
 * need to know how to 
+
+# improvements:
+* one problem I really do see with this architecture is the collection/extraction of reddit data and youtube data creates a bottle neck from the extraction process itself in that data collected first before it is ever written as a delta table in s3. The main problem with this is that if collection fails then thousands of potentially collected data prior to failing may be lost and irrecoverable, wasting time or even worse compute credits in the process, medyo mataas ang latency so maybe here kafka could be useful
+

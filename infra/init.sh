@@ -7,7 +7,7 @@ if [ $1 == "setup" ]; then
     echo "Initiating infrastructure build"
     terraform init
     terraform fmt
-    terraform apply -auto-approve
+    terraform apply -auto-approve --var-file=credentials.tfvars
 
 elif [ $1 == "destroy" ]; then
     echo "Initiating infrastructure destruction"
@@ -15,7 +15,7 @@ elif [ $1 == "destroy" ]; then
 
 elif [ $1 == "plan" ]; then
     echo "Running plan before infrastructure build"
-    terraform plan
+    terraform plan --var-file=credentials.tfvars
 
 else
     echo "No command executed. Please use 'setup' or 'destroy' as an argument."

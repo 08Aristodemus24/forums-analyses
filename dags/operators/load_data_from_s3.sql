@@ -30,3 +30,15 @@ CREATE OR REPLACE ICEBERG TABLE raw_reddit_posts
     EXTERNAL_VOLUME = forums_analyses_ext_vol
     BASE_LOCATION = 'raw_reddit_posts'
     AUTO_REFRESH = TRUE;
+
+CREATE OR REPLACE ICEBERG TABLE raw_youtube_videos_comments
+    CATALOG = delta_catalog_integration
+    EXTERNAL_VOLUME = forums_analyses_ext_vol
+    BASE_LOCATION = 'raw_youtube_videos_comments'
+    AUTO_REFRESH = TRUE;
+
+CREATE OR REPLACE ICEBERG TABLE raw_youtube_videos
+    CATALOG = delta_catalog_integration
+    EXTERNAL_VOLUME = forums_analyses_ext_vol
+    BASE_LOCATION = 'raw_youtube_videos'
+    AUTO_REFRESH = TRUE;
