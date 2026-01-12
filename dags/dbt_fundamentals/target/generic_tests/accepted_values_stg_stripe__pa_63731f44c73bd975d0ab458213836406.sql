@@ -1,0 +1,1 @@
+{{ test_accepted_values(column_name="payment_method", model=get_where_subquery(ref('stg_stripe__payments')), values=["credit_card","coupon","bank_transfer","gift_card"]) }}

@@ -1,0 +1,1 @@
+{{ test_accepted_values(column_name="status", model=get_where_subquery(ref('stg_jaffle_shop__orders')), values=["placed","shipped","completed","return_pending","returned"]) }}
