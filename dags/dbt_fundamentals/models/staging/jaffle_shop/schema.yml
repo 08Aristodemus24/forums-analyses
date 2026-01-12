@@ -27,3 +27,14 @@ models:
           - accepted_values:
               arguments:
                 values: ["placed", "shipped", "completed", "return_pending", "returned"]
+
+      # we use the customer id of stg_jaffle_shop__orders
+      # to see if all the keys of the right table 
+      # stg_jaffle_shop_customers exist on it's left 
+      # table
+      - name: customer_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_jaffle_shop__customers')
+                field: customer_id

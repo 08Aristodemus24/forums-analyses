@@ -750,6 +750,108 @@ WITH <ephemeral model name> AS (
 )
 ```
 
+* 
+how does source freshness work? Say I have a raw_reddit_posts_comments delta table in s3 as my source with columns
+
+post_id
+
+post_name
+
+level
+
+comment_id
+
+comment_name
+
+comment_upvotes
+
+comment_downvotes
+
+comment_created_at
+
+comment_edited_at
+
+comment_author_name
+
+comment_author_fullname
+
+comment_parent_id
+
+comment_body
+
+added_at
+
+
+
+How might I use added_at column since it's a timestamp in checking the freshness of this table? How does it work?
+
+In dbt, source freshness is a built-in feature used to monitor whether your data pipeline is successfully ingesting new data from its origin (like your S3 bucket) into Snowflake.
+
+Since your raw_reddit_posts_comments table includes an added_at timestamp, you have the perfect "hook" to measure how "stale" or "fresh" your data is.
+
+1. How the Freshness Check Works
+When you run a freshness check, dbt calculates the "age" of your source data by comparing the most recent timestamp in your table to the current time on the Snowflake server.
+
+The logic follows this formula: `T_age = T_current − max(added_at)` where:
+`T_current` is the current timestamp provided by the database (e.g., CURRENT_TIMESTAMP()).
+`max(added_at)` is the timestamp of the absolute newest record that successfully made it into your Snowflake table.
+`T_age` is the duration (in hours or days) since the last successful data load.
+
+2. Configuring it in your sources.yml
+To use the added_at column, you must define it as the loaded_at_field in your dbt project. Here is how you would set it up:
+
+YAML
+```
+version: 2
+
+sources:
+  - name: reddit_source
+    database: "{{env}}_forums_analyses_db"
+    schema: raw
+    freshness:
+      warn_after: {count: 6, period: hour}
+      error_after: {count: 24, period: hour}
+    loaded_at_field: added_at  # This tells dbt which column to check
+    tables:
+      - name: raw_reddit_posts_comments
+```
+3. The Execution Steps
+When you execute the command dbt source freshness, dbt performs the following steps:
+
+Metadata Query: dbt sends a query to Snowflake: SELECT MAX(added_at) FROM {{env}}_forums_analyses_db.raw.raw_reddit_posts_comments;
+
+Comparison: It retrieves that timestamp and subtracts it from the current time.
+
+Status Report:
+
+Pass: If T 
+age is less than 6 hours.
+
+Warn: If T 
+age is between 6 and 24 hours.
+
+Error: If T 
+age exceeds 24 hours.
+
+4. Why this matters for your S3/Iceberg Setup
+In your specific case—where you are ingesting Delta files from S3 into Iceberg tables—source freshness is your early warning system:
+
+Ingestion Failure: If your Python scraper (the one failing with SSL errors) stops uploading files to S3, the added_at column in Snowflake will stop advancing.
+
+Metadata Sync Issues: Since you are using a delta_catalog_integration, if Snowflake fails to refresh the metadata of the Iceberg table, the MAX(added_at) will appear old even if the files are technically in S3.
+
+* `dbt source freshness` is what we run to check the source freshness of our data
+
+`dbt build` is a combination of running `dbt run` and `dbt test` respectively. `dbt run` merely builds our models but does not test them, `dbt test` only tests are built models. So to ensure we have tables to test we either run ``dbtbuild` or `dbt run`
+
+Tests can be run against your current project using a range of commands:
+`dbt test` runs all tests in the dbt project
+`dbt test --select test_type:generic`
+`dbt test --select test_type:singular`
+`dbt test --select one_specific_model`
+
+dbt test --select source:*
+
 ## Snowflake
 * How we can connect to snowflake using dbt:
 to avoid any `invalid JWT error` and `listing databases in snowflake` errors using dbt we need to make sure to input hte right credentials in our profiles.yaml in our dbt project

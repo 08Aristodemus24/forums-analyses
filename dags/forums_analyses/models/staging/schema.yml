@@ -19,6 +19,13 @@ models:
         description: "one of primary keys for this table"
         data_tests:
           - not_null
+
+      - name: level
+        description: "accepted values of level column"
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["reply", "level"]
           
     data_tests:
       - dbt_utils.unique_combination_of_columns:
