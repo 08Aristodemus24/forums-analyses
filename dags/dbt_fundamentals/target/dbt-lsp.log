@@ -1,0 +1,1220 @@
+==================== 2026-01-05T09:02:22.410178Z | d729a761-88d3-46ac-9714-0bdf19b87446 ====================
+09:02:22.411027 [info ]: Starting dbt LSP server
+09:02:22.411295 [info ]: Connecting to LSP client on port 8000
+09:02:22.425485 [info ]: Successfully connected to LSP client
+09:02:22.425538 [info ]: Creating LSP service...
+09:02:22.605004 [info ]: Creating LSP server...
+09:02:22.605076 [info ]: Starting LSP server...
+09:02:22.663166 [info ]: Started loading project
+09:02:23.277699 [info ]: Started parsing
+09:02:26.205055 [info ]: Finished loading project [  3.54s]
+09:02:26.399548 [info ]: Finished parsing [  3.12s]
+09:02:26.401273 [info ]: Cached model count updated: 3 models (estimate)
+09:02:26.401299 [info ]: Cached model count updated: 3 models (accurate)
+09:02:26.401466 [info ]: Started scheduling
+09:02:26.401893 [info ]: Finished scheduling [  0.00s]
+09:02:31.589948 [debug]: Query executed on node unknown:
+describe table "ACEN_OPS_PLAYGROUND"."LARRY"."CUSTOMERS"
+09:02:31.860494 [debug]: Query executed on node unknown:
+describe table "ACEN_OPS_PLAYGROUND"."LARRY"."ORDERS"
+09:02:32.693588 [debug]: Query executed on node unknown:
+describe table "ACEN_OPS_PLAYGROUND"."LARRY"."PAYMENTS"
+09:02:33.819937 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.customers'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__customers': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:02:33.820096 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.orders'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__orders': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:02:33.820162 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:02:34.176621 [info ]: Started building task graph
+09:02:34.177308 [info ]: Finished building task graph [  0.00s]
+09:02:34.178247 [info ]: Started rendering (6 nodes)
+09:02:34.178455 [info ]: Started seed LARRY.payments
+09:02:34.178737 [debug]: Started rendering seed LARRY.payments
+09:02:34.178879 [info ]: Started seed LARRY.orders
+09:02:34.178923 [debug]: Started rendering seed LARRY.orders
+09:02:34.178955 [info ]: Started seed LARRY.customers
+09:02:34.178968 [debug]: Started rendering seed LARRY.customers
+09:02:34.179019 [info ]: Started model LARRY.stg_stripe__payments
+09:02:34.179036 [debug]: Started rendering model LARRY.stg_stripe__payments
+09:02:34.179053 [info ]: Started model LARRY.stg_jaffle_shop__orders
+09:02:34.179061 [debug]: Started rendering model LARRY.stg_jaffle_shop__orders
+09:02:34.179086 [info ]: Started model LARRY.stg_jaffle_shop__customers
+09:02:34.179100 [debug]: Started rendering model LARRY.stg_jaffle_shop__customers
+09:02:34.189098 [info ]:  Succeeded [  0.01s] model LARRY.stg_stripe__payments (view)
+09:02:34.189260 [debug]: Finished rendering [  0.01s] model LARRY.stg_stripe__payments [success]
+09:02:34.190963 [info ]:  Succeeded [  0.01s] model LARRY.stg_jaffle_shop__customers (view)
+09:02:34.191032 [debug]: Finished rendering [  0.01s] model LARRY.stg_jaffle_shop__customers [success]
+09:02:34.191194 [info ]:  Succeeded [  0.01s] model LARRY.stg_jaffle_shop__orders (view)
+09:02:34.191281 [debug]: Finished rendering [  0.01s] model LARRY.stg_jaffle_shop__orders [success]
+09:02:34.212055 [debug]: Finished rendering [  0.03s] seed LARRY.customers [success]
+09:02:34.212168 [info ]: Started analyzing (3 nodes)
+09:02:34.212204 [debug]: Started analyzing seed LARRY.customers
+09:02:34.212262 [debug]: Finished rendering [  0.03s] seed LARRY.orders [success]
+09:02:34.212283 [debug]: Started analyzing seed LARRY.orders
+09:02:34.212317 [debug]: Finished rendering [  0.03s] seed LARRY.payments [success]
+09:02:34.212326 [info ]: Finished rendering [  0.03s] (6 nodes, 0 skipped, 0 errors)
+09:02:34.212343 [debug]: Started analyzing seed LARRY.payments
+09:02:34.212478 [info ]:  Succeeded [  0.03s] seed  LARRY.payments (table)
+09:02:34.212511 [debug]: Finished analyzing [  0.00s] seed LARRY.payments [success]
+09:02:34.212543 [info ]:  Succeeded [  0.03s] seed  LARRY.customers (table)
+09:02:34.212557 [debug]: Finished analyzing [  0.00s] seed LARRY.customers [success]
+09:02:34.212730 [info ]:  Succeeded [  0.03s] seed  LARRY.orders (table)
+09:02:34.212950 [debug]: Finished analyzing [  0.00s] seed LARRY.orders [success]
+09:02:34.212997 [info ]: Finished analyzing [  0.00s] (3 nodes, 0 skipped, 0 errors)
+09:02:34.221615 [info ]: Cached model count updated: 3 models (accurate)
+09:02:37.109762 [info ]: Started loading project
+09:02:37.133665 [info ]: Started parsing
+09:02:37.176179 [info ]: Finished loading project [  0.07s]
+09:02:37.280128 [info ]: Finished parsing [  0.15s]
+09:02:37.284656 [info ]: Cached model count updated: 3 models (estimate)
+09:02:37.284700 [info ]: Cached model count updated: 3 models (accurate)
+09:02:37.284795 [info ]: Started scheduling
+09:02:37.285339 [info ]: Finished scheduling [  0.00s]
+09:02:37.287813 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:02:37.287888 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.orders'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__orders': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:02:37.287913 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.customers'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__customers': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:02:37.658687 [info ]: Started building task graph
+09:02:37.658904 [info ]: Finished building task graph [  0.00s]
+09:02:37.659177 [info ]: Started rendering (2 nodes)
+09:02:37.659214 [info ]: Started model LARRY.stg_jaffle_shop__orders
+09:02:37.659237 [debug]: Started rendering model LARRY.stg_jaffle_shop__orders
+09:02:37.659283 [info ]: Started model LARRY.stg_jaffle_shop__customers
+09:02:37.659295 [debug]: Started rendering model LARRY.stg_jaffle_shop__customers
+09:02:37.695634 [info ]:  Succeeded [  0.04s] model LARRY.stg_jaffle_shop__customers (view)
+09:02:37.695738 [debug]: Finished rendering [  0.04s] model LARRY.stg_jaffle_shop__customers [success]
+09:02:37.702782 [info ]:   Finished [  0.04s] model LARRY.stg_jaffle_shop__orders (view)
+09:02:37.708555 [debug]: Finished rendering [  0.05s] model LARRY.stg_jaffle_shop__orders [no-op]
+09:02:37.708613 [info ]: Finished rendering [  0.05s] (2 nodes, 0 skipped, 0 errors)
+09:02:37.749371 [info ]: Started loading project
+09:02:37.782669 [info ]: Started parsing
+09:02:37.834560 [info ]: Finished loading project [  0.09s]
+09:02:37.939785 [info ]: Finished parsing [  0.16s]
+09:02:37.944356 [info ]: Cached model count updated: 3 models (estimate)
+09:02:37.944413 [info ]: Cached model count updated: 3 models (accurate)
+09:02:37.944528 [info ]: Started scheduling
+09:02:37.944849 [info ]: Finished scheduling [  0.00s]
+09:02:37.947980 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:02:37.948062 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.orders'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__orders': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:02:37.948086 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.customers'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__customers': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:02:38.311554 [info ]: Started building task graph
+09:02:38.311791 [info ]: Finished building task graph [  0.00s]
+09:02:38.312121 [info ]: Started rendering (2 nodes)
+09:02:38.312158 [info ]: Started model LARRY.stg_jaffle_shop__orders
+09:02:38.312179 [debug]: Started rendering model LARRY.stg_jaffle_shop__orders
+09:02:38.312233 [info ]: Started model LARRY.stg_jaffle_shop__customers
+09:02:38.312248 [debug]: Started rendering model LARRY.stg_jaffle_shop__customers
+09:02:38.313726 [info ]:  Succeeded [  0.00s] model LARRY.stg_jaffle_shop__customers (view)
+09:02:38.313980 [debug]: Finished rendering [  0.00s] model LARRY.stg_jaffle_shop__customers [success]
+09:02:38.314201 [info ]:  Succeeded [  0.00s] model LARRY.stg_jaffle_shop__orders (view)
+09:02:38.314267 [debug]: Finished rendering [  0.00s] model LARRY.stg_jaffle_shop__orders [success]
+09:02:38.314296 [info ]: Finished rendering [  0.00s] (2 nodes, 0 skipped, 0 errors)
+09:02:38.314556 [debug]: Incremental compilation - 2 nodes selected: {"model.dbt_fundamentals.stg_jaffle_shop__customers", "model.dbt_fundamentals.stg_jaffle_shop__orders"}
+09:02:38.321300 [info ]: Cached model count updated: 3 models (accurate)
+09:02:46.420249 [info ]: Started loading project
+09:02:46.442689 [info ]: Started parsing
+09:02:46.487084 [info ]: Finished loading project [  0.07s]
+09:02:46.566150 [info ]: Finished parsing [  0.12s]
+09:02:46.569799 [info ]: Cached model count updated: 3 models (estimate)
+09:02:46.569835 [info ]: Cached model count updated: 3 models (accurate)
+09:02:46.569905 [info ]: Started scheduling
+09:02:46.570137 [info ]: Finished scheduling [  0.00s]
+09:02:46.571553 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:02:46.571600 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.orders'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__orders': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:02:46.571619 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.customers'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__customers': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:02:46.952469 [info ]: Started building task graph
+09:02:46.952604 [info ]: Finished building task graph [  0.00s]
+09:02:46.952888 [info ]: Started rendering (1 nodes)
+09:02:46.952942 [info ]: Started model LARRY.stg_stripe__payments
+09:02:46.952965 [debug]: Started rendering model LARRY.stg_stripe__payments
+09:02:46.989878 [info ]:  Succeeded [  0.04s] model LARRY.stg_stripe__payments (view)
+09:02:46.989958 [debug]: Finished rendering [  0.04s] model LARRY.stg_stripe__payments [success]
+09:02:46.989976 [info ]: Finished rendering [  0.04s] (1 nodes, 0 skipped, 0 errors)
+09:02:47.042001 [info ]: Started loading project
+09:02:47.066568 [info ]: Started parsing
+09:02:47.108612 [info ]: Finished loading project [  0.07s]
+09:02:47.176789 [info ]: Finished parsing [  0.11s]
+09:02:47.181326 [info ]: Cached model count updated: 3 models (estimate)
+09:02:47.181383 [info ]: Cached model count updated: 3 models (accurate)
+09:02:47.181507 [info ]: Started scheduling
+09:02:47.181850 [info ]: Finished scheduling [  0.00s]
+09:02:47.184058 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:02:47.184111 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.orders'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__orders': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:02:47.184132 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.customers'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__customers': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:02:47.552393 [info ]: Started building task graph
+09:02:47.552517 [info ]: Finished building task graph [  0.00s]
+09:02:47.552733 [info ]: Started rendering (1 nodes)
+09:02:47.552767 [info ]: Started model LARRY.stg_stripe__payments
+09:02:47.552785 [debug]: Started rendering model LARRY.stg_stripe__payments
+09:02:47.554088 [info ]:  Succeeded [  0.00s] model LARRY.stg_stripe__payments (view)
+09:02:47.554183 [debug]: Finished rendering [  0.00s] model LARRY.stg_stripe__payments [success]
+09:02:47.554214 [info ]: Finished rendering [  0.00s] (1 nodes, 0 skipped, 0 errors)
+09:02:47.554213 [debug]: Incremental compilation - 1 nodes selected: {"model.dbt_fundamentals.stg_stripe__payments"}
+09:02:47.561773 [info ]: Cached model count updated: 3 models (accurate)
+09:04:27.539037 [info ]: Started loading project
+09:04:27.628539 [info ]: Started parsing
+09:04:27.690962 [info ]: Finished loading project [  0.15s]
+09:04:27.926350 [info ]: Finished parsing [  0.30s]
+09:04:27.931722 [info ]: Cached model count updated: 3 models (estimate)
+09:04:27.931783 [info ]: Cached model count updated: 3 models (accurate)
+09:04:27.931908 [info ]: Started scheduling
+09:04:27.932396 [info ]: Finished scheduling [  0.00s]
+09:04:27.935431 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:04:27.935522 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.orders'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__orders': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:04:27.935596 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.customers'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__customers': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:04:28.508345 [info ]: Started building task graph
+09:04:28.508568 [info ]: Finished building task graph [  0.00s]
+09:04:28.606806 [info ]: Started loading project
+09:04:28.643076 [info ]: Started parsing
+09:04:28.699195 [info ]: Finished loading project [  0.09s]
+09:04:28.922870 [info ]: Finished parsing [  0.28s]
+09:04:28.928208 [info ]: Cached model count updated: 3 models (estimate)
+09:04:28.928250 [info ]: Cached model count updated: 3 models (accurate)
+09:04:28.928351 [info ]: Started scheduling
+09:04:28.928764 [info ]: Finished scheduling [  0.00s]
+09:04:28.931134 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:04:28.931204 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.orders'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__orders': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:04:28.931233 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.customers'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__customers': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:04:29.549919 [info ]: Started building task graph
+09:04:29.550191 [info ]: Finished building task graph [  0.00s]
+09:04:29.550601 [info ]: Started rendering (3 nodes)
+09:04:29.550668 [info ]: Started model LARRY.stg_stripe__payments
+09:04:29.550702 [debug]: Started rendering model LARRY.stg_stripe__payments
+09:04:29.550781 [info ]: Started model LARRY.stg_jaffle_shop__orders
+09:04:29.550811 [debug]: Started rendering model LARRY.stg_jaffle_shop__orders
+09:04:29.550844 [info ]: Started model LARRY.stg_jaffle_shop__customers
+09:04:29.550860 [debug]: Started rendering model LARRY.stg_jaffle_shop__customers
+09:04:29.552787 [info ]:  Succeeded [  0.00s] model LARRY.stg_jaffle_shop__customers (view)
+09:04:29.552875 [debug]: Finished rendering [  0.00s] model LARRY.stg_jaffle_shop__customers [success]
+09:04:29.552967 [info ]:  Succeeded [  0.00s] model LARRY.stg_stripe__payments (view)
+09:04:29.553009 [debug]: Finished rendering [  0.00s] model LARRY.stg_stripe__payments [success]
+09:04:29.553158 [info ]:  Succeeded [  0.00s] model LARRY.stg_jaffle_shop__orders (view)
+09:04:29.553231 [debug]: Finished rendering [  0.00s] model LARRY.stg_jaffle_shop__orders [success]
+09:04:29.553252 [info ]: Finished rendering [  0.00s] (3 nodes, 0 skipped, 0 errors)
+09:04:29.553483 [debug]: Incremental compilation - 3 nodes selected: {"model.dbt_fundamentals.stg_jaffle_shop__customers", "model.dbt_fundamentals.stg_jaffle_shop__orders", "model.dbt_fundamentals.stg_stripe__payments"}
+09:04:29.568694 [info ]: Cached model count updated: 3 models (accurate)
+09:04:32.896707 [info ]: Started loading project
+09:04:32.970672 [info ]: Started parsing
+09:04:33.023989 [info ]: Finished loading project [  0.13s]
+09:04:33.250653 [info ]: Finished parsing [  0.28s]
+09:04:33.257369 [info ]: Cached model count updated: 3 models (estimate)
+09:04:33.257427 [info ]: Cached model count updated: 3 models (accurate)
+09:04:33.257546 [info ]: Started scheduling
+09:04:33.258005 [info ]: Finished scheduling [  0.00s]
+09:04:33.261241 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:04:33.261336 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.orders'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__orders': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:04:33.261388 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.customers'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__customers': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:04:33.806528 [info ]: Started building task graph
+09:04:33.806805 [info ]: Finished building task graph [  0.00s]
+09:04:33.913504 [info ]: Started loading project
+09:04:33.952373 [info ]: Started parsing
+09:04:34.007536 [info ]: Finished loading project [  0.09s]
+09:04:34.234814 [info ]: Finished parsing [  0.28s]
+09:04:34.240689 [info ]: Cached model count updated: 3 models (estimate)
+09:04:34.240740 [info ]: Cached model count updated: 3 models (accurate)
+09:04:34.240856 [info ]: Started scheduling
+09:04:34.241301 [info ]: Finished scheduling [  0.00s]
+09:04:34.245156 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:04:34.245266 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.orders'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__orders': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:04:34.245299 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.customers'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__customers': [Snowflake] 002003 (02000): SQL compilation error:
+Schema 'ACEN_OPS_PLAYGROUND.LARRY' does not exist or not authorized.
+09:04:34.794212 [info ]: Started building task graph
+09:04:34.794471 [info ]: Finished building task graph [  0.00s]
+09:04:34.794903 [info ]: Started rendering (3 nodes)
+09:04:34.794966 [info ]: Started model LARRY.stg_stripe__payments
+09:04:34.794997 [debug]: Started rendering model LARRY.stg_stripe__payments
+09:04:34.795070 [info ]: Started model LARRY.stg_jaffle_shop__orders
+09:04:34.795088 [debug]: Started rendering model LARRY.stg_jaffle_shop__orders
+09:04:34.795116 [info ]: Started model LARRY.stg_jaffle_shop__customers
+09:04:34.795129 [debug]: Started rendering model LARRY.stg_jaffle_shop__customers
+09:04:34.797124 [info ]:  Succeeded [  0.00s] model LARRY.stg_stripe__payments (view)
+09:04:34.797220 [debug]: Finished rendering [  0.00s] model LARRY.stg_stripe__payments [success]
+09:04:34.797274 [info ]:  Succeeded [  0.00s] model LARRY.stg_jaffle_shop__orders (view)
+09:04:34.797304 [debug]: Finished rendering [  0.00s] model LARRY.stg_jaffle_shop__orders [success]
+09:04:34.797337 [info ]:  Succeeded [  0.00s] model LARRY.stg_jaffle_shop__customers (view)
+09:04:34.797377 [debug]: Finished rendering [  0.00s] model LARRY.stg_jaffle_shop__customers [success]
+09:04:34.797392 [info ]: Finished rendering [  0.00s] (3 nodes, 0 skipped, 0 errors)
+09:04:34.797618 [debug]: Incremental compilation - 3 nodes selected: {"model.dbt_fundamentals.stg_jaffle_shop__customers", "model.dbt_fundamentals.stg_jaffle_shop__orders", "model.dbt_fundamentals.stg_stripe__payments"}
+09:04:34.811150 [info ]: Cached model count updated: 3 models (accurate)
+==================== 2026-01-08T05:46:05.657485Z | e3da35aa-44ae-4c21-baa7-caa7a086b96a ====================
+05:46:05.657510 [info ]: Starting dbt LSP server
+05:46:05.657524 [info ]: Connecting to LSP client on port 8000
+05:46:05.661464 [info ]: Successfully connected to LSP client
+05:46:05.661511 [info ]: Creating LSP service...
+05:46:05.734911 [info ]: Creating LSP server...
+05:46:05.734960 [info ]: Starting LSP server...
+05:46:05.808951 [info ]: Started loading project
+05:46:05.815926 [info ]: Loading ~/.dbt/profiles.yml
+05:46:06.121495 [info ]: Started parsing
+05:46:06.185098 [info ]: Loading ~/.dbt/profiles.yml
+05:46:09.425391 [info ]: Finished loading project [  3.62s]
+05:46:09.740641 [info ]: Finished parsing [  3.62s]
+05:46:09.741952 [info ]: Cached model count updated: 3 models (estimate)
+05:46:09.741974 [info ]: Cached model count updated: 3 models (accurate)
+05:46:09.742129 [info ]: Started scheduling
+05:46:09.742502 [info ]: Finished scheduling [  0.00s]
+05:46:13.170910 [debug]: Query executed on node unknown:
+describe table "DEV_PLAYGROUND"."LARRY"."CUSTOMERS"
+05:46:14.263730 [debug]: Query executed on node unknown:
+describe table "DEV_PLAYGROUND"."LARRY"."ORDERS"
+05:46:14.497417 [debug]: Query executed on node unknown:
+describe table "DEV_PLAYGROUND"."LARRY"."PAYMENTS"
+05:46:15.923466 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.customers'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__customers': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+05:46:15.923611 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.orders'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__orders': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+05:46:15.923666 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+05:46:16.101948 [info ]: Started building task graph
+05:46:16.102465 [info ]: Finished building task graph [  0.00s]
+05:46:16.103030 [info ]: Started rendering (6 nodes)
+05:46:16.103094 [info ]: Started seed LARRY.payments
+05:46:16.103139 [debug]: Started rendering seed LARRY.payments
+05:46:16.103176 [info ]: Started seed LARRY.orders
+05:46:16.103182 [debug]: Started rendering seed LARRY.orders
+05:46:16.103189 [info ]: Started seed LARRY.customers
+05:46:16.103193 [debug]: Started rendering seed LARRY.customers
+05:46:16.103209 [info ]: Started model LARRY.stg_stripe__payments
+05:46:16.103215 [debug]: Started rendering model LARRY.stg_stripe__payments
+05:46:16.103221 [info ]: Started model LARRY.stg_jaffle_shop__orders
+05:46:16.103224 [debug]: Started rendering model LARRY.stg_jaffle_shop__orders
+05:46:16.103235 [info ]: Started model LARRY.stg_jaffle_shop__customers
+05:46:16.103239 [debug]: Started rendering model LARRY.stg_jaffle_shop__customers
+05:46:16.118003 [info ]:  Succeeded [  0.01s] model LARRY.stg_stripe__payments (view)
+05:46:16.118098 [debug]: Finished rendering [  0.01s] model LARRY.stg_stripe__payments [success]
+05:46:16.120043 [info ]:  Succeeded [  0.02s] model LARRY.stg_jaffle_shop__customers (view)
+05:46:16.120094 [debug]: Finished rendering [  0.02s] model LARRY.stg_jaffle_shop__customers [success]
+05:46:16.121237 [info ]:  Succeeded [  0.02s] model LARRY.stg_jaffle_shop__orders (view)
+05:46:16.121278 [debug]: Finished rendering [  0.02s] model LARRY.stg_jaffle_shop__orders [success]
+05:46:16.125167 [debug]: Finished rendering [  0.02s] seed LARRY.payments [success]
+05:46:16.125287 [info ]: Started analyzing (3 nodes)
+05:46:16.125316 [debug]: Started analyzing seed LARRY.payments
+05:46:16.125354 [debug]: Finished rendering [  0.02s] seed LARRY.orders [success]
+05:46:16.125372 [debug]: Started analyzing seed LARRY.orders
+05:46:16.125398 [debug]: Finished rendering [  0.02s] seed LARRY.customers [success]
+05:46:16.125404 [info ]: Finished rendering [  0.02s] (6 nodes, 0 skipped, 0 errors)
+05:46:16.125413 [debug]: Started analyzing seed LARRY.customers
+05:46:16.125513 [info ]:  Succeeded [  0.02s] seed  LARRY.customers (table)
+05:46:16.125532 [debug]: Finished analyzing [  0.00s] seed LARRY.customers [success]
+05:46:16.125550 [info ]:  Succeeded [  0.02s] seed  LARRY.payments (table)
+05:46:16.125558 [debug]: Finished analyzing [  0.00s] seed LARRY.payments [success]
+05:46:16.125572 [info ]:  Succeeded [  0.02s] seed  LARRY.orders (table)
+05:46:16.125583 [debug]: Finished analyzing [  0.00s] seed LARRY.orders [success]
+05:46:16.125587 [info ]: Finished analyzing [  0.00s] (3 nodes, 0 skipped, 0 errors)
+05:46:16.134570 [info ]: Cached model count updated: 3 models (accurate)
+05:46:37.370500 [info ]: Started loading project
+05:46:37.371229 [info ]: Loading ~/.dbt/profiles.yml
+05:46:37.380089 [info ]: Started parsing
+05:46:37.397614 [info ]: Finished loading project [  0.03s]
+05:46:37.445348 [info ]: Finished parsing [  0.07s]
+05:46:37.446881 [info ]: Cached model count updated: 3 models (estimate)
+05:46:37.446899 [info ]: Cached model count updated: 3 models (accurate)
+05:46:37.446948 [info ]: Started scheduling
+05:46:37.447112 [info ]: Finished scheduling [  0.00s]
+05:46:37.447916 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.customers'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__customers': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+05:46:37.447939 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+05:46:37.447949 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.orders'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__orders': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+05:46:38.987493 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."PAYMENTS"
+05:46:39.998833 [info ]: Cached model count updated: 3 models (accurate)
+05:46:40.046440 [info ]: Started loading project
+05:46:40.048118 [info ]: Loading ~/.dbt/profiles.yml
+05:46:40.059699 [info ]: Started parsing
+05:46:40.088511 [info ]: Finished loading project [  0.04s]
+05:46:40.138672 [info ]: Cached model count updated: 3 models (estimate)
+05:46:40.138698 [info ]: Cached model count updated: 3 models (accurate)
+05:46:40.138739 [info ]: Started scheduling
+05:46:40.138840 [info ]: Finished scheduling [  0.00s]
+05:46:40.138820 [info ]: Finished parsing [  0.08s]
+05:46:40.139723 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.customers'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__customers': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+05:46:40.139746 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+05:46:40.139756 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.orders'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__orders': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+05:46:41.352113 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."PAYMENTS"
+05:46:42.786690 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (42S02): SQL compilation error:
+Table 'FORUMS_ANALYSES_DB.FORUMS_ANALYSES_BRONZE.PAYMENTS' does not exist or not authorized. (SQLSTATE: 42S02, Vendor code: 2003)
+05:46:42.967762 [info ]: Started building task graph
+05:46:42.967887 [info ]: Finished building task graph [  0.00s]
+05:46:42.968024 [info ]: Started rendering (1 nodes)
+05:46:42.968042 [info ]: Started model LARRY.stg_stripe__payments
+05:46:42.968068 [debug]: Started rendering model LARRY.stg_stripe__payments
+05:46:42.985364 [info ]:  Succeeded [  0.02s] model LARRY.stg_stripe__payments (view)
+05:46:42.985513 [debug]: Incremental compilation - 1 nodes selected: {"model.dbt_fundamentals.stg_stripe__payments"}
+05:46:42.985885 [debug]: Finished rendering [  0.02s] model LARRY.stg_stripe__payments [success]
+05:46:42.985917 [info ]: Finished rendering [  0.02s] (1 nodes, 0 skipped, 0 errors)
+05:46:42.991076 [info ]: Cached model count updated: 3 models (accurate)
+05:46:59.380513 [info ]: Started loading project
+05:46:59.381670 [info ]: Loading ~/.dbt/profiles.yml
+05:46:59.398019 [info ]: Started parsing
+05:46:59.430775 [info ]: Finished loading project [  0.05s]
+05:46:59.534173 [info ]: Finished parsing [  0.14s]
+05:46:59.537173 [info ]: Cached model count updated: 3 models (estimate)
+05:46:59.537230 [info ]: Cached model count updated: 3 models (accurate)
+05:46:59.537312 [info ]: Started scheduling
+05:46:59.537557 [info ]: Finished scheduling [  0.00s]
+05:46:59.538843 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+05:46:59.538888 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.customers'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__customers': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+05:46:59.538901 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (42S02): SQL compilation error:
+Table 'FORUMS_ANALYSES_DB.FORUMS_ANALYSES_BRONZE.PAYMENTS' does not exist or not authorized. (SQLSTATE: 42S02, Vendor code: 2003)
+05:46:59.538910 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.orders'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__orders': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+05:47:00.876403 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."CUSTOMERS"
+05:47:01.917920 [info ]: Cached model count updated: 3 models (accurate)
+05:47:01.925132 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."ORDERS"
+05:47:01.958183 [info ]: Started loading project
+05:47:01.959180 [info ]: Loading ~/.dbt/profiles.yml
+05:47:01.973685 [info ]: Started parsing
+05:47:02.005036 [info ]: Finished loading project [  0.05s]
+05:47:02.101782 [info ]: Finished parsing [  0.13s]
+05:47:02.104581 [info ]: Cached model count updated: 3 models (estimate)
+05:47:02.104609 [info ]: Cached model count updated: 3 models (accurate)
+05:47:02.104691 [info ]: Started scheduling
+05:47:02.104867 [info ]: Finished scheduling [  0.00s]
+05:47:02.105829 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+05:47:02.105870 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.customers'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__customers': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+05:47:02.105879 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (42S02): SQL compilation error:
+Table 'FORUMS_ANALYSES_DB.FORUMS_ANALYSES_BRONZE.PAYMENTS' does not exist or not authorized. (SQLSTATE: 42S02, Vendor code: 2003)
+05:47:02.105886 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.orders'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__orders': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+05:47:03.334899 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."CUSTOMERS"
+05:47:04.278427 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."ORDERS"
+05:47:05.687278 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.customers'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__customers': [Snowflake] 002003 (42S02): SQL compilation error:
+Table 'FORUMS_ANALYSES_DB.FORUMS_ANALYSES_BRONZE.CUSTOMERS' does not exist or not authorized. (SQLSTATE: 42S02, Vendor code: 2003)
+05:47:05.687343 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.orders'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__orders': [Snowflake] 002003 (42S02): SQL compilation error:
+Table 'FORUMS_ANALYSES_DB.FORUMS_ANALYSES_BRONZE.ORDERS' does not exist or not authorized. (SQLSTATE: 42S02, Vendor code: 2003)
+05:47:06.013571 [info ]: Started building task graph
+05:47:06.013729 [info ]: Finished building task graph [  0.00s]
+05:47:06.013882 [info ]: Started rendering (2 nodes)
+05:47:06.013899 [info ]: Started model LARRY.stg_jaffle_shop__orders
+05:47:06.013913 [debug]: Started rendering model LARRY.stg_jaffle_shop__orders
+05:47:06.013992 [info ]: Started model LARRY.stg_jaffle_shop__customers
+05:47:06.014009 [debug]: Started rendering model LARRY.stg_jaffle_shop__customers
+05:47:06.026543 [info ]:  Succeeded [  0.01s] model LARRY.stg_jaffle_shop__orders (view)
+05:47:06.026664 [debug]: Finished rendering [  0.01s] model LARRY.stg_jaffle_shop__orders [success]
+05:47:06.029972 [info ]:  Succeeded [  0.01s] model LARRY.stg_jaffle_shop__customers (view)
+05:47:06.030360 [debug]: Finished rendering [  0.02s] model LARRY.stg_jaffle_shop__customers [success]
+05:47:06.030380 [info ]: Finished rendering [  0.02s] (2 nodes, 0 skipped, 0 errors)
+05:47:06.030523 [debug]: Incremental compilation - 2 nodes selected: {"model.dbt_fundamentals.stg_jaffle_shop__customers", "model.dbt_fundamentals.stg_jaffle_shop__orders"}
+05:47:06.041967 [info ]: Cached model count updated: 3 models (accurate)
+09:30:28.021296 [info ]: Started loading project
+09:30:28.038569 [info ]: Loading ~/.dbt/profiles.yml
+09:30:28.188890 [info ]: Started loading project
+09:30:28.191665 [info ]: Loading ~/.dbt/profiles.yml
+09:30:28.193312 [info ]: Finished loading project [  0.17s]
+09:30:29.371092 [info ]: Started parsing
+09:30:32.560091 [info ]: Finished loading project [  4.37s]
+09:30:33.041236 [info ]: Finished parsing [  3.67s]
+09:30:33.049458 [info ]: Cached model count updated: 3 models (estimate)
+09:30:33.049823 [info ]: Cached model count updated: 3 models (accurate)
+09:30:33.053723 [info ]: Started scheduling
+09:30:33.062506 [info ]: Finished scheduling [  0.01s]
+09:30:33.233777 [info ]: Started loading project
+09:30:33.235313 [info ]: Loading ~/.dbt/profiles.yml
+09:30:34.012812 [info ]: Started parsing
+09:30:37.217842 [info ]: Finished loading project [  3.98s]
+09:30:37.448850 [info ]: Finished parsing [  3.44s]
+09:30:37.451974 [info ]: Cached model count updated: 3 models (estimate)
+09:30:37.452028 [info ]: Cached model count updated: 3 models (accurate)
+09:30:37.452127 [info ]: Started scheduling
+09:30:37.452404 [info ]: Finished scheduling [  0.00s]
+09:30:39.602142 [debug]: Query executed on node unknown:
+describe table "DEV_PLAYGROUND"."LARRY"."CUSTOMERS"
+09:30:40.737518 [debug]: Query executed on node unknown:
+describe table "DEV_PLAYGROUND"."LARRY"."ORDERS"
+09:30:40.916603 [debug]: Query executed on node unknown:
+describe table "DEV_PLAYGROUND"."LARRY"."PAYMENTS"
+09:30:42.415871 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.customers'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__customers': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+09:30:42.416237 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.orders'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__orders': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+09:30:42.416272 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+09:30:42.897813 [info ]: Started building task graph
+09:30:42.904875 [info ]: Finished building task graph [  0.01s]
+09:30:42.940599 [info ]: Started rendering (6 nodes)
+09:30:42.953675 [info ]: Started seed FORUMS_ANALYSES_BRONZE.payments
+09:30:42.971085 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.payments
+09:30:42.971206 [info ]: Started seed FORUMS_ANALYSES_BRONZE.orders
+09:30:42.971236 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.orders
+09:30:42.971262 [info ]: Started seed FORUMS_ANALYSES_BRONZE.customers
+09:30:42.971274 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.customers
+09:30:42.972598 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+09:30:42.972640 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+09:30:42.972688 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+09:30:42.972707 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+09:30:42.972727 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+09:30:42.972742 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+09:30:43.074009 [info ]:  Succeeded [  0.10s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers (view)
+09:30:43.074729 [debug]: Finished rendering [  0.10s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers [success]
+09:30:43.074886 [info ]:  Succeeded [  0.10s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments (view)
+09:30:43.074933 [debug]: Finished rendering [  0.10s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments [success]
+09:30:43.075098 [info ]:  Succeeded [  0.10s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders (view)
+09:30:43.075198 [debug]: Finished rendering [  0.10s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders [success]
+09:30:43.139544 [debug]: Finished rendering [  0.17s] seed FORUMS_ANALYSES_BRONZE.customers [success]
+09:30:43.139656 [info ]: Started analyzing (3 nodes)
+09:30:43.139689 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.customers
+09:30:43.139746 [debug]: Finished rendering [  0.17s] seed FORUMS_ANALYSES_BRONZE.orders [success]
+09:30:43.139773 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.orders
+09:30:43.140149 [debug]: Finished rendering [  0.17s] seed FORUMS_ANALYSES_BRONZE.payments [success]
+09:30:43.140187 [info ]: Finished rendering [  0.20s] (6 nodes, 0 skipped, 0 errors)
+09:30:43.140224 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.payments
+09:30:43.142248 [info ]:  Succeeded [  0.17s] seed  FORUMS_ANALYSES_BRONZE.orders (table)
+09:30:43.142759 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.orders [success]
+09:30:43.142829 [info ]:  Succeeded [  0.17s] seed  FORUMS_ANALYSES_BRONZE.payments (table)
+09:30:43.142855 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.payments [success]
+09:30:43.142886 [info ]:  Succeeded [  0.17s] seed  FORUMS_ANALYSES_BRONZE.customers (table)
+09:30:43.142964 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.customers [success]
+09:30:43.142980 [info ]: Finished analyzing [  0.00s] (3 nodes, 0 skipped, 0 errors)
+09:30:43.154986 [info ]: Cached model count updated: 3 models (accurate)
+09:33:34.990084 [info ]: Started loading project
+09:33:34.993032 [info ]: Loading ~/.dbt/profiles.yml
+09:33:35.077601 [info ]: Started parsing
+09:33:35.136593 [info ]: Finished loading project [  0.15s]
+09:33:35.348769 [info ]: Finished parsing [  0.27s]
+09:33:35.356685 [info ]: Cached model count updated: 3 models (estimate)
+09:33:35.356717 [info ]: Cached model count updated: 3 models (accurate)
+09:33:35.356793 [info ]: Started scheduling
+09:33:35.360583 [info ]: Finished scheduling [  0.00s]
+09:33:35.362958 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.orders'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__orders': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+09:33:35.363040 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.customers'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__customers': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+09:33:35.363072 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+09:33:35.951741 [info ]: Started building task graph
+09:33:35.952882 [info ]: Finished building task graph [  0.00s]
+09:33:35.969016 [info ]: Cached model count updated: 3 models (accurate)
+09:33:36.103216 [info ]: Started loading project
+09:33:36.105665 [info ]: Loading ~/.dbt/profiles.yml
+09:33:36.140825 [info ]: Started parsing
+09:33:36.194462 [info ]: Finished loading project [  0.09s]
+09:33:36.395533 [info ]: Finished parsing [  0.25s]
+09:33:36.401117 [info ]: Cached model count updated: 3 models (estimate)
+09:33:36.401160 [info ]: Cached model count updated: 3 models (accurate)
+09:33:36.401263 [info ]: Started scheduling
+09:33:36.401698 [info ]: Finished scheduling [  0.00s]
+09:33:36.404039 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.orders'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__orders': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+09:33:36.404126 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.customers'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__customers': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+09:33:36.404159 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+09:33:36.963352 [info ]: Started building task graph
+09:33:36.963613 [info ]: Finished building task graph [  0.00s]
+09:33:36.964102 [info ]: Started rendering (3 nodes)
+09:33:36.964168 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+09:33:36.964212 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+09:33:36.964304 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+09:33:36.964332 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+09:33:36.964365 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+09:33:36.964384 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+09:33:36.990331 [info ]:  Succeeded [  0.03s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers (view)
+09:33:36.990447 [debug]: Finished rendering [  0.03s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers [success]
+09:33:36.990696 [info ]:  Succeeded [  0.03s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders (view)
+09:33:36.990755 [debug]: Finished rendering [  0.03s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders [success]
+09:33:36.991521 [info ]:  Succeeded [  0.03s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments (view)
+09:33:36.991665 [debug]: Finished rendering [  0.03s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments [success]
+09:33:36.991706 [info ]: Finished rendering [  0.03s] (3 nodes, 0 skipped, 0 errors)
+09:33:36.992979 [debug]: Incremental compilation - 3 nodes selected: {"model.dbt_fundamentals.stg_jaffle_shop__customers", "model.dbt_fundamentals.stg_jaffle_shop__orders", "model.dbt_fundamentals.stg_stripe__payments"}
+09:33:37.003407 [info ]: Cached model count updated: 3 models (accurate)
+09:35:25.883378 [info ]: Started loading project
+09:35:25.884686 [info ]: Loading ~/.dbt/profiles.yml
+09:35:25.957112 [info ]: Started parsing
+09:35:26.005398 [info ]: Finished loading project [  0.12s]
+09:35:26.223271 [info ]: Finished parsing [  0.27s]
+09:35:26.229549 [info ]: Cached model count updated: 3 models (estimate)
+09:35:26.229586 [info ]: Cached model count updated: 3 models (accurate)
+09:35:26.229663 [info ]: Started scheduling
+09:35:26.229987 [info ]: Finished scheduling [  0.00s]
+09:35:26.232389 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.orders'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__orders': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+09:35:26.232459 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.customers'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__customers': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+09:35:26.232482 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+09:35:26.818070 [info ]: Started building task graph
+09:35:26.818211 [info ]: Finished building task graph [  0.00s]
+09:35:26.828905 [info ]: Cached model count updated: 3 models (accurate)
+09:35:26.973018 [info ]: Started loading project
+09:35:26.975185 [info ]: Loading ~/.dbt/profiles.yml
+09:35:27.004255 [info ]: Started parsing
+09:35:27.060941 [info ]: Finished loading project [  0.09s]
+09:35:27.288055 [info ]: Finished parsing [  0.28s]
+09:35:27.293714 [info ]: Cached model count updated: 3 models (estimate)
+09:35:27.293774 [info ]: Cached model count updated: 3 models (accurate)
+09:35:27.293909 [info ]: Started scheduling
+09:35:27.294355 [info ]: Finished scheduling [  0.00s]
+09:35:27.297144 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.orders'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__orders': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+09:35:27.297240 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.customers'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__customers': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+09:35:27.297269 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+09:35:27.734992 [info ]: Started building task graph
+09:35:27.735168 [info ]: Finished building task graph [  0.00s]
+09:35:27.735482 [info ]: Started rendering (3 nodes)
+09:35:27.735532 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+09:35:27.735552 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+09:35:27.735603 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+09:35:27.735618 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+09:35:27.735637 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+09:35:27.735651 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+09:35:27.736928 [info ]:  Succeeded [  0.00s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders (view)
+09:35:27.736990 [debug]: Finished rendering [  0.00s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders [success]
+09:35:27.737152 [info ]:  Succeeded [  0.00s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments (view)
+09:35:27.737207 [debug]: Finished rendering [  0.00s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments [success]
+09:35:27.737245 [info ]:  Succeeded [  0.00s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers (view)
+09:35:27.737281 [debug]: Finished rendering [  0.00s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers [success]
+09:35:27.737295 [info ]: Finished rendering [  0.00s] (3 nodes, 0 skipped, 0 errors)
+09:35:27.737481 [debug]: Incremental compilation - 3 nodes selected: {"model.dbt_fundamentals.stg_jaffle_shop__customers", "model.dbt_fundamentals.stg_jaffle_shop__orders", "model.dbt_fundamentals.stg_stripe__payments"}
+09:35:27.746596 [info ]: Cached model count updated: 3 models (accurate)
+09:35:36.335759 [info ]: Started loading project
+09:35:36.337091 [info ]: Loading ~/.dbt/profiles.yml
+09:35:36.404491 [info ]: Started parsing
+09:35:36.462382 [info ]: Finished loading project [  0.13s]
+09:35:36.682557 [info ]: Finished parsing [  0.28s]
+09:35:36.687406 [info ]: Cached model count updated: 3 models (estimate)
+09:35:36.687467 [info ]: Cached model count updated: 3 models (accurate)
+09:35:36.687598 [info ]: Started scheduling
+09:35:36.688300 [info ]: Finished scheduling [  0.00s]
+09:35:36.691356 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.orders'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__orders': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+09:35:36.691491 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.customers'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__customers': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+09:35:36.691761 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+09:35:37.228561 [info ]: Started building task graph
+09:35:37.228769 [info ]: Finished building task graph [  0.00s]
+09:35:37.236944 [info ]: Cached model count updated: 3 models (accurate)
+09:35:37.298102 [info ]: Started loading project
+09:35:37.299879 [info ]: Loading ~/.dbt/profiles.yml
+09:35:37.318960 [info ]: Started parsing
+09:35:37.362188 [info ]: Finished loading project [  0.06s]
+09:35:37.545147 [info ]: Finished parsing [  0.23s]
+09:35:37.549591 [info ]: Cached model count updated: 3 models (estimate)
+09:35:37.549628 [info ]: Cached model count updated: 3 models (accurate)
+09:35:37.549706 [info ]: Started scheduling
+09:35:37.549966 [info ]: Finished scheduling [  0.00s]
+09:35:37.551482 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.orders'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__orders': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+09:35:37.551524 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.jaffle_shop.customers'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_jaffle_shop__customers': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+09:35:37.551541 [warn ]: dbt1014: Failed to download source schema for 'source.dbt_fundamentals.stripe.payments'. Setting 'static_analysis' to off. Skipping analysis for 'model.dbt_fundamentals.stg_stripe__payments': [Snowflake] 002003 (02000): SQL compilation error:
+Database 'DEV_PLAYGROUND' does not exist or not authorized.
+09:35:37.930732 [info ]: Started building task graph
+09:35:37.930878 [info ]: Finished building task graph [  0.00s]
+09:35:37.931079 [info ]: Started rendering (3 nodes)
+09:35:37.931109 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+09:35:37.931127 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+09:35:37.931178 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+09:35:37.931194 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+09:35:37.931216 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+09:35:37.931229 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+09:35:37.932614 [info ]:  Succeeded [  0.00s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders (view)
+09:35:37.932679 [debug]: Finished rendering [  0.00s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders [success]
+09:35:37.932717 [info ]:  Succeeded [  0.00s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments (view)
+09:35:37.932737 [debug]: Finished rendering [  0.00s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments [success]
+09:35:37.933570 [info ]:  Succeeded [  0.00s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers (view)
+09:35:37.933616 [debug]: Finished rendering [  0.00s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers [success]
+09:35:37.933628 [info ]: Finished rendering [  0.00s] (3 nodes, 0 skipped, 0 errors)
+09:35:37.933756 [debug]: Incremental compilation - 3 nodes selected: {"model.dbt_fundamentals.stg_jaffle_shop__customers", "model.dbt_fundamentals.stg_jaffle_shop__orders", "model.dbt_fundamentals.stg_stripe__payments"}
+09:35:37.943075 [info ]: Cached model count updated: 3 models (accurate)
+==================== 2026-01-12T00:24:25.593442Z | f43d4e01-8a1e-4ee7-90c1-8e892919c511 ====================
+00:24:25.593633 [info ]: Starting dbt LSP server
+00:24:25.593705 [info ]: Connecting to LSP client on port 8000
+00:24:25.618381 [info ]: Successfully connected to LSP client
+00:24:25.618422 [info ]: Creating LSP service...
+00:24:25.702014 [info ]: Creating LSP server...
+00:24:25.702039 [info ]: Starting LSP server...
+00:24:25.738887 [info ]: Started loading project
+00:24:25.753152 [info ]: Loading ~/.dbt/profiles.yml
+00:24:26.143713 [info ]: Loading ~/.dbt/profiles.yml
+00:24:26.574788 [info ]: Started parsing
+00:24:30.998575 [info ]: Finished loading project [  5.26s]
+00:24:31.990508 [info ]: Finished parsing [  5.42s]
+00:24:31.991218 [info ]: Cached model count updated: 3 models (estimate)
+00:24:31.991231 [info ]: Cached model count updated: 3 models (accurate)
+00:24:31.991341 [info ]: Started scheduling
+00:24:31.991566 [info ]: Finished scheduling [  0.00s]
+00:24:34.815660 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."CUSTOMERS"
+00:24:35.082359 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."ORDERS"
+00:24:35.358189 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."PAYMENTS"
+00:24:36.489134 [info ]: Started building task graph
+00:24:36.489444 [info ]: Finished building task graph [  0.00s]
+00:24:36.489772 [info ]: Started rendering (6 nodes)
+00:24:36.489832 [info ]: Started seed FORUMS_ANALYSES_BRONZE.payments
+00:24:36.489878 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.payments
+00:24:36.489914 [info ]: Started seed FORUMS_ANALYSES_BRONZE.orders
+00:24:36.489919 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.orders
+00:24:36.489926 [info ]: Started seed FORUMS_ANALYSES_BRONZE.customers
+00:24:36.489953 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.customers
+00:24:36.489984 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+00:24:36.489989 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+00:24:36.490000 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+00:24:36.490005 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+00:24:36.490016 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+00:24:36.490153 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+00:24:36.495838 [info ]: Started analyzing (6 nodes)
+00:24:36.495863 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+00:24:36.496325 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+00:24:36.496977 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+00:24:36.497532 [debug]: Finished rendering [  0.01s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers [success]
+00:24:36.497583 [debug]: Finished rendering [  0.01s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders [success]
+00:24:36.497593 [debug]: Finished rendering [  0.01s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments [success]
+00:24:36.529297 [debug]: Finished rendering [  0.04s] seed FORUMS_ANALYSES_BRONZE.orders [success]
+00:24:36.529405 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.orders
+00:24:36.529542 [info ]:  Succeeded [  0.04s] seed  FORUMS_ANALYSES_BRONZE.orders (table)
+00:24:36.529577 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.orders [success]
+00:24:36.529838 [debug]: Finished rendering [  0.04s] seed FORUMS_ANALYSES_BRONZE.payments [success]
+00:24:36.529899 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.payments
+00:24:36.530077 [info ]:  Succeeded [  0.04s] seed  FORUMS_ANALYSES_BRONZE.payments (table)
+00:24:36.530101 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.payments [success]
+00:24:36.530839 [debug]: Finished rendering [  0.04s] seed FORUMS_ANALYSES_BRONZE.customers [success]
+00:24:36.530857 [info ]: Finished rendering [  0.04s] (6 nodes, 0 skipped, 0 errors)
+00:24:36.530876 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.customers
+00:24:36.530906 [info ]:  Succeeded [  0.04s] seed  FORUMS_ANALYSES_BRONZE.customers (table)
+00:24:36.530922 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.customers [success]
+00:24:36.558881 [info ]:  Succeeded [  0.07s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments (view)
+00:24:36.558915 [debug]: Finished analyzing [  0.06s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments [success]
+00:24:36.558957 [info ]:  Succeeded [  0.07s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers (view)
+00:24:36.558980 [debug]: Finished analyzing [  0.06s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers [success]
+00:24:36.576037 [info ]:  Succeeded [  0.09s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders (view)
+00:24:36.576092 [debug]: Finished analyzing [  0.08s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders [success]
+00:24:36.576100 [info ]: Finished analyzing [  0.08s] (6 nodes, 0 skipped, 0 errors)
+00:24:36.580149 [info ]: Cached model count updated: 3 models (accurate)
+00:25:04.848886 [info ]: Started loading project
+00:25:04.850635 [info ]: Loading ~/.dbt/profiles.yml
+00:25:04.861830 [info ]: Started loading project
+00:25:04.862735 [info ]: Loading ~/.dbt/profiles.yml
+00:25:04.862918 [info ]: Finished loading project [  0.01s]
+00:25:05.307004 [info ]: Started parsing
+00:25:08.105705 [info ]: Finished loading project [  3.24s]
+00:25:08.286339 [info ]: Finished parsing [  2.98s]
+00:25:08.287641 [info ]: Cached model count updated: 3 models (estimate)
+00:25:08.287669 [info ]: Cached model count updated: 3 models (accurate)
+00:25:08.287730 [info ]: Started scheduling
+00:25:08.287854 [info ]: Finished scheduling [  0.00s]
+00:25:09.981806 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."CUSTOMERS"
+00:25:11.680298 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."ORDERS"
+00:25:11.712681 [info ]: Started loading project
+00:25:11.713648 [info ]: Loading ~/.dbt/profiles.yml
+00:25:12.275407 [info ]: Started parsing
+00:25:17.409967 [info ]: Finished loading project [  5.70s]
+00:25:17.775987 [info ]: Finished parsing [  5.50s]
+00:25:17.776672 [info ]: Cached model count updated: 3 models (estimate)
+00:25:17.776684 [info ]: Cached model count updated: 3 models (accurate)
+00:25:17.776715 [info ]: Started scheduling
+00:25:17.776788 [info ]: Finished scheduling [  0.00s]
+00:25:20.375998 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."CUSTOMERS"
+00:25:20.637215 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."ORDERS"
+00:25:20.941487 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."PAYMENTS"
+00:25:23.071239 [info ]: Started building task graph
+00:25:23.071384 [info ]: Finished building task graph [  0.00s]
+00:25:23.071715 [info ]: Started rendering (6 nodes)
+00:25:23.071743 [info ]: Started seed FORUMS_ANALYSES_BRONZE.payments
+00:25:23.071757 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.payments
+00:25:23.071786 [info ]: Started seed FORUMS_ANALYSES_BRONZE.orders
+00:25:23.071794 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.orders
+00:25:23.071807 [info ]: Started seed FORUMS_ANALYSES_BRONZE.customers
+00:25:23.071814 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.customers
+00:25:23.071826 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+00:25:23.071836 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+00:25:23.071848 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+00:25:23.071855 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+00:25:23.071867 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+00:25:23.071874 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+00:25:23.112525 [info ]: Started analyzing (6 nodes)
+00:25:23.112554 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+00:25:23.116351 [debug]: Finished rendering [  0.04s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers [success]
+00:25:23.129753 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+00:25:23.135122 [debug]: Finished rendering [  0.06s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders [success]
+00:25:23.152068 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+00:25:23.155706 [debug]: Finished rendering [  0.08s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments [success]
+00:25:23.190643 [debug]: Finished rendering [  0.12s] seed FORUMS_ANALYSES_BRONZE.payments [success]
+00:25:23.190695 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.payments
+00:25:23.190744 [info ]:  Succeeded [  0.12s] seed  FORUMS_ANALYSES_BRONZE.payments (table)
+00:25:23.190763 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.payments [success]
+00:25:23.196884 [info ]:  Succeeded [  0.12s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers (view)
+00:25:23.196918 [debug]: Finished analyzing [  0.08s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers [success]
+00:25:23.204166 [info ]:  Succeeded [  0.13s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders (view)
+00:25:23.204200 [debug]: Finished analyzing [  0.07s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders [success]
+00:25:23.209094 [info ]:  Succeeded [  0.14s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments (view)
+00:25:23.209136 [debug]: Finished analyzing [  0.06s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments [success]
+00:25:23.211313 [debug]: Finished rendering [  0.14s] seed FORUMS_ANALYSES_BRONZE.customers [success]
+00:25:23.211349 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.customers
+00:25:23.211376 [info ]:  Succeeded [  0.14s] seed  FORUMS_ANALYSES_BRONZE.customers (table)
+00:25:23.211387 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.customers [success]
+00:25:23.215750 [debug]: Finished rendering [  0.14s] seed FORUMS_ANALYSES_BRONZE.orders [success]
+00:25:23.215774 [info ]: Finished rendering [  0.14s] (6 nodes, 0 skipped, 0 errors)
+00:25:23.215800 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.orders
+00:25:23.215849 [info ]:  Succeeded [  0.14s] seed  FORUMS_ANALYSES_BRONZE.orders (table)
+00:25:23.215868 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.orders [success]
+00:25:23.215874 [info ]: Finished analyzing [  0.10s] (6 nodes, 0 skipped, 0 errors)
+00:25:23.223806 [info ]: Cached model count updated: 3 models (accurate)
+00:25:48.710552 [info ]: Started loading project
+00:25:48.712503 [info ]: Loading ~/.dbt/profiles.yml
+00:25:48.728803 [info ]: Started loading project
+00:25:48.730617 [info ]: Loading ~/.dbt/profiles.yml
+00:25:48.730656 [info ]: Finished loading project [  0.02s]
+00:25:49.193000 [info ]: Started parsing
+00:25:52.230680 [info ]: Finished loading project [  3.50s]
+00:25:52.380042 [info ]: Finished parsing [  3.19s]
+00:25:52.381169 [info ]: Cached model count updated: 3 models (estimate)
+00:25:52.381191 [info ]: Cached model count updated: 3 models (accurate)
+00:25:52.381231 [info ]: Started scheduling
+00:25:52.381356 [info ]: Finished scheduling [  0.00s]
+00:25:54.368167 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."CUSTOMERS"
+00:25:54.735559 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."ORDERS"
+00:25:55.010627 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."PAYMENTS"
+00:25:56.501481 [info ]: Started building task graph
+00:25:56.501588 [info ]: Finished building task graph [  0.00s]
+00:25:56.501714 [info ]: Started rendering (6 nodes)
+00:25:56.501728 [info ]: Started seed FORUMS_ANALYSES_BRONZE.payments
+00:25:56.501741 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.payments
+00:25:56.501763 [info ]: Started seed FORUMS_ANALYSES_BRONZE.orders
+00:25:56.501787 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.orders
+00:25:56.501807 [info ]: Started seed FORUMS_ANALYSES_BRONZE.customers
+00:25:56.501816 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.customers
+00:25:56.501828 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+00:25:56.501837 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+00:25:56.501845 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+00:25:56.501849 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+00:25:56.501855 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+00:25:56.501873 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+00:25:56.554799 [debug]: Finished rendering [  0.05s] seed FORUMS_ANALYSES_BRONZE.orders [success]
+00:25:56.554986 [info ]: Started analyzing (6 nodes)
+00:25:56.555005 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.orders
+00:25:56.555054 [info ]:  Succeeded [  0.05s] seed  FORUMS_ANALYSES_BRONZE.orders (table)
+00:25:56.555070 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.orders [success]
+00:25:56.565021 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+00:25:56.565164 [debug]: Finished rendering [  0.06s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders [success]
+00:25:56.568893 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+00:25:56.570772 [debug]: Finished rendering [  0.07s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers [success]
+00:25:56.571844 [debug]: Finished rendering [  0.07s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments [success]
+00:25:56.571884 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+00:25:56.599966 [info ]:  Succeeded [  0.10s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers (view)
+00:25:56.600017 [debug]: Finished analyzing [  0.03s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers [success]
+00:25:56.600699 [debug]: Finished rendering [  0.10s] seed FORUMS_ANALYSES_BRONZE.payments [success]
+00:25:56.600751 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.payments
+00:25:56.600810 [info ]:  Succeeded [  0.10s] seed  FORUMS_ANALYSES_BRONZE.payments (table)
+00:25:56.600850 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.payments [success]
+00:25:56.601143 [info ]:  Succeeded [  0.10s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments (view)
+00:25:56.601157 [debug]: Finished analyzing [  0.03s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments [success]
+00:25:56.603612 [info ]:  Succeeded [  0.10s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders (view)
+00:25:56.603639 [debug]: Finished analyzing [  0.04s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders [success]
+00:25:56.607421 [debug]: Finished rendering [  0.11s] seed FORUMS_ANALYSES_BRONZE.customers [success]
+00:25:56.607459 [info ]: Finished rendering [  0.11s] (6 nodes, 0 skipped, 0 errors)
+00:25:56.607490 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.customers
+00:25:56.607592 [info ]:  Succeeded [  0.10s] seed  FORUMS_ANALYSES_BRONZE.customers (table)
+00:25:56.607618 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.customers [success]
+00:25:56.607624 [info ]: Finished analyzing [  0.05s] (6 nodes, 0 skipped, 0 errors)
+00:25:56.613231 [info ]: Cached model count updated: 3 models (accurate)
+00:26:31.702585 [info ]: Started loading project
+00:26:31.703391 [info ]: Loading ~/.dbt/profiles.yml
+00:26:31.710818 [info ]: Started loading project
+00:26:31.711726 [info ]: Finished loading project [  0.01s]
+00:26:31.711696 [info ]: Loading ~/.dbt/profiles.yml
+00:26:32.026051 [info ]: Finished loading project [  0.32s]
+00:26:32.050612 [info ]: Started loading project
+00:26:32.051725 [info ]: Loading ~/.dbt/profiles.yml
+00:26:32.351741 [info ]: Started parsing
+00:26:34.304509 [info ]: Finished parsing [  1.95s]
+00:26:34.304674 [info ]: Finished loading project [  2.25s]
+00:26:34.323830 [info ]: Started loading project
+00:26:34.324942 [info ]: Loading ~/.dbt/profiles.yml
+00:26:34.650096 [info ]: Started parsing
+00:26:37.246845 [info ]: Finished loading project [  2.92s]
+00:26:37.400469 [info ]: Finished parsing [  2.75s]
+00:26:37.401337 [info ]: Cached model count updated: 3 models (estimate)
+00:26:37.401362 [info ]: Cached model count updated: 3 models (accurate)
+00:26:37.401393 [info ]: Started scheduling
+00:26:37.401531 [info ]: Finished scheduling [  0.00s]
+00:26:39.829342 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."CUSTOMERS"
+00:26:40.136627 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."ORDERS"
+00:26:40.429628 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."PAYMENTS"
+00:26:41.982469 [info ]: Started building task graph
+00:26:41.982625 [info ]: Finished building task graph [  0.00s]
+00:26:41.982855 [info ]: Started rendering (6 nodes)
+00:26:41.982884 [info ]: Started seed FORUMS_ANALYSES_BRONZE.payments
+00:26:41.982904 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.payments
+00:26:41.982940 [info ]: Started seed FORUMS_ANALYSES_BRONZE.orders
+00:26:41.982951 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.orders
+00:26:41.982966 [info ]: Started seed FORUMS_ANALYSES_BRONZE.customers
+00:26:41.982974 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.customers
+00:26:41.982988 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+00:26:41.982998 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+00:26:41.983014 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+00:26:41.983022 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+00:26:41.983034 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+00:26:41.983043 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+00:26:42.010199 [info ]: Started analyzing (6 nodes)
+00:26:42.010227 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+00:26:42.010991 [debug]: Finished rendering [  0.03s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments [success]
+00:26:42.018896 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+00:26:42.018957 [debug]: Finished rendering [  0.04s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders [success]
+00:26:42.020186 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+00:26:42.021069 [debug]: Finished rendering [  0.04s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers [success]
+00:26:42.031386 [debug]: Finished rendering [  0.05s] seed FORUMS_ANALYSES_BRONZE.orders [success]
+00:26:42.031437 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.orders
+00:26:42.031483 [info ]:  Succeeded [  0.05s] seed  FORUMS_ANALYSES_BRONZE.orders (table)
+00:26:42.031498 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.orders [success]
+00:26:42.032721 [info ]:  Succeeded [  0.05s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments (view)
+00:26:42.032775 [debug]: Finished analyzing [  0.02s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments [success]
+00:26:42.032906 [debug]: Finished rendering [  0.05s] seed FORUMS_ANALYSES_BRONZE.customers [success]
+00:26:42.032944 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.customers
+00:26:42.032988 [info ]:  Succeeded [  0.05s] seed  FORUMS_ANALYSES_BRONZE.customers (table)
+00:26:42.032999 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.customers [success]
+00:26:42.038571 [info ]:  Succeeded [  0.06s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers (view)
+00:26:42.038622 [debug]: Finished analyzing [  0.02s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers [success]
+00:26:42.040024 [info ]:  Succeeded [  0.06s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders (view)
+00:26:42.040071 [debug]: Finished analyzing [  0.02s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders [success]
+00:26:42.040224 [debug]: Finished rendering [  0.06s] seed FORUMS_ANALYSES_BRONZE.payments [success]
+00:26:42.040251 [info ]: Finished rendering [  0.06s] (6 nodes, 0 skipped, 0 errors)
+00:26:42.040277 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.payments
+00:26:42.040317 [info ]:  Succeeded [  0.06s] seed  FORUMS_ANALYSES_BRONZE.payments (table)
+00:26:42.040340 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.payments [success]
+00:26:42.040346 [info ]: Finished analyzing [  0.03s] (6 nodes, 0 skipped, 0 errors)
+00:26:42.046792 [info ]: Cached model count updated: 3 models (accurate)
+01:51:50.963776 [info ]: Started loading project
+01:51:50.968487 [info ]: Loading ~/.dbt/profiles.yml
+01:51:50.998446 [info ]: Started parsing
+01:51:51.064976 [info ]: Finished loading project [  0.10s]
+01:51:51.210689 [info ]: Finished parsing [  0.21s]
+01:51:51.214630 [info ]: Cached model count updated: 3 models (estimate)
+01:51:51.214831 [info ]: Cached model count updated: 3 models (accurate)
+01:51:51.215021 [info ]: Started scheduling
+01:51:51.215299 [info ]: Finished scheduling [  0.00s]
+01:51:51.232793 [warn ]: dbt1000: The selection criterion '' does not match any enabled nodes
+01:51:51.232851 [warn ]: dbt1000: Nothing to do. Try checking your model configs and model specification args
+01:51:51.711516 [info ]: Started building task graph
+01:51:51.711708 [info ]: Finished building task graph [  0.00s]
+01:51:51.712163 [debug]: Incremental compilation - 0 nodes selected: {}
+01:51:51.724326 [info ]: Cached model count updated: 3 models (accurate)
+01:51:51.847110 [info ]: Started loading project
+01:51:51.849222 [info ]: Loading ~/.dbt/profiles.yml
+01:51:51.862484 [info ]: Finished loading project [  0.02s]
+01:51:51.862554 [info ]: Cached model count updated: 3 models (accurate)
+01:53:10.916869 [info ]: Started loading project
+01:53:10.920287 [info ]: Loading ~/.dbt/profiles.yml
+01:53:10.942192 [info ]: Started parsing
+01:53:10.986375 [info ]: Finished loading project [  0.07s]
+01:53:11.134220 [info ]: Finished parsing [  0.19s]
+01:53:11.138125 [info ]: Cached model count updated: 3 models (estimate)
+01:53:11.138175 [info ]: Cached model count updated: 3 models (accurate)
+01:53:11.138272 [info ]: Started scheduling
+01:53:11.138385 [info ]: Finished scheduling [  0.00s]
+01:53:11.138421 [warn ]: dbt1000: The selection criterion '' does not match any enabled nodes
+01:53:11.138435 [warn ]: dbt1000: Nothing to do. Try checking your model configs and model specification args
+01:53:11.535540 [info ]: Started building task graph
+01:53:11.535678 [info ]: Finished building task graph [  0.00s]
+01:53:11.536005 [debug]: Incremental compilation - 0 nodes selected: {}
+01:53:11.542487 [info ]: Cached model count updated: 3 models (accurate)
+01:53:11.608542 [info ]: Started loading project
+01:53:11.611113 [info ]: Loading ~/.dbt/profiles.yml
+01:53:11.629035 [info ]: Finished loading project [  0.02s]
+01:53:11.629225 [info ]: Cached model count updated: 3 models (accurate)
+01:53:30.758940 [info ]: Started loading project
+01:53:30.760711 [info ]: Loading ~/.dbt/profiles.yml
+01:53:30.790940 [info ]: Started parsing
+01:53:30.845584 [info ]: Finished loading project [  0.09s]
+01:53:30.989351 [info ]: Finished parsing [  0.20s]
+01:53:30.992571 [info ]: Cached model count updated: 3 models (estimate)
+01:53:30.992608 [info ]: Cached model count updated: 3 models (accurate)
+01:53:30.992681 [info ]: Started scheduling
+01:53:30.992813 [info ]: Finished scheduling [  0.00s]
+01:53:30.992851 [warn ]: dbt1000: The selection criterion '' does not match any enabled nodes
+01:53:30.992865 [warn ]: dbt1000: Nothing to do. Try checking your model configs and model specification args
+01:53:31.402466 [info ]: Started building task graph
+01:53:31.402590 [info ]: Finished building task graph [  0.00s]
+01:53:31.411780 [info ]: Cached model count updated: 3 models (accurate)
+01:53:31.496136 [info ]: Started loading project
+01:53:31.498418 [info ]: Loading ~/.dbt/profiles.yml
+01:53:31.527713 [info ]: Started parsing
+01:53:31.575950 [info ]: Finished loading project [  0.08s]
+01:53:31.807272 [info ]: Finished parsing [  0.28s]
+01:53:31.813272 [info ]: Cached model count updated: 3 models (estimate)
+01:53:31.813792 [info ]: Cached model count updated: 3 models (accurate)
+01:53:31.813914 [info ]: Started scheduling
+01:53:31.814053 [info ]: Finished scheduling [  0.00s]
+01:53:31.814107 [warn ]: dbt1000: The selection criterion '' does not match any enabled nodes
+01:53:31.814125 [warn ]: dbt1000: Nothing to do. Try checking your model configs and model specification args
+01:53:32.368840 [info ]: Started building task graph
+01:53:32.369093 [info ]: Finished building task graph [  0.00s]
+01:53:32.369662 [debug]: Incremental compilation - 0 nodes selected: {}
+01:53:32.380644 [info ]: Cached model count updated: 3 models (accurate)
+03:39:44.673780 [info ]: Started loading project
+03:39:44.681533 [info ]: Loading ~/.dbt/profiles.yml
+03:39:44.731399 [info ]: Started loading project
+03:39:44.734198 [info ]: Loading ~/.dbt/profiles.yml
+03:39:44.737903 [info ]: Finished loading project [  0.06s]
+03:39:45.740738 [info ]: Started parsing
+03:39:47.853931 [info ]: Finished parsing [  2.11s]
+03:39:47.854698 [info ]: Finished loading project [  3.12s]
+03:39:48.097356 [info ]: Started loading project
+03:39:48.098524 [info ]: Loading ~/.dbt/profiles.yml
+03:39:48.946399 [info ]: Finished loading project [  0.85s]
+03:39:49.006973 [info ]: Started loading project
+03:39:49.010251 [info ]: Loading ~/.dbt/profiles.yml
+03:39:50.003483 [info ]: Started parsing
+03:39:52.587920 [info ]: Finished parsing [  2.58s]
+03:39:52.589234 [info ]: Finished loading project [  3.58s]
+03:39:52.652188 [info ]: Started loading project
+03:39:52.654585 [info ]: Loading ~/.dbt/profiles.yml
+03:39:53.652674 [info ]: Started parsing
+03:39:56.976199 [info ]: Finished loading project [  4.32s]
+03:39:57.261381 [info ]: Finished parsing [  3.61s]
+03:39:57.264468 [info ]: Cached model count updated: 3 models (estimate)
+03:39:57.264535 [info ]: Cached model count updated: 3 models (accurate)
+03:39:57.264802 [info ]: Started scheduling
+03:39:57.265289 [info ]: Finished scheduling [  0.00s]
+03:39:59.977157 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."CUSTOMERS"
+03:40:00.328021 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."ORDERS"
+03:40:00.670943 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."PAYMENTS"
+03:40:02.218064 [info ]: Started building task graph
+03:40:02.218480 [info ]: Finished building task graph [  0.00s]
+03:40:02.226312 [info ]: Started rendering (6 nodes)
+03:40:02.226950 [info ]: Started seed FORUMS_ANALYSES_BRONZE.payments
+03:40:02.227047 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.payments
+03:40:02.227148 [info ]: Started seed FORUMS_ANALYSES_BRONZE.orders
+03:40:02.227171 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.orders
+03:40:02.227203 [info ]: Started seed FORUMS_ANALYSES_BRONZE.customers
+03:40:02.227218 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.customers
+03:40:02.227253 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+03:40:02.227269 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+03:40:02.227299 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+03:40:02.227315 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+03:40:02.227347 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+03:40:02.227362 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+03:40:02.259149 [debug]: Finished rendering [  0.03s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments [success]
+03:40:02.260196 [info ]: Started analyzing (6 nodes)
+03:40:02.260592 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+03:40:02.260701 [debug]: Finished rendering [  0.03s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers [success]
+03:40:02.260755 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+03:40:02.262012 [debug]: Finished rendering [  0.03s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders [success]
+03:40:02.262095 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+03:40:02.306463 [info ]:  Succeeded [  0.08s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders (view)
+03:40:02.306692 [debug]: Finished analyzing [  0.04s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders [success]
+03:40:02.309003 [info ]:  Succeeded [  0.08s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers (view)
+03:40:02.309085 [debug]: Finished analyzing [  0.05s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers [success]
+03:40:02.316480 [info ]:  Succeeded [  0.09s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments (view)
+03:40:02.316571 [debug]: Finished analyzing [  0.06s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments [success]
+03:40:02.381039 [debug]: Finished rendering [  0.15s] seed FORUMS_ANALYSES_BRONZE.payments [success]
+03:40:02.381537 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.payments
+03:40:02.381697 [debug]: Finished rendering [  0.15s] seed FORUMS_ANALYSES_BRONZE.orders [success]
+03:40:02.381758 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.orders
+03:40:02.381821 [debug]: Finished rendering [  0.15s] seed FORUMS_ANALYSES_BRONZE.customers [success]
+03:40:02.381843 [info ]: Finished rendering [  0.16s] (6 nodes, 0 skipped, 0 errors)
+03:40:02.381868 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.customers
+03:40:02.382633 [info ]:  Succeeded [  0.15s] seed  FORUMS_ANALYSES_BRONZE.payments (table)
+03:40:02.382698 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.payments [success]
+03:40:02.382786 [info ]:  Succeeded [  0.15s] seed  FORUMS_ANALYSES_BRONZE.customers (table)
+03:40:02.382815 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.customers [success]
+03:40:02.382884 [info ]:  Succeeded [  0.15s] seed  FORUMS_ANALYSES_BRONZE.orders (table)
+03:40:02.383701 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.orders [success]
+03:40:02.383723 [info ]: Finished analyzing [  0.12s] (6 nodes, 0 skipped, 0 errors)
+03:40:02.397972 [info ]: Cached model count updated: 3 models (accurate)
+03:47:47.473900 [info ]: Started loading project
+03:47:47.475539 [info ]: Finished loading project [  0.00s]
+03:49:36.289868 [info ]: Loading ~/.dbt/profiles.yml
+03:49:36.800249 [info ]: Started loading project
+03:49:36.802330 [info ]: Loading ~/.dbt/profiles.yml
+03:49:38.111756 [info ]: Loading ~/.dbt/profiles.yml
+03:49:38.250961 [info ]: Started parsing
+03:49:41.697641 [info ]: Finished loading project [  4.90s]
+03:49:42.045909 [info ]: Finished parsing [  3.79s]
+03:49:42.047586 [info ]: Cached model count updated: 3 models (estimate)
+03:49:42.047616 [info ]: Cached model count updated: 3 models (accurate)
+03:49:42.047697 [info ]: Started scheduling
+03:49:42.047926 [info ]: Finished scheduling [  0.00s]
+03:49:43.934526 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."CUSTOMERS"
+03:49:45.666347 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."ORDERS"
+03:49:45.753172 [info ]: Started loading project
+03:49:45.755325 [info ]: Loading ~/.dbt/profiles.yml
+03:49:46.422055 [info ]: Started parsing
+03:49:49.004538 [info ]: Finished loading project [  3.25s]
+03:49:49.185721 [info ]: Finished parsing [  2.76s]
+03:49:49.187884 [info ]: Cached model count updated: 3 models (estimate)
+03:49:49.187910 [info ]: Cached model count updated: 3 models (accurate)
+03:49:49.187965 [info ]: Started scheduling
+03:49:49.188084 [info ]: Finished scheduling [  0.00s]
+03:49:51.557776 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."CUSTOMERS"
+03:49:51.839661 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."ORDERS"
+03:49:52.116500 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."PAYMENTS"
+03:49:53.980645 [info ]: Started building task graph
+03:49:53.981181 [info ]: Finished building task graph [  0.00s]
+03:49:53.981863 [info ]: Started rendering (6 nodes)
+03:49:53.982018 [info ]: Started seed FORUMS_ANALYSES_BRONZE.payments
+03:49:53.982071 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.payments
+03:49:53.982145 [info ]: Started seed FORUMS_ANALYSES_BRONZE.orders
+03:49:53.982165 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.orders
+03:49:53.982199 [info ]: Started seed FORUMS_ANALYSES_BRONZE.customers
+03:49:53.982214 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.customers
+03:49:53.982240 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+03:49:53.982255 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+03:49:53.982278 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+03:49:53.982293 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+03:49:53.982316 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+03:49:53.982330 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+03:49:54.036218 [info ]: Started analyzing (6 nodes)
+03:49:54.036258 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+03:49:54.036945 [debug]: Finished rendering [  0.05s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders [success]
+03:49:54.043762 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+03:49:54.043767 [debug]: Finished rendering [  0.06s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers [success]
+03:49:54.051371 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+03:49:54.051489 [debug]: Finished rendering [  0.07s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments [success]
+03:49:54.070897 [debug]: Finished rendering [  0.09s] seed FORUMS_ANALYSES_BRONZE.payments [success]
+03:49:54.071163 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.payments
+03:49:54.071239 [info ]:  Succeeded [  0.09s] seed  FORUMS_ANALYSES_BRONZE.payments (table)
+03:49:54.071267 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.payments [success]
+03:49:54.072531 [info ]:  Succeeded [  0.09s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders (view)
+03:49:54.072589 [debug]: Finished analyzing [  0.04s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders [success]
+03:49:54.074541 [info ]:  Succeeded [  0.09s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers (view)
+03:49:54.074599 [debug]: Finished analyzing [  0.03s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers [success]
+03:49:54.080396 [info ]:  Succeeded [  0.10s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments (view)
+03:49:54.080464 [debug]: Finished analyzing [  0.03s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments [success]
+03:49:54.081357 [debug]: Finished rendering [  0.10s] seed FORUMS_ANALYSES_BRONZE.orders [success]
+03:49:54.081417 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.orders
+03:49:54.081475 [info ]:  Succeeded [  0.10s] seed  FORUMS_ANALYSES_BRONZE.orders (table)
+03:49:54.081496 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.orders [success]
+03:49:54.086280 [debug]: Finished rendering [  0.10s] seed FORUMS_ANALYSES_BRONZE.customers [success]
+03:49:54.086319 [info ]: Finished rendering [  0.10s] (6 nodes, 0 skipped, 0 errors)
+03:49:54.086354 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.customers
+03:49:54.086410 [info ]:  Succeeded [  0.10s] seed  FORUMS_ANALYSES_BRONZE.customers (table)
+03:49:54.086437 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.customers [success]
+03:49:54.086446 [info ]: Finished analyzing [  0.05s] (6 nodes, 0 skipped, 0 errors)
+03:49:54.095003 [info ]: Cached model count updated: 3 models (accurate)
+03:53:01.678375 [info ]: Started loading project
+03:53:01.678821 [info ]: Finished loading project [  0.00s]
+03:54:57.520888 [info ]: Loading ~/.dbt/profiles.yml
+03:54:58.359725 [info ]: Started loading project
+03:54:58.362405 [info ]: Loading ~/.dbt/profiles.yml
+03:54:59.206460 [info ]: Loading ~/.dbt/profiles.yml
+03:54:59.532187 [info ]: Started parsing
+03:55:02.553694 [info ]: Finished loading project [  4.19s]
+03:55:02.907141 [info ]: Finished parsing [  3.37s]
+03:55:02.909066 [info ]: Cached model count updated: 3 models (estimate)
+03:55:02.909101 [info ]: Cached model count updated: 3 models (accurate)
+03:55:02.909206 [info ]: Started scheduling
+03:55:02.909435 [info ]: Finished scheduling [  0.00s]
+03:55:04.991006 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."CUSTOMERS"
+03:55:06.744466 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."ORDERS"
+03:55:06.804649 [info ]: Started loading project
+03:55:06.806548 [info ]: Loading ~/.dbt/profiles.yml
+03:55:07.551518 [info ]: Started parsing
+03:55:10.432240 [info ]: Finished loading project [  3.63s]
+03:55:10.652776 [info ]: Finished parsing [  3.10s]
+03:55:10.654407 [info ]: Cached model count updated: 3 models (estimate)
+03:55:10.654479 [info ]: Cached model count updated: 3 models (accurate)
+03:55:10.654570 [info ]: Started scheduling
+03:55:10.654724 [info ]: Finished scheduling [  0.00s]
+03:55:12.823487 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."CUSTOMERS"
+03:55:13.103512 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."ORDERS"
+03:55:13.370300 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."PAYMENTS"
+03:55:15.227640 [info ]: Started building task graph
+03:55:15.228286 [info ]: Finished building task graph [  0.00s]
+03:55:15.228808 [info ]: Started rendering (6 nodes)
+03:55:15.228989 [info ]: Started seed FORUMS_ANALYSES_BRONZE.payments
+03:55:15.229024 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.payments
+03:55:15.229096 [info ]: Started seed FORUMS_ANALYSES_BRONZE.orders
+03:55:15.229122 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.orders
+03:55:15.229150 [info ]: Started seed FORUMS_ANALYSES_BRONZE.customers
+03:55:15.229165 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.customers
+03:55:15.229195 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+03:55:15.229219 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+03:55:15.229467 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+03:55:15.229504 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+03:55:15.229549 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+03:55:15.229570 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+03:55:15.260648 [debug]: Finished rendering [  0.03s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders [success]
+03:55:15.260894 [info ]: Started analyzing (6 nodes)
+03:55:15.260955 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+03:55:15.261025 [debug]: Finished rendering [  0.03s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments [success]
+03:55:15.261078 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+03:55:15.264382 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+03:55:15.265125 [debug]: Finished rendering [  0.04s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers [success]
+03:55:15.291670 [debug]: Finished rendering [  0.06s] seed FORUMS_ANALYSES_BRONZE.customers [success]
+03:55:15.291782 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.customers
+03:55:15.291844 [info ]:  Succeeded [  0.06s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers (view)
+03:55:15.291895 [debug]: Finished analyzing [  0.03s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers [success]
+03:55:15.291928 [debug]: Finished rendering [  0.06s] seed FORUMS_ANALYSES_BRONZE.orders [success]
+03:55:15.291949 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.orders
+03:55:15.292020 [info ]:  Succeeded [  0.06s] seed  FORUMS_ANALYSES_BRONZE.orders (table)
+03:55:15.292051 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.orders [success]
+03:55:15.292087 [info ]:  Succeeded [  0.06s] seed  FORUMS_ANALYSES_BRONZE.customers (table)
+03:55:15.292105 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.customers [success]
+03:55:15.292374 [info ]:  Succeeded [  0.06s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders (view)
+03:55:15.292435 [debug]: Finished analyzing [  0.03s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders [success]
+03:55:15.299085 [debug]: Finished rendering [  0.07s] seed FORUMS_ANALYSES_BRONZE.payments [success]
+03:55:15.299136 [info ]: Finished rendering [  0.07s] (6 nodes, 0 skipped, 0 errors)
+03:55:15.299177 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.payments
+03:55:15.299222 [info ]:  Succeeded [  0.07s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments (view)
+03:55:15.299250 [debug]: Finished analyzing [  0.04s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments [success]
+03:55:15.299302 [info ]:  Succeeded [  0.07s] seed  FORUMS_ANALYSES_BRONZE.payments (table)
+03:55:15.299325 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.payments [success]
+03:55:15.299335 [info ]: Finished analyzing [  0.04s] (6 nodes, 0 skipped, 0 errors)
+03:55:15.308764 [info ]: Cached model count updated: 3 models (accurate)
+03:57:40.988729 [info ]: Started loading project
+03:57:40.989026 [info ]: Finished loading project [  0.00s]

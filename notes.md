@@ -4345,13 +4345,15 @@ final command would be `git add -f <path to file can be absolute or relative>`
 
 * to remove an already tracked git file in order to ignore ultimately, we will run `git rm --cached <path to file>` so that any changes that we make to this removed file will now be ignored during every git commit
 
-* The best practice for consistently preventing merge conflicts in the future centers on small, isolated changes and frequent synchronization with the main branch.
+* when we have credentials to pass in our terraform files we always have to run `terraform apply --var-file=<name of file containing our credentials/secrets e.g. credentials.tfvars>` or `terraform apply --var-file=<name of file containing our credentials/secrets e.g. credentials.tfvars>`
 
-Here are the key practices to adopt:
+* now we may face `Error: creating IAM Policy (forum_analyses_ext_int_policy): operation error IAM: CreatePolicy, https response error StatusCode: 403, RequestID: b22be88c-ee2d-4763-86e5-fc686ec3d07b, api error AccessDenied: User: arn:aws:iam::xxxx:user/projects-terraform-infra-admin is not authorized to perform: iam:CreatePolicy on resource: policy forum_analyses_ext_int_policy because no identity-based policy allows the iam:CreatePolicy action` error this is because 
 
-1. Adopt a Structured Branching Strategy 🌿
-Using a predictable branching model ensures everyone knows the source of truth and where to merge their work.
+* ERRORs using terraform to manage snowflaek and aws infra:
+`SELECT SYSTEM$VERIFY_EXTERNAL_VOLUME('forums_analyses_ext_vol');` will not run successfully
+`SELECT SYSTEM$VERIFY_EXTERNAL_VOLUME('"forums_analyses_ext_vol"');` will run successfully
 
+<<<<<<< HEAD
 Feature Branching: Every new feature, fix, or task must be developed in its own dedicated branch (like your fa-dev branch). This isolates changes and prevents developers from interfering with each other's work on the main branch.
 
 Keep master/main Clean: The main branch should always be stable and ready for deployment. All merges into it should be done via Pull Requests (PRs) after passing automated tests.
@@ -4384,15 +4386,151 @@ Locking (Avoid Where Possible): In extremely complex projects where two people m
 * to remove file/s in a commit history in remote repo we can use the git-repo-filter library. Assuming this is installed via git clone https://github.com/newren/git-filter-repo and adding the repository in our PATH environment variable either in our system or user:
 1. we can run `git filter-repo --sensitive-data-removal --invert-paths --path "<path/to/repo e.g. figures & images/dbt cloud>"`
 2. after a specific directory or file/s has been removed we can run git push --force --mirror origin to make those changes
+=======
+```
+CREATE OR REPLACE ICEBERG TABLE raw_reddit_posts_comments
+    CATALOG = delta_catalog_integration
+    EXTERNAL_VOLUME = "forums_analyses_ext_vol"
+    BASE_LOCATION = 'raw_reddit_posts_comments'
+    AUTO_REFRESH = TRUE
+WARNING: `002003 (02000): SQL compilation error:
+External volume 'FORUMS_ANALYSES_EXT_VOL' does not exist or not authorized.` has occured.
+```
+>>>>>>> fa-dev
 
-## Data Warehousing
-* Types of Grains/Granularity Levels
-- Atomic/Transaction Level: The most detailed, representing individual events (e.g., one line item on a sales order).
-- Daily/Snapshot Granularity: Data aggregated to a single day (e.g., daily sales totals).
-- Monthly/Periodic Snapshots: Aggregations for a month (e.g., monthly balances).
-- High-Level/Summary: Coarse grains for broad trends (e.g., quarterly or yearly totals).
+even if `forums_analyses_ext_vol` already exists
 
+<<<<<<< HEAD
 * Observability involves using telemetry, alerts, and notifications to monitor pipeline health so data engineers can respond quickly when problems occur.
+=======
+```
+LIST @sa_ext_stage_integration
+WARNING: `003167 (42601): Error assuming AWS_ROLE:
+User: arn:aws:iam::xxxx:user/xxxx-s is not authorized to perform: sts:AssumeRole on resource: arn:aws:iam::xxxx:role/forums-analyses-ext-int-role` has occured.
+```
+
+when I set write to true the allow_writes argument of external volume resource I was suddenly able to `LIST @sa_ext_stage_integration;` in snowflake and even in python using script 
+
+however the result of `SELECT SYSTEM$VERIFY_EXTERNAL_VOLUME('"forums_analyses_ext_vol"')` returned now:
+`"{""success"":false,""storageLocationSelectionResult"":""PASSED"",""storageLocationName"":""delta-ap-southeast-2"",""servicePrincipalProperties"":""STORAGE_AWS_IAM_USER_ARN: arn:aws:iam::xxxx:user/xxx-s; STORAGE_AWS_EXTERNAL_ID: YG61679_SFCRole=xxxx="",""location"":""s3://forums-analyses-bucket/"",""storageAccount"":null,""region"":""ap-southeast-2"",""writeResult"":""FAILED with exception message User: arn:aws:sts::<aws IAM role arn>:assumed-role/forums-analyses-ext-int-role/snowflake is not authorized to perform: s3:PutObject on resource: \""arn:aws:s3:::forums-analyses-bucket/verify_1762953386579_23029527\"" because no identity-based policy allows the s3:PutObject action (Status Code: 403; Error Code: AccessDenied)"",""readResult"":""SKIPPED"",""listResult"":""SKIPPED"",""deleteResult"":""SKIPPED"",""awsRoleArnValidationResult"":""PASSED"",""azureGetUserDelegationKeyResult"":""SKIPPED""}"`
+
+```
+USE forums_analyses_db;
+
+USE forums_analyses_db.forums_analyses_bronze;
+
+SELECT SYSTEM$VERIFY_EXTERNAL_VOLUME('"forums_analyses_ext_vol"');
+
+CREATE FILE FORMAT IF NOT EXISTS pff
+    TYPE = PARQUET;
+
+CREATE OR REPLACE STAGE sa_ext_stage_integration
+    STORAGE_INTEGRATION = "forums_analyses_si"
+    URL = 's3://forums-analyses-bucket' -- Replace with your S3 bucket and folder path
+    FILE_FORMAT = pff;
+
+LIST @sa_ext_stage_integration;
+
+--create the catalog integration for Delta tables 
+CREATE CATALOG INTEGRATION IF NOT EXISTS delta_catalog_integration
+    CATALOG_SOURCE = OBJECT_STORE
+    TABLE_FORMAT = DELTA
+    ENABLED = TRUE;
+
+CREATE OR REPLACE ICEBERG TABLE raw_reddit_posts_comments
+    CATALOG = delta_catalog_integration
+    EXTERNAL_VOLUME = '"forums_analyses_ext_vol"'
+    BASE_LOCATION = 'raw_reddit_posts_comments'
+    AUTO_REFRESH = TRUE;
+
+CREATE OR REPLACE ICEBERG TABLE raw_reddit_posts
+    CATALOG = delta_catalog_integration
+    EXTERNAL_VOLUME = '"forums_analyses_ext_vol"'
+    BASE_LOCATION = 'raw_reddit_posts'
+    AUTO_REFRESH = TRUE;
+
+SELECT * FROM RAW_REDDIT_POSTS;
+-- -- we can now just select from this table as 
+-- -- if it were an existing table in snowflake because
+-- -- mind you this table has not yet been created in our 
+-- -- database schema
+-- CREATE TABLE IF NOT EXISTS RawRedditData AS (
+--     SELECT
+--         $1:title::VARCHAR AS title,
+--         $1:score::INTEGER AS score,
+--         $1:id::VARCHAR AS id,
+--         $1:url::VARCHAR AS url,
+--         $1:comment::VARCHAR AS comment,
+--         -- Add more columns as needed
+--     FROM @sa_ext_stage_integration/raw_reddit_data.parquet
+-- );
+```
+
+when I added PutObject and DeleteObject permissions to the policy `SELECT SYSTEM$VERIFY_EXTERNAL_VOLUME('"forums_analyses_ext_vol"')` returned `{"success":true,"storageLocationSelectionResult":"PASSED","storageLocationName":"delta-ap-southeast-2","servicePrincipalProperties":"STORAGE_AWS_IAM_USER_ARN: arn:aws:iam::058070818872:user/q8c91000-s; STORAGE_AWS_EXTERNAL_ID: YG61679_SFCRole=6_Jc+nu+t4KILVxharNSl8HMqrmMM=","location":"s3://forums-analyses-bucket/","storageAccount":null,"region":"ap-southeast-2","writeResult":"PASSED","readResult":"PASSED","listResult":"PASSED","deleteResult":"PASSED","awsRoleArnValidationResult":"PASSED","azureGetUserDelegationKeyResult":"SKIPPED"}` and when I replaced the name of the external volume from 'forums_analyses_ext_vol' to "forums_analyses_ext_vol" (which still didn't work) then finally to '"forums_analyses_ext_vol"' it finally worked but it throwed a new error which was more useful: `A test file creation on the external volume forums_analyses_ext_vol active storage location delta-ap-southeast-2 failed with the message 'Error assuming AWS_ROLE: User: arn:aws:iam::058070818872:user/q8c91000-s is not authorized to perform: sts:AssumeRole on resource: arn:aws:iam::612565766933:role/forums-analyses-ext-int-role'. Please ensure the external volume has privileges to write files to the active storage location. If read-only access is intended, set ALLOW_WRITES=false on the external volume. `
+
+update: finally it worked when I used this:
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+              "s3:PutObject",
+              "s3:GetObject",
+              "s3:GetObjectVersion",
+              "s3:DeleteObject",
+              "s3:DeleteObjectVersion"
+            ],
+            "Resource": "arn:aws:s3:::<bucket>/*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:ListBucket",
+                "s3:GetBucketLocation"
+            ],
+            "Resource": "arn:aws:s3:::<bucket>",
+            "Condition": {
+                "StringLike": {
+                    "s3:prefix": [
+                        *"
+                    ]
+                }
+            }
+        }
+    ]
+}
+```
+
+as the policy document instead of just
+
+```
+{
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid    = "Statement1",
+        Effect = "Allow",
+        Action = [
+          "s3:GetObject",
+          "s3:ListBucket"
+        ],
+        "Resource" : [
+          "arn:aws:s3:::forums-analyses-bucket",
+          "arn:aws:s3:::forums-analyses-bucket/*"
+        ]
+      }
+    ]
+  }
+```
+
+* run `terraform state rm <resource>.<name of resource>` to remove any potential resource that caused an error during terraform apply that may have been committed to the `terraform.tfstate` and `terraform.tfstate.backup`
+
+sometimes `snowflake_grant_privileges_to_account_role.fa_database_allowed_roles` may raise a object does not exist or not authorized. Just make sure to create the snowflake resources and objects first before adding the line in your terraform file that grants privileges to your user to these objects
+
+then just run `terraform apply --var-file=credentials.tfvars -auto-approve`
+>>>>>>> fa-dev
 
 # Articles, Videos, Papers:
 * loading external stage as source in dbt: https://discourse.getdbt.com/t/dbt-external-tables-with-snowflake-s3-stage-what-will-it-do/19871/6
@@ -4402,8 +4540,3 @@ Locking (Avoid Where Possible): In extremely complex projects where two people m
 - https://docs.snowflake.com/en/user-guide/tables-iceberg-configure-external-volume-s3 
 - 
 - https://docs.snowflake.com/en/sql-reference/sql/create-iceberg-table-delta
-
-* dealing with `pyarrow delta lake Exception: External error: Schema error: Duplicate field name` (according to the article this is a known bug): https://github.com/delta-io/delta-rs/issues/3943
-* deleting projects from google cloud console: https://stackoverflow.com/questions/16621921/how-to-delete-a-project-from-google-cloud-console
-* docs for youtube api: https://developers.google.com/youtube/v3/getting-started
-* https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository
