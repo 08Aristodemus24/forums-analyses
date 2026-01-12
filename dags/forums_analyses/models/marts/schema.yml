@@ -19,11 +19,11 @@ models:
                 values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
       - name: day_of_week
-        description: '{{ doc("dim_date__day_of_week") }}'
+        description: '{{ doc("day_of_week") }}'
         data_tests:
           - accepted_values:
               arguments:
-                values: [0, 1, 2, 3, 4, 5, 6, 7]
+                values: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
   - name: dim_reddit_users
     description: "dimension table for distinct reddit users"

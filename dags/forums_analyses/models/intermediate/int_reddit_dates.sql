@@ -33,29 +33,52 @@ all_unique_dates AS (
 
     SELECT date_actual 
     FROM unique_post_dates
-)
+),
 
+reformated_dates AS (
+    SELECT
+        date_actual,
+        
+        -- Generate the surrogate key (e.g., YYYYMMDD)
+        CAST(TO_CHAR(date_actual, 'YYYYMMDD') AS INT) AS date_id,
+
+        -- Basic date attributes
+        EXTRACT(YEAR FROM date_actual) AS calendar_year,
+        EXTRACT(MONTH FROM date_actual) AS calendar_month_num,
+        EXTRACT(DAY FROM date_actual) AS calendar_day,
+        
+        -- Day of week attributes
+        DAYNAME(date_actual) AS day_of_week,
+        CASE
+            -- if 0 or 6 it means sunday and saturday respectively
+            -- 0, 1, 2, 3, 4, 5, 6 represent sunday to monday
+            WHEN DAYOFWEEK(date_actual) IN (0, 6) THEN TRUE ELSE FALSE 
+        END AS is_weekend
+        
+    FROM all_unique_dates
+)
 -- Final output with core attributes derived from the date
 SELECT
-    date_actual,
-    
-    -- Generate the surrogate key (e.g., YYYYMMDD)
-    CAST(TO_CHAR(date_actual, 'YYYYMMDD') AS INT) AS date_id,
-
-    -- Basic date attributes
-    EXTRACT(YEAR FROM date_actual) AS calendar_year,
-    EXTRACT(MONTH FROM date_actual) AS calendar_month,
-    EXTRACT(DAY FROM date_actual) AS calendar_day,
-    
-    -- Day of week attributes
-    DAYNAME(date_actual) AS day_of_week,
-    CASE
-        -- if 0 or 6 it means sunday and saturday respectively
-        -- 0, 1, 2, 3, 4, 5, 6 represent sunday to monday
-        WHEN DAYOFWEEK(date_actual) IN (0, 6) THEN TRUE ELSE FALSE 
-    END AS is_weekend
-    
-FROM all_unique_dates
+    date_id,
+    calendar_year,
+    CASE 
+        WHEN calendar_month_num = 1 THEN 'January'
+        WHEN calendar_month_num = 2 THEN 'February'
+        WHEN calendar_month_num = 3 THEN 'March'
+        WHEN calendar_month_num = 4 THEN 'April'
+        WHEN calendar_month_num = 5 THEN 'May'
+        WHEN calendar_month_num = 6 THEN 'June'
+        WHEN calendar_month_num = 7 THEN 'July'
+        WHEN calendar_month_num = 8 THEN 'August'
+        WHEN calendar_month_num = 9 THEN 'September'
+        WHEN calendar_month_num = 10 THEN 'October'
+        WHEN calendar_month_num = 11 THEN 'November'
+        WHEN calendar_month_num = 12 THEN 'December'
+        ELSE NULL
+    END As calendar_month,
+    day_of_week,
+    is_weekend
+FROM reformated_dates
 ORDER BY date_actual
 
 -- question is would hour at least matter in analyses of comments and posts?
