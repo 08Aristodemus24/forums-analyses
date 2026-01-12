@@ -76,7 +76,7 @@ SELECT
         WHEN calendar_month_num = 11 THEN 'November'
         WHEN calendar_month_num = 12 THEN 'December'
         ELSE NULL
-    END As calendar_month,
+    END AS calendar_month,
     calendar_day,
     day_of_week,
     is_weekend
