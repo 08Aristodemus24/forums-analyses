@@ -23,3 +23,12 @@ SELECT date_actual FROM dim_reddit_dates;
 
 SELECT * FROM stg_youtube_videos;
 SELECT * FROM stg_youtube_videos_comments;
+
+SELECT
+    video_title,
+    video_description,
+
+    -- basic transformations
+    t.value
+FROM stg_youtube_videos syv,
+LATERAL FLATTEN(input => syv.video_tags) t;
