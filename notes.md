@@ -4091,7 +4091,91 @@ According to gemini:
 
 
 
-## Data Engineering 
+## Data Engineering
+* The core difference is that a NATURAL LEFT JOIN automatically finds and joins tables on all columns that share the same name, whereas a standard LEFT JOIN requires you to explicitly specify the join condition using the ON or USING clause. 
+
+- LEFT JOIN (or LEFT OUTER JOIN)
+Explicit Condition: You must explicitly define which columns to join on using an ON or USING clause in your SQL statement.
+Resulting Columns: The output includes all columns from both tables, including the common columns from both sides (unless you explicitly select otherwise).
+Function: It returns all rows from the left table and the matched rows from the right table. If no match is found for a left row, the right-table columns will contain NULL values. 
+Example:
+sql
+SELECT name, lastname, dept.id, dept_name
+FROM empl
+LEFT JOIN dept ON empl.dept_id = dept.id;
+
+- NATURAL LEFT JOIN (or NATURAL LEFT OUTER JOIN)
+Implicit Condition: The database engine automatically joins the two tables based on all columns that have both the same name and the same data type in both tables.
+Resulting Columns: The output includes the common columns only once.
+Function: It performs a left outer join operation, returning all rows from the left table and matching rows from the right, but the join conditions are inferred automatically by the system. 
+Example:
+sql
+SELECT *
+FROM empl
+NATURAL LEFT JOIN dept;
+
+* when the window function now builds the column just like how we normally select tables and then filter after, qualify uses this column built by the window function as a filter but you may say why not just use `where` clause? Well because that is not permitted:
+
+this:
+```
+SELECT employee_id, department, salary,
+       RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS rank
+FROM employees
+WHERE rank <= 3;
+```
+
+cannot be done as it will result in a syntax error so we always have to use a CTE which can be hard to read at times:
+```
+/* First we have to rank all the employees */
+WITH ranked_employees AS (
+SELECT employee_id, department, salary,
+       RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS rank
+FROM employees)
+
+/* Then we query to subquery and filter using WHERE */
+SELECT *
+FROM ranked_employees
+WHERE rank <= 3;
+```
+
+as an alternative the QUALIFY clause has specifically been created for this use case so that code can be easily readable without the need for CTEs
+```
+SELECT employee_id, department, salary,
+       RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS rank
+FROM employees
+QUALIFY rank <= 3;
+```
+
+if ever we wanted to deduplicate rows from a table we wouldn't need a window function inside a CTE and use the column the window function created for filtering with the where clause anymore as we can directly do it with qualify
+```
+SELECT 
+order_id, 
+customer_id, 
+order_date,
+ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY order_date) AS row_num
+FROM orders
+QUALIFY row_num = 1;
+```
+
+we can also do it with something like this:
+```
+SELECT 
+* 
+FROM import_stage
+QUALIFY 1 = ROW_NUMBER() OVER(PARTITION BY request_id ORDER BY _fivetran_synced desc)
+```
+this simply means implicitly create a 
+
+* The core difference is how they handle unmatched rows: a JOIN (specifically, an INNER JOIN) only returns rows with matches in both tables, while a LEFT JOIN returns all rows from the left table, regardless of whether a match exists in the right table. 
+Inner Join (JOIN or INNER JOIN) 
+Purpose: To return only the records that have matching values in both tables involved in the join.
+Result Set: The result set is an intersection of the two tables based on the join condition. Rows from either table that do not have a corresponding match in the other table are excluded entirely.
+When to use: Use when you need a result set where every record has complete, matching information from all joined tables, such as finding all employees currently enrolled in a specific class. 
+Left Join (LEFT JOIN or LEFT OUTER JOIN) 
+Purpose: To return all records from the left table (the first table specified in the FROM clause) and only the matching records from the right table.
+Result Set: All rows from the left table are preserved. If no match is found in the right table, the columns for the right table will contain NULL values for that row.
+When to use: Use when you want to retrieve all records from a primary table (e.g., all customers) and optionally include related data from another table (e.g., their orders), even if some customers haven't placed an order.
+
 * Using delta over parquet
 
 Wait so may realization ako kasi meron I told you about my project about scraping forum posts and commemts from reddit, Quora and basically it runs on a daily to scrape posts and dump it into a parquet file in S3 kaya lang everyday that it runs na ooverwrite yung previous state nya so yung dating rows of the data nawawala na and are basically overwitten by nrw rows for the new day. And this repeats daily, and yung gusto ko sana is a way to append new rows to these already existing rows in the parquet file, and if wala pa yung parquet file sa s3 then create it. And yung realization ko is hmm I heard open table formats like delta lake and apache iceberg can basically have ACID like transactions on tables living in the date lake, so if kunwari may parquet table in s3 I can just basically insert new rows to this table without having to manually read the file in s3 turn in to some kind of data frame check and compare it against the newly scraped rows and append it and then write it to s3 again. Is my understanding of delta lake and open table formats sound in this situation?

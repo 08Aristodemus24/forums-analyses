@@ -24,11 +24,12 @@ SELECT date_actual FROM dim_reddit_dates;
 SELECT * FROM stg_youtube_videos;
 SELECT * FROM stg_youtube_videos_comments;
 
+-- this basically does a 
 SELECT
     video_title,
     video_description,
 
     -- basic transformations
-    t.value
+    t.value AS video_tag
 FROM stg_youtube_videos,
 LATERAL FLATTEN(input => video_tags) t;
