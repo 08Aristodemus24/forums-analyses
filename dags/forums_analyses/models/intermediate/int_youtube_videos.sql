@@ -19,4 +19,4 @@ SELECT
     made_for_kids,
     video_created_at,
     added_at
-FROM {{ref("stg_youtube_videos")}}
+FROM {{ ref("stg_youtube_videos") }}
