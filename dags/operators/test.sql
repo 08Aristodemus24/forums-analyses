@@ -20,3 +20,6 @@ FROM raw_youtube_videos_comments
 LIMIT 10;
 
 SELECT date_actual FROM dim_reddit_dates;
+
+SELECT * FROM stg_youtube_videos;
+SELECT * FROM stg_youtube_videos_comments;
