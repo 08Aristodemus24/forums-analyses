@@ -29,7 +29,7 @@ all_unique_dates AS (
     SELECT date_actual 
     FROM unique_comment_dates
     
-    UNION BY NAME
+    UNION
 
     SELECT date_actual 
     FROM unique_post_dates

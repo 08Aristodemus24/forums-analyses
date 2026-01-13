@@ -8,12 +8,12 @@
 
 SELECT
     DISTINCT
-    comment_author_username AS username,
-    comment_author_id_full AS user_id
+    comment_author_id_full AS user_id,
+    comment_author_username AS username
 FROM {{ ref('stg_reddit_posts_comments') }}
 WHERE comment_author_id_full IS NOT NULL
 
-UNION BY NAME
+UNION
 
 SELECT
     DISTINCT
