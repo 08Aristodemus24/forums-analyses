@@ -30,5 +30,5 @@ SELECT
 
     -- basic transformations
     t.value
-FROM stg_youtube_videos syv,
-LATERAL FLATTEN(input => syv.video_tags) t;
+FROM stg_youtube_videos,
+LATERAL FLATTEN(input => video_tags) t;
