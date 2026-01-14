@@ -4166,6 +4166,25 @@ QUALIFY 1 = ROW_NUMBER() OVER(PARTITION BY request_id ORDER BY _fivetran_synced 
 ```
 this simply means implicitly create a 
 
+* ah ok so to better understand why a `LATERAL FLATTEN (input => <col>) t` is aliased as t it is because what were essentially doing is a cross join which is akin to:
+```
+SELECT
+a.col
+b.col
+FROM table1 a
+CROSS JOIN table2 b
+```
+
+or
+
+```
+SELECT 
+a.col
+b.col
+FROM table1 a,
+table b
+```
+
 * The core difference is how they handle unmatched rows: a JOIN (specifically, an INNER JOIN) only returns rows with matches in both tables, while a LEFT JOIN returns all rows from the left table, regardless of whether a match exists in the right table. 
 Inner Join (JOIN or INNER JOIN) 
 Purpose: To return only the records that have matching values in both tables involved in the join.
