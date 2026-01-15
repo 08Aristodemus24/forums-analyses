@@ -4092,6 +4092,8 @@ According to gemini:
 
 
 ## Data Engineering
+* Snowflake like DuckDB also has a `SELECT * EXCLUDE(<col 1>, <col 2>, ..., <col n>)` that we can use to exclude columns from our `SELECT` statement without having to write every other column that we need
+
 * The core difference is that a NATURAL LEFT JOIN automatically finds and joins tables on all columns that share the same name, whereas a standard LEFT JOIN requires you to explicitly specify the join condition using the ON or USING clause. 
 
 - LEFT JOIN (or LEFT OUTER JOIN)
