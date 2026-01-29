@@ -33,8 +33,8 @@ SELECT
     rc.comment_parent_id_full,
     rc.comment_body,
     rc.added_at,
-    rc.probability,
-    rc.sentiment,
+    rc.comment_sentiment_score,
+    rc.comment_sentiment_label,
 
     -- foreign keys that refer to our dim tables
     rd.date_id,

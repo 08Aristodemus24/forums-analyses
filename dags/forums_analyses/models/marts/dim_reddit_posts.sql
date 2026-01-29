@@ -27,8 +27,8 @@ SELECT
     -- post_created_at,
     rp.post_edited_at,
     rp.added_at,
-    rp.probability,
-    rp.sentiment,
+    rp.post_sentiment_score,
+    rp.post_sentiment_label,
 
     rd.date_id,
     ru.user_id

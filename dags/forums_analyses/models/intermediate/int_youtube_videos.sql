@@ -54,32 +54,35 @@ added_features_refined AS (
         *,
         -- convert title sentiment probability to human 
         -- readable values
-        {{ get_sentiment_label(title_sentiment_score) }} AS title_sentiment_label,
-        {{ get_sentiment_label(description_sentiment_score) }} AS description_sentiment_label
+        {{ get_sentiment_label('title_sentiment_score') }} AS title_sentiment_label,
+        {{ get_sentiment_label('description_sentiment_score') }} AS description_sentiment_label
+    FROM added_features
 ),
 
 flattened_tags AS (
     SELECT
         -- get all columns but exclude
-        the video tags column with which video tag was
-        derived through flattening
+        -- the video tags column with which video tag was
+        -- derived through flattening
         * EXCLUDE(video_tags),
 
         -- basic transformations
         t.value AS video_tag
-    FROM forums_analyses_db.forums_analyses_bronze.stg_youtube_videos syv,
-    LATERAL FLATTEN(input => syv.video_tags) t
-    WHERE syv.video_id = '34Na4j8AVgA'
+    FROM added_features_refined afr,
+    LATERAL FLATTEN(input => afr.video_tags) t
+    WHERE afr.video_id = '34Na4j8AVgA'
 ),
 
 final AS (
-    *,
-    CASE 
-        WHEN duration_seconds < 60 THEN 'Short'
-        WHEN duration_seconds BETWEEN 60 AND 600 THEN 'Medium'
-        WHEN duration_seconds > 600 THEN 'Long'
-        ELSE 'Infinite'
-    END AS duration_bucket
+    SELECT
+        *,
+        CASE 
+            WHEN duration_seconds < 60 THEN 'Short'
+            WHEN duration_seconds BETWEEN 60 AND 600 THEN 'Medium'
+            WHEN duration_seconds > 600 THEN 'Long'
+            ELSE 'Infinite'
+        END AS duration_bucket
+    FROM flattened_tags
 )
 
 select * from final
