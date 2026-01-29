@@ -2,7 +2,7 @@
 -- those that made comments/replies
 {{
     config(
-        materialized='view',
+        materialized='ephemeral',
     )
 }}
 

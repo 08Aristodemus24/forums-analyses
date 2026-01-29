@@ -4187,6 +4187,8 @@ FROM table1 a,
 table b
 ```
 
+
+
 * The core difference is how they handle unmatched rows: a JOIN (specifically, an INNER JOIN) only returns rows with matches in both tables, while a LEFT JOIN returns all rows from the left table, regardless of whether a match exists in the right table. 
 Inner Join (JOIN or INNER JOIN) 
 Purpose: To return only the records that have matching values in both tables involved in the join.

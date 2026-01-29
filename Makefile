@@ -15,7 +15,7 @@ do-sleep:
 
 # docker exec forums-analyses_00fc64-api-server-1 python /usr/local/airflow/include/scripts/setup_conn.py
 setup-conn:
-	docker exec forums-analyses_8585f6-api-server-1 python /usr/local/airflow/include/scripts/setup_conn.py
+	docker exec forums-analyses_fcb9ce-api-server-1 python /usr/local/airflow/include/scripts/setup_conn.py
 
 up: start-containers do-sleep setup-conn
 
@@ -26,7 +26,7 @@ down:
 # the (kafka) broker, schema-registry, control-center, 
 # and the zookeeper
 sh-airflow:
-	docker exec -it forums-analyses_00fc64-api-server-1 bash
+	docker exec -it forums-analyses_fcb9ce-api-server-1 bash
 
 restart:
 	astro dev restart

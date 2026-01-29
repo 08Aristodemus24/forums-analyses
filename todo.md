@@ -670,6 +670,8 @@ ORDER BY avg_views DESC
 Why this approach works:
 Duration Analysis: By converting PT1M30S to 90 seconds, you can finally create buckets like "Shorts" (<60s), "Medium" (1-5m), and "Long-form" (>5m).
 
+or we can actually bucket this by < 60 then it would be a short, if 60 <= x <= 600 (10 min) then it would be medium and more than 10 minutes would be long form content 
+
 Summary vs. Description: SNOWFLAKE.CORTEX.SUMMARIZE removes the "follow me on Instagram" junk and extracts the core topic.
 
 Auditability: You keep the raw counts but add like_view_ratio, which is a much better metric for "video quality" than raw view counts.

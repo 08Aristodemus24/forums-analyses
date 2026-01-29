@@ -2,10 +2,9 @@
 -- posts and those that made comments and replies
 {{
     config(
-        materialized='view',
+        materialized='ephemeral',
     )
 }}
-
 -- Get unique dates from the comments staging table
 WITH unique_comment_dates AS (
     SELECT 

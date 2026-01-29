@@ -652,3 +652,46 @@ SELECT SYSTEM$PIPE_STATUS('reddit_posts_pipe');
 SELECT SYSTEM$PIPE_STATUS('reddit_posts_comments_pipe');
 SELECT SYSTEM$PIPE_STATUS('youtube_videos_pipe');
 SELECT SYSTEM$PIPE_STATUS('youtube_videos_comments_pipe');
+
+
+
+SELECT
+    syv.video_id,
+    syv.video_title,
+    syv.video_description,
+
+    -- basic transformations
+    t.value AS video_tag
+FROM forums_analyses_db.forums_analyses_bronze.stg_youtube_videos syv,
+LATERAL FLATTEN(input => video_tags) t
+WHERE video_id = '34Na4j8AVgA';
+
+
+SELECT
+    -- get all columns
+    * EXCLUDE(video_tags),
+
+    -- basic transformations
+    t.value AS video_tag
+FROM forums_analyses_db.forums_analyses_bronze.stg_youtube_videos syv,
+LATERAL FLATTEN(input => syv.video_tags) t
+WHERE syv.video_id = '34Na4j8AVgA';
+
+
+WITH test AS (
+    SELECT
+        REGEXP_SUBSTR(video_duration, '(\\d+)M', 1, 1, 'e')::INT * 60 +
+        REGEXP_SUBSTR(video_duration, '(\\d+)S', 1, 1, 'e')::INT AS 
+        duration_seconds
+    FROM forums_analyses_db.forums_analyses_bronze.stg_youtube_videos
+    WHERE video_id = '34Na4j8AVgA'
+)
+
+SELECT
+    CASE 
+        WHEN duration_seconds < 60 THEN 'Short'
+        WHEN duration_seconds BETWEEN 60 AND 600 THEN 'Medium'
+        WHEN duration_seconds > 600 THEN 'Long'
+        ELSE 'Infinite'
+    END AS duration_bucket
+FROM test;

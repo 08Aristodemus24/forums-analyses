@@ -1,7 +1,7 @@
 -- combine all dates in youtube dates and reddit dates
 {{
     config(
-        materialized='view',
+        materialized='ephemeral',
     )
 }}
 
