@@ -2,6 +2,14 @@ USE forums_analyses_db;
 USE forums_analyses_db.forums_analyses_bronze;
 
 
+SELECT 
+    user_id, comment_upvotes
+FROM fct_reddit_comments;
+
+SELECT
+    *
+FROM dim_reddit_users;
+
 SELECT
     COUNT(*),
     video_id,

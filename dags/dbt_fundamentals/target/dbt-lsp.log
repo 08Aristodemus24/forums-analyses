@@ -1218,3 +1218,79 @@ describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."PAYMENTS"
 03:55:15.308764 [info ]: Cached model count updated: 3 models (accurate)
 03:57:40.988729 [info ]: Started loading project
 03:57:40.989026 [info ]: Finished loading project [  0.00s]
+==================== 2026-02-02T02:28:00.779869Z | 10a085e5-6c2c-4cf2-ba2f-8b502d313f8b ====================
+02:28:00.780130 [info ]: Starting dbt LSP server
+02:28:00.780274 [info ]: Connecting to LSP client on port 8000
+02:28:00.794429 [info ]: Successfully connected to LSP client
+02:28:00.794489 [info ]: Creating LSP service...
+02:28:00.960584 [info ]: Creating LSP server...
+02:28:00.960636 [info ]: Starting LSP server...
+02:28:01.114340 [info ]: Started loading project
+02:28:01.127622 [info ]: Loading ~/.dbt/profiles.yml
+02:28:01.440873 [debug]:    Started loading packages
+02:28:01.460445 [debug]:     Loaded [  0.02s] packages
+02:28:01.460580 [debug]:    Started loading internal packages
+02:28:01.511854 [info ]: Loading ~/.dbt/profiles.yml
+02:28:01.540949 [debug]:     Loaded [  0.08s] internal packages
+02:28:01.541774 [info ]: Started parsing
+02:28:04.269114 [info ]: Finished loading project [  3.15s]
+02:28:04.509648 [info ]: Finished parsing [  2.97s]
+02:28:04.511775 [info ]: Cached model count updated: 3 models (estimate)
+02:28:04.511815 [info ]: Cached model count updated: 3 models (accurate)
+02:28:04.512011 [info ]: Started scheduling
+02:28:04.512564 [info ]: Finished scheduling [  0.00s]
+02:28:04.514325 [info ]: Started deferring state
+02:28:04.514405 [info ]: Finished deferring state [  0.00s]
+02:28:04.518969 [info ]: Started downloading schemas
+02:28:04.519296 [debug]: Started downloading relations
+02:28:04.519482 [debug]: Finished downloading relations [  0.00s]
+02:28:07.195591 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."CUSTOMERS"
+02:28:07.799070 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."ORDERS"
+02:28:08.121560 [debug]: Query executed on node unknown:
+describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."PAYMENTS"
+02:28:08.800756 [info ]: Started building task graph
+02:28:08.801665 [info ]: Finished building task graph [  0.00s]
+02:28:08.802726 [info ]: Started rendering (6 nodes)
+02:28:08.802866 [info ]: Started seed FORUMS_ANALYSES_BRONZE.payments
+02:28:08.802971 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.payments
+02:28:08.803055 [info ]: Started seed FORUMS_ANALYSES_BRONZE.orders
+02:28:08.803068 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.orders
+02:28:08.803087 [info ]: Started seed FORUMS_ANALYSES_BRONZE.customers
+02:28:08.803099 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.customers
+02:28:08.803157 [info ]: Finished downloading schemas [  4.28s]
+02:28:08.803178 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+02:28:08.803198 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+02:28:08.803232 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+02:28:08.803243 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+02:28:08.803260 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+02:28:08.803281 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+02:28:08.823565 [info ]: Started analyzing (6 nodes)
+02:28:08.823619 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+02:28:08.823752 [debug]: Finished rendering [  0.02s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments [success]
+02:28:08.825053 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+02:28:08.825204 [debug]: Finished rendering [  0.02s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders [success]
+02:28:08.826222 [debug]: Finished rendering [  0.02s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers [success]
+02:28:08.826322 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+02:28:08.856257 [debug]: Finished rendering [  0.05s] seed FORUMS_ANALYSES_BRONZE.customers [success]
+02:28:08.856333 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.customers
+02:28:08.856367 [debug]: Finished rendering [  0.05s] seed FORUMS_ANALYSES_BRONZE.orders [success]
+02:28:08.856386 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.orders
+02:28:08.856547 [info ]:  Succeeded [  0.05s] seed  FORUMS_ANALYSES_BRONZE.orders (table)
+02:28:08.856599 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.orders [success]
+02:28:08.856620 [info ]:  Succeeded [  0.05s] seed  FORUMS_ANALYSES_BRONZE.customers (table)
+02:28:08.856632 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.customers [success]
+02:28:08.857187 [debug]: Finished rendering [  0.05s] seed FORUMS_ANALYSES_BRONZE.payments [success]
+02:28:08.857210 [info ]: Finished rendering [  0.05s] (6 nodes, 0 skipped, 0 errors)
+02:28:08.857241 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.payments
+02:28:08.857278 [info ]:  Succeeded [  0.05s] seed  FORUMS_ANALYSES_BRONZE.payments (table)
+02:28:08.857294 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.payments [success]
+02:28:08.952068 [info ]:  Succeeded [  0.15s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders (view)
+02:28:08.952147 [debug]: Finished analyzing [  0.13s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders [success]
+02:28:08.952195 [info ]:  Succeeded [  0.15s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments (view)
+02:28:08.952218 [debug]: Finished analyzing [  0.13s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments [success]
+02:28:08.952251 [info ]:  Succeeded [  0.15s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers (view)
+02:28:08.952284 [debug]: Finished analyzing [  0.13s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers [success]
+02:28:08.952293 [info ]: Finished analyzing [  0.13s] (6 nodes, 0 skipped, 0 errors)
+02:28:08.962207 [info ]: Cached model count updated: 3 models (accurate)
