@@ -11,7 +11,7 @@ if [ $1 == "setup" ]; then
 
 elif [ $1 == "destroy" ]; then
     echo "Initiating infrastructure destruction"
-    terraform destroy -auto-approve
+    terraform destroy -auto-approve --var-file=credentials.tfvars
 
 elif [ $1 == "plan" ]; then
     echo "Running plan before infrastructure build"

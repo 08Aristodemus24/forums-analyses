@@ -1294,3 +1294,93 @@ describe table "FORUMS_ANALYSES_DB"."FORUMS_ANALYSES_BRONZE"."PAYMENTS"
 02:28:08.952284 [debug]: Finished analyzing [  0.13s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers [success]
 02:28:08.952293 [info ]: Finished analyzing [  0.13s] (6 nodes, 0 skipped, 0 errors)
 02:28:08.962207 [info ]: Cached model count updated: 3 models (accurate)
+==================== 2026-02-12T01:07:19.885991Z | 4ac564ce-4cd0-441d-8807-40a57280e818 ====================
+01:07:19.886119 [info ]: Starting dbt LSP server
+01:07:19.886184 [info ]: Connecting to LSP client on port 8000
+01:07:19.890802 [info ]: Successfully connected to LSP client
+01:07:19.890816 [info ]: Creating LSP service...
+01:07:19.938423 [info ]: Creating LSP server...
+01:07:19.938447 [info ]: Starting LSP server...
+01:07:20.004269 [info ]: Started loading project
+01:07:20.026287 [info ]: Loading ~/.dbt/profiles.yml
+01:07:20.199596 [debug]:    Started loading packages
+01:07:20.208890 [debug]:     Loaded [  0.01s] packages
+01:07:20.209083 [debug]:    Started loading internal packages
+01:07:20.240176 [debug]:     Loaded [  0.03s] internal packages
+01:07:20.241142 [info ]: Started parsing
+01:07:20.635733 [info ]: Loading ~/.dbt/profiles.yml
+01:07:21.721542 [info ]: Finished loading project [  1.72s]
+01:07:21.724956 [debug]: Finished parsing models\staging\jaffle_shop\schema.yml [  0.00s]
+01:07:21.725893 [debug]: Finished parsing models\staging\jaffle_shop\sources.yml [  0.00s]
+01:07:21.726621 [debug]: Finished parsing models\staging\stripe\schema.yml [  0.00s]
+01:07:21.727313 [debug]: Finished parsing models\staging\stripe\sources.yml [  0.00s]
+01:07:21.735669 [debug]: Finished parsing models\staging\jaffle_shop\stg_jaffle_shop__customers.sql [  0.00s]
+01:07:21.737181 [debug]: Finished parsing models\staging\jaffle_shop\stg_jaffle_shop__orders.sql [  0.00s]
+01:07:21.753938 [debug]: Finished parsing models\staging\stripe\stg_stripe__payments.sql [  0.02s]
+01:07:21.754633 [debug]: Finished parsing tests\assert_stg_stripe__payments_total_positive.sql [  0.00s]
+01:07:21.771957 [debug]: Finished parsing target\generic_tests\not_null_stg_jaffle_shop__customers_customer_id.sql [  0.02s]
+01:07:21.790592 [debug]: Finished parsing target\generic_tests\unique_stg_jaffle_shop__customers_customer_id.sql [  0.02s]
+01:07:21.834900 [debug]: Finished parsing target\generic_tests\relationships_stg_jaffle_shop__69c2006accf24d593d7f144684ebb92c.sql [  0.04s]
+01:07:21.865061 [debug]: Finished parsing target\generic_tests\not_null_stg_jaffle_shop__orders_order_id.sql [  0.03s]
+01:07:21.885216 [debug]: Finished parsing target\generic_tests\unique_stg_jaffle_shop__orders_order_id.sql [  0.02s]
+01:07:21.910813 [debug]: Finished parsing target\generic_tests\accepted_values_stg_jaffle_sho_d3a5204212554f546cb0bdbf57760d0a.sql [  0.03s]
+01:07:21.942985 [debug]: Finished parsing target\generic_tests\not_null_stg_stripe__payments_payment_id.sql [  0.03s]
+01:07:21.964197 [debug]: Finished parsing target\generic_tests\unique_stg_stripe__payments_payment_id.sql [  0.02s]
+01:07:21.990950 [debug]: Finished parsing target\generic_tests\accepted_values_stg_stripe__pa_63731f44c73bd975d0ab458213836406.sql [  0.03s]
+01:07:21.992121 [info ]: Finished parsing [  1.75s]
+01:07:21.994735 [info ]: Cached model count updated: 3 models (estimate)
+01:07:21.994756 [info ]: Cached model count updated: 3 models (accurate)
+01:07:21.994848 [info ]: Started scheduling
+01:07:21.995111 [info ]: Finished scheduling [  0.00s]
+01:07:21.995267 [debug]: Initializing schema store with entry: Frontier(CanonicalFqn { catalog: "FORUMS_ANALYSES_DB", schema: "FORUMS_ANALYSES_BRONZE", table: "CUSTOMERS" }) and interval: None
+01:07:21.995368 [debug]: Initializing schema store with entry: Frontier(CanonicalFqn { catalog: "FORUMS_ANALYSES_DB", schema: "FORUMS_ANALYSES_BRONZE", table: "PAYMENTS" }) and interval: None
+01:07:21.995544 [debug]: Initializing schema store with entry: Frontier(CanonicalFqn { catalog: "FORUMS_ANALYSES_DB", schema: "FORUMS_ANALYSES_BRONZE", table: "ORDERS" }) and interval: None
+01:07:21.996384 [info ]: Started deferring state
+01:07:21.996418 [info ]: Finished deferring state [  0.00s]
+01:07:21.998444 [info ]: Started downloading schemas
+01:07:21.998561 [debug]: Started downloading relations
+01:07:21.998646 [debug]: Finished downloading relations [  0.00s]
+01:07:21.998672 [info ]: Finished downloading schemas [  0.00s]
+01:07:22.232847 [info ]: Started building task graph
+01:07:22.233140 [info ]: Finished building task graph [  0.00s]
+01:07:22.233913 [info ]: Started rendering (6 nodes)
+01:07:22.233978 [info ]: Started seed FORUMS_ANALYSES_BRONZE.payments
+01:07:22.234032 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.payments
+01:07:22.234066 [info ]: Started seed FORUMS_ANALYSES_BRONZE.orders
+01:07:22.234071 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.orders
+01:07:22.234086 [info ]: Started seed FORUMS_ANALYSES_BRONZE.customers
+01:07:22.234091 [debug]: Started rendering seed FORUMS_ANALYSES_BRONZE.customers
+01:07:22.296427 [debug]: Finished rendering [  0.06s] seed FORUMS_ANALYSES_BRONZE.orders [success]
+01:07:22.296530 [info ]: Started analyzing (6 nodes)
+01:07:22.296557 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.orders
+01:07:22.296586 [debug]: Finished rendering [  0.06s] seed FORUMS_ANALYSES_BRONZE.payments [success]
+01:07:22.296601 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.payments
+01:07:22.296752 [info ]:  Succeeded [  0.06s] seed  FORUMS_ANALYSES_BRONZE.payments (table)
+01:07:22.296798 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.payments [success]
+01:07:22.296834 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+01:07:22.296847 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+01:07:22.296868 [info ]:  Succeeded [  0.06s] seed  FORUMS_ANALYSES_BRONZE.orders (table)
+01:07:22.296881 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.orders [success]
+01:07:22.296900 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+01:07:22.296907 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+01:07:22.299137 [debug]: Finished rendering [  0.07s] seed FORUMS_ANALYSES_BRONZE.customers [success]
+01:07:22.299205 [debug]: Started analyzing seed FORUMS_ANALYSES_BRONZE.customers
+01:07:22.299257 [info ]:  Succeeded [  0.07s] seed  FORUMS_ANALYSES_BRONZE.customers (table)
+01:07:22.299286 [debug]: Finished analyzing [  0.00s] seed FORUMS_ANALYSES_BRONZE.customers [success]
+01:07:22.299317 [info ]: Started model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+01:07:22.299335 [debug]: Started rendering model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+01:07:22.320467 [debug]: Finished rendering [  0.02s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments [success]
+01:07:22.320528 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_stripe__payments
+01:07:22.320693 [debug]: Finished rendering [  0.02s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders [success]
+01:07:22.320743 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders
+01:07:22.321316 [debug]: Finished rendering [  0.02s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers [success]
+01:07:22.321340 [info ]: Finished rendering [  0.09s] (6 nodes, 0 skipped, 0 errors)
+01:07:22.321371 [debug]: Started analyzing model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers
+01:07:22.441085 [info ]:  Succeeded [  0.14s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders (view)
+01:07:22.441518 [debug]: Finished analyzing [  0.12s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__orders [success]
+01:07:22.461004 [info ]:  Succeeded [  0.16s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers (view)
+01:07:22.461056 [debug]: Finished analyzing [  0.14s] model FORUMS_ANALYSES_BRONZE.stg_jaffle_shop__customers [success]
+01:07:22.464800 [info ]:  Succeeded [  0.17s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments (view)
+01:07:22.464852 [debug]: Finished analyzing [  0.14s] model FORUMS_ANALYSES_BRONZE.stg_stripe__payments [success]
+01:07:22.464864 [info ]: Finished analyzing [  0.17s] (6 nodes, 0 skipped, 0 errors)
+01:07:22.468480 [info ]: Cached model count updated: 3 models (accurate)
